@@ -122,10 +122,12 @@ class _ResultsListState extends State<ResultsList> {
                 elevation: 3,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12.5),
-                    side: isSelected
+                    side: isSelected && appConfig_highlightSelection
                         ? const BorderSide(color: AppColors.primaryShiny, width: 3.0)
                         : BorderSide.none),
-                child: ListTile(
+                child:
+                    // region LisTile
+                    ListTile(
                   minVerticalPadding: 30,
                   shape:
                       RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.5)),
@@ -155,9 +157,11 @@ class _ResultsListState extends State<ResultsList> {
                           .pOnly(right: width * 0.25, top: 10)
                       : null,
                 ).px(15),
+                // endregion child
               ),
             ),
-            if (isSelected)
+
+            if (isSelected && appConfig_highlightSelection)
               Icons.check_circle_rounded
                   .icon(color: AppColors.primaryShiny, size: 30)
                   .pad(20)

@@ -186,6 +186,26 @@ class _ResultsScreenState extends State<ResultsScreen> {
               },
             ),
             20.verticalSpace,
+
+            // Builder(builder: (context) {
+            //   // var i = categories.indexWhere((cat) => cat == selectedCategory);
+            //   // var title = i == 3 ? 'Finish' : "(${i + 1}/4) Next";
+            //   var title = 'Create Another Product';
+            //   return CustomButton(
+            //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            //     backgroundColor: AppColors.primaryShiny,
+            //     title: title,
+            //     width: 240,
+            //     height: 50,
+            //     onPressed: () {
+            //       // if (i != 3) {
+            //       //   selectedCategory = categories[i + 1];
+            //       // } else {}
+            //       // setState(() {});
+            //     },
+            //   );
+            // }),
+
           ],
         ).singleChildScrollView);
   }
