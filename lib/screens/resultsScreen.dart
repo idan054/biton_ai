@@ -1,6 +1,7 @@
 import 'package:biton_ai/common/extensions/string_ext.dart';
 import 'package:biton_ai/common/extensions/widget_ext.dart';
 import 'package:biton_ai/widgets/resultsCategoriesList.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -70,21 +71,12 @@ class ResultsScreen extends StatefulWidget {
 }
 
 class _ResultsScreenState extends State<ResultsScreen> {
-  var categoryList = const [
-    ResultCategory.googleResults,
-    ResultCategory.titles,
-    ResultCategory.shortDesc,
-    ResultCategory.longDesc,
-  ];
-  var selectedCategory = ResultCategory.googleResults;
-
-  bool isFinish = false;
-  bool reSelectMode = false; // When user deselect to choose again
   var inputController = TextEditingController(text: 'Nike Air Max 90');
 
   List<ResultItem> selectedResults = [];
   List<ResultItem> currentResults = [...googleResults];
 
+  ResultItem? lastSelectedResult; // For restore when re-pick
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -95,61 +87,25 @@ class _ResultsScreenState extends State<ResultsScreen> {
           Column(
             children: [
               // 'listTitle'.toText(fontSize: 22, bold: true).px(15).py(5).centerLeft,
-              TextField(
-                controller: inputController,
-                style: const TextStyle(
-                    color: Colors.black, fontWeight: FontWeight.bold, fontSize: 22),
-                decoration: InputDecoration(
-                    enabledBorder: const OutlineInputBorder(borderSide: BorderSide.none),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: AppColors.greyLight),
-                      borderRadius: BorderRadius.circular(3),
-                    ),
-                    hintText: 'Enter full product name',
-                    // hintStyle: const
-                    suffixIcon: CircleAvatar(
-                            radius: 20,
-                            backgroundColor: AppColors.greyLight,
-                            child: Icons.border_color_rounded
-                                .icon(color: AppColors.primaryShiny, size: 20)
-                                .center)
-                        .px(12)
-                        .py(12)
-                    // .onTap(() {}),
-                    ),
-              ).pOnly(top: 20),
+              buildUserInput().pOnly(top: 20),
               Divider(color: AppColors.greyLight, thickness: 1, height: 0),
 
-              // Summarize
-              // ResultsList(
-              //     resultsMode: true,
-              //     results: selectedResults,
-              //     onSelect: (result) {
-              //       if (reSelectMode) return; // When already in
-              //
-              //       reSelectMode = true;
-              //       var i = categoryList.indexWhere((cat) => cat == selectedCategory);
-              //       var previousCategory = categoryList[i - 1];
-              //       selectedCategory = previousCategory;
-              //       selectedResults.remove(result);
-              //       _handleUpdateResultsList(result, reverse: true);
-              //       setState(() {});
-              //     }),
-
+              //~ Remove results:
               ResultsList(
-                results: titlesResults,
+                  resultsMode: true,
+                  results: selectedResults,
+                  onSelect: (result) {
+                    selectedResults.remove(result);
+                    _nextAvailableList();
+                  }),
+
+              //~  Add results:
+              ResultsList(
+                results: currentResults,
                 onSelect: (result) {
-                  // reSelectMode = false;
-                  // _handleUpdateResultsList(result);
-                  // // Before done
-                  // if (result.category != ResultCategory.longDesc) {
-                  //   var i = categoryList.indexWhere((cat) => cat == result.category);
-                  //   var nextCategory = categoryList[i + 1];
-                  //   selectedCategory = nextCategory;
-                  //   selectedResults.add(result);
-                  // }
-                  //
-                  // setState(() {});
+                  _removeIfAlreadySelected(result);
+                  selectedResults.add(result);
+                  _nextAvailableList();
                 },
               ),
             ],
@@ -159,17 +115,41 @@ class _ResultsScreenState extends State<ResultsScreen> {
     );
   }
 
-  void _handleUpdateResultsList(
-    ResultItem result, {
-    bool reverse = false,
-  }) {
-    if (result.category == ResultCategory.googleResults) {
-      currentResults = reverse ? googleResults : titlesResults;
-    } else if (result.category == ResultCategory.titles) {
-      currentResults = reverse ? titlesResults : shortDescResults;
-    } else if (result.category == ResultCategory.shortDesc) {
-      currentResults = reverse ? shortDescResults : longDescResults;
-    } else if (result.category == ResultCategory.longDesc) {}
+  void _removeIfAlreadySelected(ResultItem result) {
+    var sItem =
+        selectedResults.firstWhereOrNull((item) => item.category == result.category);
+    if (sItem != null) selectedResults.remove(sItem);
+  }
+
+  void _changeListByCategory(ResultCategory? category) {
+    if (category == ResultCategory.googleResults) {
+      currentResults = googleResults;
+    } else if (category == ResultCategory.titles) {
+      currentResults = titlesResults;
+    } else if (category == ResultCategory.shortDesc) {
+      currentResults = shortDescResults;
+    } else if (category == ResultCategory.longDesc) {
+      currentResults = longDescResults;
+    }
+
+    setState(() {});
+  }
+
+  void _nextAvailableList() {
+    var selectedCategories =
+        selectedResults.map((item) => item.category).toList(growable: true);
+
+    if (!selectedCategories.contains(ResultCategory.googleResults)) {
+      currentResults = googleResults;
+    } else if (!selectedCategories.contains(ResultCategory.titles)) {
+      currentResults = titlesResults;
+    } else if (!selectedCategories.contains(ResultCategory.shortDesc)) {
+      currentResults = shortDescResults;
+    } else if (!selectedCategories.contains(ResultCategory.longDesc)) {
+      currentResults = longDescResults;
+    }
+
+    setState(() {});
   }
 
   Drawer buildDrawer() {
@@ -182,8 +162,13 @@ class _ResultsScreenState extends State<ResultsScreen> {
             betterSeller.toText(fontSize: 25, bold: true).px(25).centerLeft,
             20.verticalSpace,
             ResultsCategoriesList(
-              categories: categoryList,
-              selectedCategory: selectedCategory,
+              categories: const [
+                ResultCategory.googleResults,
+                ResultCategory.titles,
+                ResultCategory.shortDesc,
+                ResultCategory.longDesc,
+              ],
+              selectedCategory: currentResults.first.category,
               categoriesNames: const [
                 'Google result',
                 'Product name',
@@ -197,31 +182,37 @@ class _ResultsScreenState extends State<ResultsScreen> {
                 Icons.description_rounded, // subject_rounded
               ],
               onSelect: (category) {
-                selectedCategory = category;
-                setState(() {});
-                // resultCategory
+                _changeListByCategory(category);
               },
             ),
             20.verticalSpace,
-
-            // Builder(builder: (context) {
-            //   var i = categories.indexWhere((cat) => cat == selectedCategory);
-            //   var title = i == 3 ? 'Finish' : "(${i + 1}/4) Next";
-            //   return CustomButton(
-            //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            //     backgroundColor: AppColors.primaryShiny,
-            //     title: title,
-            //     width: 240,
-            //     height: 50,
-            //     onPressed: () {
-            //       if (i != 3) {
-            //         selectedCategory = categories[i + 1];
-            //       } else {}
-            //       setState(() {});
-            //     },
-            //   );
-            // }),
           ],
         ).singleChildScrollView);
+  }
+
+  TextField buildUserInput() {
+    return TextField(
+      controller: inputController,
+      style:
+          const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 22),
+      decoration: InputDecoration(
+          enabledBorder: const OutlineInputBorder(borderSide: BorderSide.none),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: AppColors.greyLight),
+            borderRadius: BorderRadius.circular(3),
+          ),
+          hintText: 'Enter full product name',
+          // hintStyle: const
+          suffixIcon: CircleAvatar(
+                  radius: 20,
+                  backgroundColor: AppColors.greyLight,
+                  child: Icons.border_color_rounded
+                      .icon(color: AppColors.primaryShiny, size: 20)
+                      .center)
+              .px(12)
+              .py(12)
+          // .onTap(() {}),
+          ),
+    );
   }
 }

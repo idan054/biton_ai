@@ -1,3 +1,5 @@
+// ignore_for_file: no_leading_underscores_for_local_identifiers
+
 import 'package:biton_ai/common/extensions/string_ext.dart';
 import 'package:flutter/material.dart';
 import 'package:biton_ai/common/extensions/string_ext.dart';
@@ -33,14 +35,11 @@ class ResultsCategoriesList extends StatefulWidget {
 }
 
 class _ResultsCategoriesListState extends State<ResultsCategoriesList> {
-
-
   @override
   Widget build(BuildContext context) {
     var selectedCategory = widget.selectedCategory;
 
-    return
-      Column(
+    return Column(
       children: [
         const SizedBox(height: 15),
         ListView.builder(
@@ -50,8 +49,7 @@ class _ResultsCategoriesListState extends State<ResultsCategoriesList> {
             bool isSelected = selectedCategory == widget.categories[i];
             var categoryColor = isSelected ? AppColors.primaryShiny : AppColors.greyText;
 
-            bool isGoogleCategory =
-                widget.categories[i] == ResultCategory.googleResults;
+            bool isGoogleCategory = widget.categories[i] == ResultCategory.googleResults;
             return ChoiceChip(
               backgroundColor: AppColors.white,
               selectedColor: AppColors.white,
@@ -76,11 +74,14 @@ class _ResultsCategoriesListState extends State<ResultsCategoriesList> {
               ),
               selected: isSelected,
               onSelected: (bool selected) {
-                if (selected) {
-                  selectedCategory = widget.categories[i];
-                }
+                var _selectedCategory = widget.categories[i];
+
+                // if (selected) {
+                //   selectedCategory = _selectedCategory;
+                // }
                 // else {selectedResult = null;}
-                widget.onSelect(widget.categories[i]);
+                // print('_selectedCategory $_selectedCategory');
+                widget.onSelect(_selectedCategory);
                 setState(() {});
               },
             );

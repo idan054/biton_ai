@@ -30,12 +30,12 @@ class ResultItem {
 class ResultsList extends StatefulWidget {
   final List<ResultItem> results;
 
-  // final bool resultsMode;
+  final bool resultsMode;
   final void Function(ResultItem result) onSelect;
 
   const ResultsList({
     super.key,
-    // this.resultsMode = false,
+    this.resultsMode = false,
     required this.results,
     required this.onSelect,
   });
@@ -46,6 +46,7 @@ class ResultsList extends StatefulWidget {
 
 class _ResultsListState extends State<ResultsList> {
   ResultItem? selectedResult; // AKA var
+  bool horizontalMode = false; //! NOT IN USED YET
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +57,10 @@ class _ResultsListState extends State<ResultsList> {
     if (widget.results.isNotEmpty) {
       var resultsCategory = widget.results.first.category;
       // Colors titleColor // SET BY SWITCH
+
+      // if (resultsCategory == ResultCategory.titles) {
+      //   horizontalMode = true;
+      // }
 
       switch (resultsCategory) {
         case ResultCategory.titles:
@@ -78,94 +83,98 @@ class _ResultsListState extends State<ResultsList> {
         const SizedBox(height: 15),
         if (widget.results.isNotEmpty)
           listTitle.toText(fontSize: 22, bold: true).px(15).py(5).centerLeft,
-        if (selectedResult != null) ...[
-          buildChoiceChip(true, selectedResult!,
-              selectedResult!.category == ResultCategory.googleResults, width),
-        ] else ...[
-          ListView.builder(
+        SizedBox(
+          height: horizontalMode ? 150 : null,
+          width: horizontalMode ? width : null,
+          child: ListView.builder(
+            scrollDirection: horizontalMode ? Axis.horizontal : Axis.vertical,
             shrinkWrap: true,
             itemCount: widget.results.length,
             itemBuilder: (BuildContext context, int i) {
               var result = widget.results[i];
-              var isSelected =
-                  // widget.resultsMode ||
-                  selectedResult == result;
+              var isSelected = widget.resultsMode || selectedResult == result;
               var isGoogleItem = result.category == ResultCategory.googleResults;
 
-              return
-                  // widget.resultsMode ? buildChoiceChip(isSelected, result, isGoogleItem, width).appearOpacity :
-                  buildChoiceChip(isSelected, result, isGoogleItem, width).appearAll;
+              return widget.resultsMode
+                  ? buildChoiceChip(isSelected, result, isGoogleItem, width).appearOpacity
+                  : buildChoiceChip(isSelected, result, isGoogleItem, width).appearAll;
             },
           ),
-        ]
+        ),
       ],
     );
   }
 
-  ChoiceChip buildChoiceChip(
+  Widget buildChoiceChip(
       bool isSelected, ResultItem result, bool isGoogleItem, double width) {
-    return ChoiceChip(
-      backgroundColor: AppColors.lightPrimaryBg,
-      selectedColor: AppColors.lightPrimaryBg,
-      pressElevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.5)),
-      label: Stack(
-        children: [
-          Card(
-            elevation: 3,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12.5),
-                side: isSelected
-                    ? const BorderSide(color: AppColors.primaryShiny, width: 3.0)
-                    : BorderSide.none),
-            child: ListTile(
-              minVerticalPadding: 30,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.5)),
-              title: result.title
-                  .toString()
-                  .toText(
-                    bold: true,
-                    fontSize: 16,
-                    color: isGoogleItem
-                        ? AppColors.blueOld
-                        :
-                        // isSelected ? AppColors.primaryShiny :
-                        AppColors.greyText,
-                    maxLines: 100,
-                  )
-                  .pOnly(right: width * 0.25),
-              subtitle: (isGoogleItem && (result.desc ?? '').isNotEmpty)
-                  ? result.desc
-                      .toString()
-                      .toText(
-                        fontSize: 14,
-                        medium: true,
-                        color:
+    return SizedBox(
+      width: horizontalMode ? 450 : null,
+      child: ChoiceChip(
+        backgroundColor: AppColors.lightPrimaryBg,
+        selectedColor: AppColors.lightPrimaryBg,
+        pressElevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.5)),
+        label: Stack(
+          children: [
+            SizedBox(
+              width: horizontalMode ? 450 : null,
+              child: Card(
+                elevation: 3,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.5),
+                    side: isSelected
+                        ? const BorderSide(color: AppColors.primaryShiny, width: 3.0)
+                        : BorderSide.none),
+                child: ListTile(
+                  minVerticalPadding: 30,
+                  shape:
+                      RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.5)),
+                  title: result.title.toString().toText(
+                        bold: true,
+                        fontSize: 16,
+                        color: isGoogleItem
+                            ? AppColors.blueOld
+                            :
                             // isSelected ? AppColors.primaryShiny :
                             AppColors.greyText,
                         maxLines: 100,
                       )
-                      .pOnly(right: width * 0.25, top: 10)
-                  : null,
-            ).px(15),
-          ),
-          if (isSelected)
-            Icons.check_circle_rounded
-                .icon(color: AppColors.primaryShiny, size: 30)
-                .pad(20)
-                .topRight,
-        ],
+                  // .pOnly(right: width * 0.25)
+                  ,
+                  subtitle: (isGoogleItem && (result.desc ?? '').isNotEmpty)
+                      ? result.desc
+                          .toString()
+                          .toText(
+                            fontSize: 14,
+                            medium: true,
+                            color:
+                                // isSelected ? AppColors.primaryShiny :
+                                AppColors.greyText,
+                            maxLines: 100,
+                          )
+                          .pOnly(right: width * 0.25, top: 10)
+                      : null,
+                ).px(15),
+              ),
+            ),
+            if (isSelected)
+              Icons.check_circle_rounded
+                  .icon(color: AppColors.primaryShiny, size: 30)
+                  .pad(20)
+                  .topRight,
+          ],
+        ),
+        selected: isSelected,
+        onSelected: (bool selected) {
+          if (selected) {
+            selectedResult = result;
+          } else {
+            selectedResult = null;
+          }
+          widget.onSelect(result);
+          setState(() {});
+        },
       ),
-      selected: isSelected,
-      onSelected: (bool selected) {
-        if (selected) {
-          selectedResult = result;
-        } else {
-          selectedResult = null;
-        }
-        widget.onSelect(result);
-        setState(() {});
-      },
     );
   }
 }
