@@ -29,13 +29,14 @@ class ResultItem {
 
 class ResultsList extends StatefulWidget {
   final List<ResultItem> results;
-
-  final bool resultsMode;
+  final bool horizontalView;
+  final bool removeMode; // Remove items from [selectedResults] resultsScreen.dart
   final void Function(ResultItem result) onSelect;
 
   const ResultsList({
     super.key,
-    this.resultsMode = false,
+    this.removeMode = false,
+    this.horizontalView = false,
     required this.results,
     required this.onSelect,
   });
@@ -46,10 +47,10 @@ class ResultsList extends StatefulWidget {
 
 class _ResultsListState extends State<ResultsList> {
   ResultItem? selectedResult; // AKA var
-  bool horizontalMode = false; //! NOT IN USED YET
 
   @override
   Widget build(BuildContext context) {
+    bool horizontalView = widget.horizontalView;
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
     String listTitle = 'Choose your favorite ';
@@ -57,10 +58,6 @@ class _ResultsListState extends State<ResultsList> {
     if (widget.results.isNotEmpty) {
       var resultsCategory = widget.results.first.category;
       // Colors titleColor // SET BY SWITCH
-
-      // if (resultsCategory == ResultCategory.titles) {
-      //   horizontalMode = true;
-      // }
 
       switch (resultsCategory) {
         case ResultCategory.titles:
@@ -81,21 +78,21 @@ class _ResultsListState extends State<ResultsList> {
     return Column(
       children: [
         const SizedBox(height: 15),
-        if (widget.results.isNotEmpty)
+        if (widget.results.isNotEmpty && !(widget.horizontalView))
           listTitle.toText(fontSize: 22, bold: true).px(15).py(5).centerLeft,
         SizedBox(
-          height: horizontalMode ? 150 : null,
-          width: horizontalMode ? width : null,
+          height: horizontalView ? 150 : null,
+          width: horizontalView ? width : null,
           child: ListView.builder(
-            scrollDirection: horizontalMode ? Axis.horizontal : Axis.vertical,
+            scrollDirection: horizontalView ? Axis.horizontal : Axis.vertical,
             shrinkWrap: true,
             itemCount: widget.results.length,
             itemBuilder: (BuildContext context, int i) {
               var result = widget.results[i];
-              var isSelected = widget.resultsMode || selectedResult == result;
+              var isSelected = widget.removeMode || selectedResult == result;
               var isGoogleItem = result.category == ResultCategory.googleResults;
 
-              return widget.resultsMode
+              return widget.removeMode
                   ? buildChoiceChip(isSelected, result, isGoogleItem, width).appearOpacity
                   : buildChoiceChip(isSelected, result, isGoogleItem, width).appearAll;
             },
@@ -107,8 +104,10 @@ class _ResultsListState extends State<ResultsList> {
 
   Widget buildChoiceChip(
       bool isSelected, ResultItem result, bool isGoogleItem, double width) {
+    bool horizontalView = widget.horizontalView;
+
     return SizedBox(
-      width: horizontalMode ? 450 : null,
+      width: horizontalView ? 450 : null,
       child: ChoiceChip(
         backgroundColor: AppColors.lightPrimaryBg,
         selectedColor: AppColors.lightPrimaryBg,
@@ -117,7 +116,7 @@ class _ResultsListState extends State<ResultsList> {
         label: Stack(
           children: [
             SizedBox(
-              width: horizontalMode ? 450 : null,
+              width: horizontalView ? 450 : null,
               child: Card(
                 elevation: 3,
                 shape: RoundedRectangleBorder(
@@ -160,7 +159,6 @@ class _ResultsListState extends State<ResultsList> {
                 // endregion child
               ),
             ),
-
             if (isSelected && appConfig_highlightSelection)
               Icons.check_circle_rounded
                   .icon(color: AppColors.primaryShiny, size: 30)

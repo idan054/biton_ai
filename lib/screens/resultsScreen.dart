@@ -79,6 +79,12 @@ class _ResultsScreenState extends State<ResultsScreen> {
   ResultItem? lastSelectedResult; // For restore when re-pick
   @override
   Widget build(BuildContext context) {
+    // var googleResult = selectedResults
+    //     .firstWhereOrNull((item) => item.category == ResultCategory.googleResults);
+    //
+    // var horizontalList = selectedResults;
+    // if (googleResult != null) horizontalList.remove(googleResult);
+
     return Scaffold(
       backgroundColor: AppColors.lightPrimaryBg,
       body: Row(
@@ -90,19 +96,36 @@ class _ResultsScreenState extends State<ResultsScreen> {
               buildUserInput().pOnly(top: 20),
               Divider(color: AppColors.greyLight, thickness: 1, height: 0),
 
-              //~ Remove results:
-              ResultsList(
-                  resultsMode: true,
-                  results: selectedResults,
-                  onSelect: (result) {
-                    selectedResults.remove(result);
-                    _nextAvailableList();
-                  }),
+              Builder(builder: (context) {
+                return Column(
+                  //~ Remove results:
+                  children: [
+                    // if (googleResult != null)
+                    //   ResultsList(
+                    //       removeMode: true,
+                    //       results: [googleResult],
+                    //       onSelect: (result) {
+                    //         selectedResults.remove(result);
+                    //         _nextAvailableList();
+                    //       }),
+                    ResultsList(
+                        // horizontalView: true,
+                        removeMode: true,
+                        results: selectedResults,
+                        onSelect: (result) {
+                          selectedResults.remove(result);
+                          _nextAvailableList();
+                        }),
+                  ],
+                );
+              }),
 
               //~  Add results:
               ResultsList(
                 results: currentResults,
                 onSelect: (result) {
+                  // if (googleResult != null) selectedResults.add(googleResult);
+
                   _removeIfAlreadySelected(result);
                   selectedResults.add(result);
                   _nextAvailableList();
@@ -205,7 +228,6 @@ class _ResultsScreenState extends State<ResultsScreen> {
             //     },
             //   );
             // }),
-
           ],
         ).singleChildScrollView);
   }
