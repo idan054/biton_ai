@@ -79,11 +79,11 @@ class _ResultsScreenState extends State<ResultsScreen> {
   ResultItem? lastSelectedResult; // For restore when re-pick
   @override
   Widget build(BuildContext context) {
-    // var googleResult = selectedResults
-    //     .firstWhereOrNull((item) => item.category == ResultCategory.googleResults);
-    //
-    // var horizontalList = selectedResults;
-    // if (googleResult != null) horizontalList.remove(googleResult);
+    var googleResult = selectedResults
+        .firstWhereOrNull((item) => item.category == ResultCategory.googleResults);
+
+    var horizontalList = selectedResults;
+    if (googleResult != null) horizontalList.remove(googleResult);
 
     return Scaffold(
       backgroundColor: AppColors.lightPrimaryBg,
@@ -100,16 +100,16 @@ class _ResultsScreenState extends State<ResultsScreen> {
                 return Column(
                   //~ Remove results:
                   children: [
-                    // if (googleResult != null)
-                    //   ResultsList(
-                    //       removeMode: true,
-                    //       results: [googleResult],
-                    //       onSelect: (result) {
-                    //         selectedResults.remove(result);
-                    //         _nextAvailableList();
-                    //       }),
+                    if (googleResult != null)
+                      ResultsList(
+                          removeMode: true,
+                          results: [googleResult],
+                          onSelect: (result) {
+                            selectedResults.remove(result);
+                            _nextAvailableList();
+                          }),
                     ResultsList(
-                        // horizontalView: true,
+                        horizontalView: true,
                         removeMode: true,
                         results: selectedResults,
                         onSelect: (result) {
@@ -124,7 +124,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
               ResultsList(
                 results: currentResults,
                 onSelect: (result) {
-                  // if (googleResult != null) selectedResults.add(googleResult);
+                  if (googleResult != null) selectedResults.add(googleResult);
 
                   _removeIfAlreadySelected(result);
                   selectedResults.add(result);
