@@ -1,12 +1,12 @@
 // ignore_for_file: invalid_annotation_target, depend_on_referenced_packages
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../services/convertors.dart';
-import '../prompt/prompt_model.dart' as click;
+import '../prompt/result_model.dart' as click;
 
 part 'woo_post_model.freezed.dart';
 part 'woo_post_model.g.dart';
 
-/// Most clean model: [click.PromptModel]
+/// Most clean model: [click.ResultModel]
 
 // flutter pub run build_runner build --delete-conflicting-outputs
 @freezed

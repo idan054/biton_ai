@@ -1,10 +1,13 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'dart:async';
+
 import 'package:biton_ai/common/extensions/string_ext.dart';
 import 'package:biton_ai/common/extensions/widget_ext.dart';
 import 'package:biton_ai/common/extensions/num_ext.dart';
 import 'package:biton_ai/common/services/color_printer.dart';
 import 'package:biton_ai/common/services/wooApi.dart';
+import 'package:biton_ai/common/themes/app_colors.dart';
 import 'package:biton_ai/screens/resultsScreen.dart';
 import 'package:biton_ai/widgets/resultsList.dart';
 import 'package:flutter/foundation.dart';
@@ -14,6 +17,8 @@ import 'dart:convert';
 
 import '../common/constants.dart';
 import '../common/models/category/woo_category_model.dart';
+import '../common/models/prompt/result_model.dart';
+import '../common/services/gpt_service.dart';
 import '../widgets/threeColumnDialog.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -24,9 +29,11 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  var searchController = TextEditingController(text: kDebugMode ? 'One dog name' : null);
+  var searchController =
+      TextEditingController(text: kDebugMode ? 'Nike Air Max 90' : null);
   List<WooCategoryModel> _categories = [];
   bool _isLoading = false;
+  bool _showLoadingText = false; // Only appear after 5 seconds
 
   @override
   void initState() {
@@ -40,118 +47,131 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {});
   }
 
+  var loadingSeconds = 0;
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      Timer.periodic(const Duration(seconds: 1), (_) {
+        loadingSeconds++;
+        if (loadingSeconds == 3) _showLoadingText = true;
+        setState(() {});
+      });
+    }
+
     return Scaffold(
+      backgroundColor: AppColors.lightPrimaryBg,
       body: Column(
         // mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const SizedBox(height: 300),
           betterSeller.toText(fontSize: 50, bold: true),
-          'Better product page by Ai'.toText(fontSize: 18, medium: true),
-
-          const SizedBox(height: 10),
+          const SizedBox(height: 30),
+          //~ Search TextField
           SizedBox(
             width: 800,
-            child: TextField(
-              controller: searchController,
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: Colors.grey[200],
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                  borderRadius: BorderRadius.circular(99),
+            child: Material(
+              elevation: 3,
+              borderRadius: BorderRadius.circular(99),
+              child: TextField(
+                controller: searchController,
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: AppColors.white,
+                  hoverColor: AppColors.greyLight.withOpacity(0.1),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide.none,
+                    borderRadius: BorderRadius.circular(99),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.greyLight),
+                    borderRadius: BorderRadius.circular(99),
+                  ),
+                  hintText: 'Enter full product name',
+                  hintStyle: const TextStyle(color: Colors.grey),
+                  suffixIcon: Stack(
+                    // Use Stack to overlay prefixIcon and CircularProgressIndicator
+                    alignment: Alignment.center,
+                    children: [
+                      if (_isLoading)
+                        const CircularProgressIndicator(
+                          strokeWidth: 7,
+                          color: AppColors.primaryShiny,
+                        ),
+                      if (!_isLoading)
+                        // Icons.search_rounded.icon(color: Colors.blueAccent, size: 30)
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Icons.inventory_2_rounded.icon(color: Colors.blueAccent, size: 25),
+                            'Create'.toText(
+                                color: AppColors.primaryShiny, medium: true, fontSize: 14)
+                          ],
+                        ).px(20).py(15).onTap(() async {
+                          _isLoading = true;
+                          setState(() {});
+                          final results = await Gpt.getResults(
+                            type: ResultCategory.googleResults,
+                            input: searchController.text,
+                            n: 3,
+                          );
+                          _navigateToSearchResults(context, results);
+                        }, tapColor: AppColors.primaryShiny.withOpacity(0.15)),
+                    ],
+                  ),
+                  prefixIcon: Icons.tune
+                      .icon(
+                          color: _categories.isEmpty
+                              ? AppColors.greyText.withOpacity(0.30)
+                              : AppColors.greyText,
+                          size: 25)
+                      .px(20)
+                      .py(12)
+                      .onTap(_categories.isEmpty
+                          ? null
+                          : () {
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return ThreeColumnDialog(_categories);
+                                },
+                              );
+                            }),
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.blue[300]!),
-                  borderRadius: BorderRadius.circular(99),
-                ),
-                hintText: 'Enter full product name',
-                hintStyle: const TextStyle(color: Colors.grey),
-                suffixIcon:
-                Stack(
-                  // Use Stack to overlay prefixIcon and CircularProgressIndicator
-                  alignment: Alignment.center,
-                  children: [
-                    if (_isLoading) const CircularProgressIndicator(strokeWidth: 5),
-                    if (!_isLoading)
-                      // Icons.search_rounded.icon(color: Colors.blueAccent, size: 30)
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Icons.inventory_2_rounded.icon(color: Colors.blueAccent, size: 25),
-                          'Create'.toText(
-                              color: Colors.blueAccent, medium: true, fontSize: 14)
-                        ],
-                      ).px(20).py(15).onTap(() async {
-                        _isLoading = true;
-                        setState(() {});
-
-                        var results = [];
-                        // final resp = await callChatGPT(searchController.text, 3);
-                        // var usage = resp['usage'];
-                        // var results = resp['choices']
-                        //     .map((item) => item['message']['content'])
-                        //     .toList(growable: true);
-                        // print('results $results');
-
-                        _navigateToSearchResults(context, results);
-                      }, tapColor: Colors.blue.shade100),
-                  ],
-                ),
-                prefixIcon: Icons.tune
-                    .icon(
-                        color: _categories.isEmpty
-                            ? Colors.blueGrey.withOpacity(0.30)
-                            : Colors.blueGrey[600]!,
-                        size: 25)
-                    .px(20)
-                    .py(12)
-                    .onTap(_categories.isEmpty
-                        ? null
-                        : () {
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return ThreeColumnDialog(_categories);
-                              },
-                            );
-                          }),
               ),
             ).px(15),
-          )
+          ),
+
+          if (_showLoadingText)
+            'This can take up to 60 seconds...'
+                .toText(color: AppColors.greyText, fontSize: 18)
+                .py(10)
+                .appearAll,
         ],
       ).center,
     );
   }
 
-  void _navigateToSearchResults(BuildContext context, List results) {
+  void _navigateToSearchResults(BuildContext context, List<ResultModel> results) {
     _isLoading = false;
     setState(() {});
     Navigator.push(
       context,
-      MaterialPageRoute(
-          builder: (context) => ResultsScreen(
-              )),
+      MaterialPageRoute(builder: (context) => ResultsScreen(results)),
     );
   }
 }
 
-Future<Map<String, dynamic>> callChatGPT(String prompt, int n) async {
-  printWhite('START: callChatGPT()');
-  print('prompt: $prompt');
+List<ResultModel> setResultsFromGpt(Map<String, dynamic> resp, ResultCategory category) {
+  List<ResultModel> items = [];
 
-  const url = '$baseUrl/ai-engine/v1/call-chat-gpt';
-  final headers = {'Content-Type': 'application/json'};
-  final body = json.encode({'prompt': prompt, 'n': n});
-  final response = await http.post(Uri.parse(url), headers: headers, body: body);
-  print('response.statusCode ${response.statusCode}');
-  if (response.statusCode == 200) {
-    final jsonResponse = json.decode(response.body);
-    // print('jsonResponse ${jsonResponse}');
-    return jsonResponse;
-  } else {
-    throw Exception('Failed to call API');
+  // var usage = resp['usage'];
+  var results =
+      resp['choices'].map((item) => item['message']['content']).toList(growable: true);
+  print('results $results');
+  for (var result in [...results]) {
+    var item = ResultModel(title: result, category: category);
+    items.add(item);
   }
+  return items;
 }

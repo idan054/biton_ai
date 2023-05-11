@@ -12,6 +12,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import '../common/constants.dart';
+import '../common/models/prompt/result_model.dart';
 import '../common/themes/app_colors.dart';
 
 class ResultsCategoriesList extends StatefulWidget {

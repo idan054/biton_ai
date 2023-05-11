@@ -23,8 +23,7 @@ mixin _$WooPostModel {
   int? get id =>
       throw _privateConstructorUsedError; // doesn't have while create
   int get author => throw _privateConstructorUsedError;
-  List<int> get categories =>
-      throw _privateConstructorUsedError; // @jsonKey() refer to the name as its called on the API
+  List<int> get categories => throw _privateConstructorUsedError;
   @WooRenderedConv()
   String get title => throw _privateConstructorUsedError;
   @WooRenderedConv()
@@ -180,7 +179,6 @@ class _$_WooPostModel implements _WooPostModel {
     return EqualUnmodifiableListView(_categories);
   }
 
-// @jsonKey() refer to the name as its called on the API
   @override
   @WooRenderedConv()
   final String title;
@@ -242,7 +240,7 @@ abstract class _WooPostModel implements WooPostModel {
   int get author;
   @override
   List<int> get categories;
-  @override // @jsonKey() refer to the name as its called on the API
+  @override
   @WooRenderedConv()
   String get title;
   @override

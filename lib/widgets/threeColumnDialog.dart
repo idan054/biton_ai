@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import '../common/constants.dart';
 import '../common/extensions/widget_ext.dart';
 import '../common/models/category/woo_category_model.dart';
-import '../common/models/prompt/prompt_model.dart';
+import '../common/models/prompt/result_model.dart';
 
 class ThreeColumnDialog extends StatefulWidget {
   final List<WooCategoryModel> categories;

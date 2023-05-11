@@ -144,6 +144,11 @@ extension WidgetX on Widget {
     child: this,
   );
 
+  Align get topLeft => Align(
+    alignment: Alignment.topLeft,
+    child: this,
+  );
+
   Align get bottom => Align(
         alignment: Alignment.bottomCenter,
         child: this,

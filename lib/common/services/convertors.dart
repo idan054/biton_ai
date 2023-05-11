@@ -4,6 +4,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+//~ GPT Fetch content:
+//~ ================
+
+
 //~ Wordpress post title / content Convert:
 //~ ================
 // Because Wordpress API return ['title']['rendered']
