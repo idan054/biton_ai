@@ -111,11 +111,11 @@ class _HomeScreenState extends State<HomeScreen> {
                           _isLoading = true;
                           setState(() {});
                           final results = await Gpt.getResults(
-                            type: ResultCategory.googleResults,
+                            type: ResultCategory.gResults,
                             input: searchController.text,
                             n: 3,
                           );
-                          _navigateToSearchResults(context, results);
+                          _navigateToSearchResults(context, searchController.text, results);
                         }, tapColor: AppColors.primaryShiny.withOpacity(0.15)),
                     ],
                   ),
@@ -152,12 +152,12 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _navigateToSearchResults(BuildContext context, List<ResultModel> results) {
+  void _navigateToSearchResults(BuildContext context, String input,  List<ResultModel> results) {
     _isLoading = false;
     setState(() {});
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => ResultsScreen(results)),
+      MaterialPageRoute(builder: (context) => ResultsScreen(input, results)),
     );
   }
 }

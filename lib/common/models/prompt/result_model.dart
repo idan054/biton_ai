@@ -4,13 +4,13 @@ import '../post/woo_post_model.dart' as click;
 part 'result_model.freezed.dart';
 part 'result_model.g.dart';
 
-enum ResultCategory { titles, googleResults, shortDesc, longDesc }
+enum ResultCategory { titles, gResults, shortDesc, longDesc }
 
 /// Full docs in [click.WooPostModel]
 @freezed
 class ResultModel with _$ResultModel {
   const factory ResultModel({
-    @Default(ResultCategory.googleResults) ResultCategory? category,
+    @Default(ResultCategory.gResults) ResultCategory? category,
     required String title,
     String? desc,
   }) = _ResultModel;

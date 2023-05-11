@@ -18,7 +18,7 @@ import '../screens/resultsScreen.dart';
 String titleByCategory(ResultCategory resultsCategory) {
   var title = '';
   switch (resultsCategory) {
-    case ResultCategory.googleResults:
+    case ResultCategory.gResults:
       title += // '1/4 '
           'Select Google Result';
       break;
@@ -81,7 +81,7 @@ class _ResultsListState extends State<ResultsList> {
               .py(10)
               .centerLeft,
         SizedBox(
-          height: horizontalView ? (widget.results.isEmpty ? 10 : 250) : null,
+          height: horizontalView ? (widget.results.isEmpty ? 10 : 400) : null,
           width: horizontalView ? width : null,
           child: ListView.builder(
             scrollDirection: horizontalView ? Axis.horizontal : Axis.vertical,
@@ -103,13 +103,14 @@ class _ResultsListState extends State<ResultsList> {
 
   Widget buildChoiceChip(bool isSelected, ResultModel result, double width) {
     bool horizontalView = widget.horizontalView;
-    var isGoogleItem = result.category == ResultCategory.googleResults;
+    var isGoogleItem = result.category == ResultCategory.gResults;
     var isProductTitle = result.category == ResultCategory.titles;
     var horizTitle = titleByCategory(result.category!);
 
     var cardWidth = horizontalView
         ? isGoogleItem
-            ? 700.0
+            // ? 700.0
+            ? 400.0
             : 500.0
         : null;
 
@@ -123,7 +124,8 @@ class _ResultsListState extends State<ResultsList> {
       mainAxisSize: MainAxisSize.min,
       children: [
         if (horizontalView)
-          horizTitle.toCapitalized()
+          horizTitle
+              .toCapitalized()
               .replaceAll('Select ', '')
               .toText(color: AppColors.greyUnavailable)
               .topLeft
@@ -197,21 +199,22 @@ class _ResultsListState extends State<ResultsList> {
                   setState(() {});
                 },
               ),
-              if (isSelected && appConfig_highlightSelection)
-                Icons.check_circle_rounded
-                    .icon(color: AppColors.primaryShiny, size: 30)
-                    .pad(20)
-                    .px(10)
-                    .topRight,
 
-              // if (widget.removeMode)
-              //   buildEditIcon()
+              // if (isSelected && appConfig_highlightSelection)
+              //   Icons.check_circle_rounded
+              //       .icon(color: AppColors.primaryShiny, size: 30)
               //       .pad(20)
-              //       .onTap(() {
-              //         print('START: onTap()');
-              //       })
-              //       .pOnly(right: 10)
+              //       .px(10)
               //       .topRight,
+
+              if (widget.removeMode)
+                buildEditIcon()
+                    .pad(20)
+                    .onTap(() {
+                      print('START: onTap()');
+                    })
+                    .pOnly(right: 10)
+                    .topRight,
             ],
           ),
         ),

@@ -50,7 +50,7 @@ class _ResultsCategoriesListState extends State<ResultsCategoriesList> {
             bool isSelected = selectedCategory == widget.categories[i];
             var categoryColor = isSelected ? AppColors.primaryShiny : AppColors.greyText;
 
-            bool isGoogleCategory = widget.categories[i] == ResultCategory.googleResults;
+            bool isGoogleCategory = widget.categories[i] == ResultCategory.gResults;
             return ChoiceChip(
               backgroundColor: AppColors.white,
               selectedColor: AppColors.white,

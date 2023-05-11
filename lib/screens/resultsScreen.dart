@@ -7,6 +7,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../common/constants.dart';
 import '../common/models/prompt/result_model.dart';
+import '../common/services/gpt_service.dart';
 import '../common/themes/app_colors.dart';
 import '../widgets/customButton.dart';
 import '../widgets/resultsList.dart';
@@ -29,45 +30,46 @@ import '../widgets/resultsList.dart';
 //       category: ResultCategory.googleResults),
 // ];
 
-List<ResultModel> titlesResults = [
-  ResultModel(
-      title: 'A This is just a product title example for Nike Air Max 90',
-      category: ResultCategory.titles),
-  ResultModel(
-      title: 'B This is just a product title example for Nike Air Max 90',
-      category: ResultCategory.titles),
-  ResultModel(
-      title: 'C This is just a product title example for Nike Air Max 90',
-      category: ResultCategory.titles)
-];
+// List<ResultModel> titlesResults = [
+// ResultModel(
+//     title: 'A This is just a product title example for Nike Air Max 90',
+//     category: ResultCategory.titles),
+// ResultModel(
+//     title: 'B This is just a product title example for Nike Air Max 90',
+//     category: ResultCategory.titles),
+// ResultModel(
+//     title: 'C This is just a product title example for Nike Air Max 90',
+//     category: ResultCategory.titles)
+// ];
 
-List<ResultModel> shortDescResults = [
-  ResultModel(
-      title:
-          'A This is just a product desc example for Nike Air Max 90, A great desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
-      category: ResultCategory.shortDesc),
-  ResultModel(
-      title:
-          'B This is just a product desc example for Nike Air Max 90, A great desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
-      category: ResultCategory.shortDesc),
-  ResultModel(
-      title:
-          'C This is just a product desc example for Nike Air Max 90, A great desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
-      category: ResultCategory.shortDesc),
-];
+// List<ResultModel> shortDescResults = [
+//   ResultModel(
+//       title:
+//           'A This is just a product desc example for Nike Air Max 90, A great desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
+//       category: ResultCategory.shortDesc),
+//   ResultModel(
+//       title:
+//           'B This is just a product desc example for Nike Air Max 90, A great desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
+//       category: ResultCategory.shortDesc),
+//   ResultModel(
+//       title:
+//           'C This is just a product desc example for Nike Air Max 90, A great desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
+//       category: ResultCategory.shortDesc),
+// ];
 
-List<ResultModel> longDescResults = [
-  ResultModel(
-      title:
-          'This is a very long product desc example for Nike Air Max 90, A great desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. This is a very long product desc example for Nike Air Max 90, A great desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. This is a very long product desc example for Nike Air Max 90, A great desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. This is a very long product desc example for Nike Air Max 90, A great desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. This is a very long product desc example for Nike Air Max 90, A great desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. '
-          'This is a very long product desc example for Nike Air Max 90, A great desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. This is a very long product desc example for Nike Air Max 90, A great desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. This is a very long product desc example for Nike Air Max 90, A great desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. This is a very long product desc example for Nike Air Max 90, A great desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. This is a very long product desc example for Nike Air Max 90, A great desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. ',
-      category: ResultCategory.longDesc),
-];
+// List<ResultModel> longDescResults = [
+//   ResultModel(
+//       title:
+//           'This is a very long product desc example for Nike Air Max 90, A great desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. This is a very long product desc example for Nike Air Max 90, A great desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. This is a very long product desc example for Nike Air Max 90, A great desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. This is a very long product desc example for Nike Air Max 90, A great desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. This is a very long product desc example for Nike Air Max 90, A great desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. '
+//           'This is a very long product desc example for Nike Air Max 90, A great desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. This is a very long product desc example for Nike Air Max 90, A great desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. This is a very long product desc example for Nike Air Max 90, A great desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. This is a very long product desc example for Nike Air Max 90, A great desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. This is a very long product desc example for Nike Air Max 90, A great desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. ',
+//       category: ResultCategory.longDesc),
+// ];
 
 class ResultsScreen extends StatefulWidget {
+  final String input;
   final List<ResultModel> googleResults;
 
-  const ResultsScreen(this.googleResults, {Key? key}) : super(key: key);
+  const ResultsScreen(this.input, this.googleResults, {Key? key}) : super(key: key);
 
   @override
   State<ResultsScreen> createState() => _ResultsScreenState();
@@ -75,17 +77,51 @@ class ResultsScreen extends StatefulWidget {
 
 class _ResultsScreenState extends State<ResultsScreen> {
   var inputController = TextEditingController(text: 'Nike Air Max 90');
+  List<ResultModel> titlesResults = [];
+  List<ResultModel> shortDescResults = [];
+  List<ResultModel> longDescResults = [];
 
-  List<ResultModel> selectedResults = [];
-  List<ResultModel> currentResults = [];
-
-  ResultModel? lastSelectedResult; // For restore when re-pick
+  List<ResultModel> selectedResults = []; // Top List (Remove)
+  List<ResultModel> currentResults = []; // Bottom List (Add)
 
   @override
   void initState() {
     currentResults = [...widget.googleResults];
+    autoFetchResults(ResultCategory.titles);
+    autoFetchResults(ResultCategory.shortDesc);
+    autoFetchResults(ResultCategory.longDesc);
     super.initState();
   }
+
+  void autoFetchResults(ResultCategory type) async {
+    var n = type == ResultCategory.longDesc ? 1 : 3;
+    final results = await Gpt.getResults(type: type, input: widget.input, n: n);
+
+    if (type == ResultCategory.titles) titlesResults = results;
+    if (type == ResultCategory.shortDesc) shortDescResults = results;
+    if (type == ResultCategory.longDesc) longDescResults = results;
+
+    //> Auto deploy on [currentResults] if needed:
+    if (currentResults.isEmpty) {
+      //  only if user chose gResults
+      if (selectedResults.any((result) => result.category == ResultCategory.gResults)) {
+        currentResults = titlesResults;
+      }
+      //  only if user chose titles
+      if (selectedResults.any((result) => result.category == ResultCategory.titles)) {
+        currentResults = shortDescResults;
+      }
+      //  only if user chose shortDesc
+      if (selectedResults.any((result) => result.category == ResultCategory.shortDesc)) {
+        currentResults = longDescResults;
+      }
+    }
+
+    setState(() {});
+  }
+
+  ResultModel? lastSelectedResult; // For restore when re-pick
+  ResultCategory drawerCategory = ResultCategory.gResults;
 
   @override
   Widget build(BuildContext context) {
@@ -131,16 +167,22 @@ class _ResultsScreenState extends State<ResultsScreen> {
               }),
 
               //~  Add results:
-              ResultsList(
-                results: currentResults,
-                onSelect: (result) {
-                  // if (googleResult != null) selectedResults.add(googleResult);
+              currentResults.isEmpty
+                  ? const CircularProgressIndicator(
+                      strokeWidth: 7,
+                      color: AppColors.primaryShiny,
+                    ).pOnly(top: 100).center
+                  : ResultsList(
+                      horizontalView: appConfig_horizontalSummery,
+                      results: currentResults,
+                      onSelect: (result) {
+                        // if (googleResult != null) selectedResults.add(googleResult);
 
-                  _removeIfAlreadySelected(result);
-                  selectedResults.add(result);
-                  _nextAvailableList();
-                },
-              ),
+                        _removeIfAlreadySelected(result);
+                        selectedResults.add(result);
+                        _nextAvailableList();
+                      },
+                    ),
             ],
           ).px(30).singleChildScrollView.top.expanded(),
         ],
@@ -155,13 +197,17 @@ class _ResultsScreenState extends State<ResultsScreen> {
   }
 
   void _changeListByCategory(ResultCategory? category) {
-    if (category == ResultCategory.googleResults) {
+    if (category == ResultCategory.gResults) {
+      drawerCategory = ResultCategory.gResults;
       currentResults = widget.googleResults;
     } else if (category == ResultCategory.titles) {
+      drawerCategory = ResultCategory.titles;
       currentResults = titlesResults;
     } else if (category == ResultCategory.shortDesc) {
+      drawerCategory = ResultCategory.shortDesc;
       currentResults = shortDescResults;
     } else if (category == ResultCategory.longDesc) {
+      drawerCategory = ResultCategory.longDesc;
       currentResults = longDescResults;
     }
 
@@ -172,13 +218,17 @@ class _ResultsScreenState extends State<ResultsScreen> {
     var selectedCategories =
         selectedResults.map((item) => item.category).toList(growable: true);
 
-    if (!selectedCategories.contains(ResultCategory.googleResults)) {
+    if (!selectedCategories.contains(ResultCategory.gResults)) {
+      drawerCategory = ResultCategory.gResults;
       currentResults = widget.googleResults;
     } else if (!selectedCategories.contains(ResultCategory.titles)) {
+      drawerCategory = ResultCategory.titles;
       currentResults = titlesResults;
     } else if (!selectedCategories.contains(ResultCategory.shortDesc)) {
+      drawerCategory = ResultCategory.shortDesc;
       currentResults = shortDescResults;
     } else if (!selectedCategories.contains(ResultCategory.longDesc)) {
+      drawerCategory = ResultCategory.longDesc;
       currentResults = longDescResults;
     }
 
@@ -196,18 +246,18 @@ class _ResultsScreenState extends State<ResultsScreen> {
             20.verticalSpace,
             ResultsCategoriesList(
               categories: const [
-                ResultCategory.googleResults,
+                ResultCategory.gResults,
                 ResultCategory.titles,
                 ResultCategory.shortDesc,
                 ResultCategory.longDesc,
               ],
-              selectedCategory: currentResults.first.category!,
               categoriesNames: const [
                 'Google result',
                 'Product name',
                 'Short Description',
                 'Long Description',
               ],
+              selectedCategory: drawerCategory,
               icons: const [
                 Icons.search_rounded,
                 Icons.title_rounded,
@@ -265,7 +315,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
 CircleAvatar buildEditIcon() {
   return CircleAvatar(
       radius: 20,
-      backgroundColor: AppColors.greyLight,
+      backgroundColor: Colors.transparent,
       child: Icons.border_color_rounded
           .icon(color: AppColors.primaryShiny, size: 20)
           .center);
