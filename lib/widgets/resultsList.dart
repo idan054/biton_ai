@@ -40,6 +40,7 @@ String titleByCategory(ResultCategory resultsCategory) {
 }
 
 class ResultsList extends StatefulWidget {
+  final String exampleUrl;
   final List<ResultModel> results;
   final bool horizontalView;
   final bool removeMode; // Remove items from [selectedResults] resultsScreen.dart
@@ -49,6 +50,7 @@ class ResultsList extends StatefulWidget {
     super.key,
     this.removeMode = false,
     this.horizontalView = false,
+    required this.exampleUrl,
     required this.results,
     required this.onSelect,
   });
@@ -96,7 +98,7 @@ class _ResultsListState extends State<ResultsList> {
               .py(10)
               .centerLeft,
         SizedBox(
-          height: horizontalView ? (results.isEmpty ? 10 : 400) : null,
+          height: horizontalView ? (results.isEmpty ? 10 : 240) : null,
           width: horizontalView ? width : null,
           child: ListView.builder(
             scrollDirection: horizontalView ? Axis.horizontal : Axis.vertical,
@@ -106,9 +108,7 @@ class _ResultsListState extends State<ResultsList> {
               var result = results[i];
               var isSelected = widget.removeMode || selectedResult == result;
 
-              return widget.removeMode
-                  ? buildChoiceChip(isSelected, result, width).appearOpacity
-                  : buildChoiceChip(isSelected, result, width).appearAll;
+              return buildChoiceChip(isSelected, result, width).appearAll;
             },
           ),
         ),
@@ -118,18 +118,63 @@ class _ResultsListState extends State<ResultsList> {
 
   Widget buildChoiceChip(bool isSelected, ResultModel result, double width) {
     bool horizontalView = widget.horizontalView;
+    var isTempResult = result.title == 'tempResult';
+    var cardWidth = horizontalView ? 400.0 : null;
+
+    if (isSelected) {
+      return Stack(
+        children: [
+          SizedBox(width: cardWidth, child: buildCardResult(isSelected, result)),
+          if (widget.removeMode) Positioned(top: 10, right: 10, child: buildEditIcon()),
+        ],
+      );
+    }
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // if (horizontalView)
+        //   horizTitle
+        //       .toCapitalized()
+        //       .replaceAll('Select ', '')
+        //       .toText(color: AppColors.greyUnavailable)
+        //       .topLeft
+        //       .px(10)
+        //       .py(5),
+        SizedBox(
+          width: cardWidth,
+          child: ChoiceChip(
+            backgroundColor: AppColors.lightPrimaryBg,
+            selectedColor: AppColors.lightPrimaryBg,
+            pressElevation: 0,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.5)),
+            selected: isSelected,
+            onSelected: (bool selected) {
+              if (selected) {
+                selectedResult = result;
+              } else {
+                selectedResult = null;
+              }
+              widget.onSelect(result);
+              setState(() {});
+            },
+            label: SizedBox(
+              width: cardWidth,
+              height: isTempResult ? 220 : null,
+              child: buildCardResult(isSelected, result),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget buildCardResult(bool isSelected, ResultModel result) {
+    bool horizontalView = widget.horizontalView;
     var isGoogleItem = result.category == ResultCategory.gResults;
     var isProductTitle = result.category == ResultCategory.titles;
     var horizTitle = titleByCategory(result.category!);
-
     var isTempResult = result.title == 'tempResult';
-
-    var cardWidth = horizontalView
-        ? isGoogleItem
-            // ? 700.0
-            ? 400.0
-            : 500.0
-        : null;
 
     var maxLines = horizontalView
         ? isGoogleItem
@@ -137,106 +182,81 @@ class _ResultsListState extends State<ResultsList> {
             : 6
         : 100;
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (horizontalView)
-          horizTitle
-              .toCapitalized()
-              .replaceAll('Select ', '')
-              .toText(color: AppColors.greyUnavailable)
-              .topLeft
-              .px(10)
-              .py(5),
-        SizedBox(
-          width: cardWidth,
-          child: Stack(
-            children: [
-              ChoiceChip(
-                backgroundColor: AppColors.lightPrimaryBg,
-                selectedColor: AppColors.lightPrimaryBg,
-                pressElevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.5)),
-                label: SizedBox(
-                  width: cardWidth,
-                  height: isTempResult ? 220 : null,
-                  child: Card(
-                    elevation: 3,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.5),
-                        side: isSelected && appConfig_highlightSelection
-                            ? const BorderSide(color: AppColors.primaryShiny, width: 3.0)
-                            : BorderSide.none),
-                    child:
-                        // region LisTile
-                        ListTile(
-                      minVerticalPadding: 30,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12.5)),
-                      title: result.title
-                          .toString()
-                          .toText(
-                            bold: isProductTitle || isGoogleItem,
-                            // medium: !isGoogleItem,
-                            fontSize: isGoogleItem ? 18 : 15,
-                            color: isGoogleItem
-                                ? AppColors.blueOld
-                                :
-                                // isSelected ? AppColors.primaryShiny :
-                                AppColors.greyText,
-                            maxLines: maxLines,
-                          )
-                          .pOnly(right: widget.horizontalView ? 0 : width * 0.25),
-                      subtitle: (isGoogleItem && (result.desc ?? '').isNotEmpty)
-                          ? result.desc
-                              .toString()
-                              .toText(
-                                fontSize: 15,
-                                // medium: true,
-                                color:
-                                    // isSelected ? AppColors.primaryShiny :
-                                    AppColors.greyText,
-                                maxLines: maxLines,
-                              )
-                              .pOnly(
-                                  right: widget.horizontalView ? 0 : width * 0.25,
-                                  top: 10)
-                          : null,
-                    ).px(15),
-                    // endregion child
-                  ),
-                ),
-                selected: isSelected,
-                onSelected: (bool selected) {
-                  if (selected) {
-                    selectedResult = result;
-                  } else {
-                    selectedResult = null;
-                  }
-                  widget.onSelect(result);
-                  setState(() {});
-                },
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.5),
+          side: isSelected && appConfig_highlightSelection
+              ? const BorderSide(color: AppColors.primaryShiny, width: 3.0)
+              : BorderSide.none),
+      child:
+          // region LisTile
+          ListTile(
+        minVerticalPadding: 30,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.5)),
+        title: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (isGoogleItem)
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icons.travel_explore
+                      .icon(color: AppColors.greyUnavailable)
+                      .pOnly(right: 5),
+                  TextField(
+                    enabled: false,
+                    controller: TextEditingController(text: widget.exampleUrl),
+                    style:
+                        const TextStyle(fontSize: 15, color: AppColors.greyUnavailable),
+                    maxLines: 1,
+                    decoration: InputDecoration(
+                      isDense: true,
+                      contentPadding: EdgeInsets.zero,
+                      hintText: 'Add your Google Title',
+                      hintStyle: TextStyle(color: AppColors.greyText),
+                      border: InputBorder.none,
+                    ),
+                  ).expanded(),
+                ],
               ),
-
-              // if (isSelected && appConfig_highlightSelection)
-              //   Icons.check_circle_rounded
-              //       .icon(color: AppColors.primaryShiny, size: 30)
-              //       .pad(20)
-              //       .px(10)
-              //       .topRight,
-
-              if (widget.removeMode)
-                buildEditIcon()
-                    .pad(20)
-                    .onTap(() {
-                      print('START: onTap()');
-                    })
-                    .pOnly(right: 10)
-                    .topRight,
-            ],
-          ),
+            const SizedBox(height: 5),
+            TextField(
+              enabled: isSelected,
+              controller: TextEditingController(text: result.title.toString()),
+              style: TextStyle(
+                fontSize: isGoogleItem ? 19 : 15,
+                fontWeight: isProductTitle || isGoogleItem ? FontWeight.bold : null,
+                color: isGoogleItem ? AppColors.blueOld : AppColors.greyText,
+              ),
+              minLines: 1,
+              maxLines: maxLines,
+              decoration: InputDecoration(
+                isDense: true,
+                hintText: 'Add your Google Title',
+                hintStyle: TextStyle(color: AppColors.greyText),
+                border: InputBorder.none,
+              ),
+            ),
+          ],
         ),
-      ],
+        subtitle: (isGoogleItem && (result.desc ?? '').isNotEmpty)
+            ? TextField(
+                enabled: isSelected,
+                controller: TextEditingController(text: result.desc.toString()),
+                style: TextStyle(fontSize: 15, color: AppColors.greyText),
+                minLines: 1,
+                maxLines: maxLines,
+                decoration: InputDecoration(
+                  hintText: 'Add your Google Description',
+                  hintStyle: TextStyle(color: AppColors.greyText),
+                  border: InputBorder.none,
+                ),
+              )
+            // .pOnly(right: widget.horizontalView ? 0 : width * 0.25, top: 10)
+            : null,
+      ).px(15),
+      // endregion child
     );
   }
 }

@@ -84,6 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
         // mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const SizedBox(height: 300),
+
           betterSeller.toText(fontSize: 50, bold: true),
           const SizedBox(height: 30),
           //~ Search TextField
@@ -129,20 +130,41 @@ class _HomeScreenState extends State<HomeScreen> {
                         ).px(20).py(15).onTap(() async {
                           _isLoading = true;
                           setState(() {});
-                          final results = await Gpt.getResults(
-                            type: ResultCategory.gResults,
-                            input: searchController.text,
-                            prompts: [
-                              'Create a great google title for the product: ${searchController.text}',
-                              'Create a great google title for the product: ${searchController.text}',
-                              'Create a great google title for the product: ${searchController.text}',
-                            ],
-                            gDescPrompts: [
-                              'Create a great google description about 2 lines for the product: ${searchController.text}',
-                              'Create a great google description about 2 lines for the product: ${searchController.text}',
-                              'Create a great google description about 2 lines for the product: ${searchController.text}',
-                            ],
-                          );
+                          List<ResultModel> results = [];
+                          if (kDebugMode) {
+                            results = const [
+                              ResultModel(
+                                  title: 'A A great google result title will appear here',
+                                  desc:
+                                      'A A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
+                                  category: ResultCategory.gResults),
+                              ResultModel(
+                                  title: 'B A great google result title will appear here',
+                                  desc:
+                                      'B A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
+                                  category: ResultCategory.gResults),
+                              ResultModel(
+                                  title: 'C A great google result title will appear here',
+                                  desc:
+                                      'C A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
+                                  category: ResultCategory.gResults),
+                            ];
+                          } else {
+                            results = await Gpt.getResults(
+                              type: ResultCategory.gResults,
+                              input: searchController.text,
+                              prompts: [
+                                'Create a great google title for the product: ${searchController.text}',
+                                'Create a great google title for the product: ${searchController.text}',
+                                'Create a great google title for the product: ${searchController.text}',
+                              ],
+                              gDescPrompts: [
+                                'Create a great google description about 2 lines for the product: ${searchController.text}',
+                                'Create a great google description about 2 lines for the product: ${searchController.text}',
+                                'Create a great google description about 2 lines for the product: ${searchController.text}',
+                              ],
+                            );
+                          }
                           _navigateToSearchResults(
                               context, searchController.text, results);
                         }, tapColor: AppColors.primaryShiny.withOpacity(0.15)),

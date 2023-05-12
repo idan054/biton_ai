@@ -111,6 +111,7 @@ class ResultsScreen extends StatefulWidget {
 
 class _ResultsScreenState extends State<ResultsScreen> {
   var inputController = TextEditingController(text: 'Nike Air Max 90');
+  String exampleUrl = '';
   List<ResultModel> titlesResults = [];
   List<ResultModel> googleResults = [];
   List<ResultModel> shortDescResults = [];
@@ -128,6 +129,8 @@ class _ResultsScreenState extends State<ResultsScreen> {
     autoFetchResults(ResultCategory.titles);
     autoFetchResults(ResultCategory.shortDesc);
     autoFetchResults(ResultCategory.longDesc);
+
+    exampleUrl = _getUrl(widget.input);
     super.initState();
   }
 
@@ -149,7 +152,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
 
     //> Auto deploy on [currentResults] if needed:
     //  auto add 2 missing results after homeScreen.dart
-    if (currentResults.length == 1) currentResults = googleResults;
+    // if (currentResults.length == 1) currentResults = googleResults;
 
     if (currentResults.isEmpty) {
       //  only if user chose gResults
@@ -204,6 +207,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
                     //         _nextAvailableList();
                     //       }),
                     ResultsList(
+                        exampleUrl: exampleUrl,
                         horizontalView: appConfig_horizontalSummery,
                         removeMode: true,
                         results: selectedResults,
@@ -218,6 +222,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
               //~  Add results:
               currentResults.isNotEmpty
                   ? ResultsList(
+                      exampleUrl: exampleUrl,
                       horizontalView: appConfig_horizontalSummery,
                       results: currentResults,
                       onSelect: (result) {
@@ -281,6 +286,12 @@ class _ResultsScreenState extends State<ResultsScreen> {
     }
 
     setState(() {});
+  }
+
+  String _getUrl(String input) {
+    final formattedInput = input.toLowerCase().replaceAll(' ', '-');
+    final url = 'www.example.com/$formattedInput';
+    return url;
   }
 
   Drawer buildDrawer() {
