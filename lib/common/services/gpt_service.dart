@@ -25,7 +25,7 @@ class Gpt {
 
     titles = await _multiCallChatGPT(
       reqType: type.name.toUpperCase(),
-      prompts: prompts,
+      prompts: type == ResultCategory.longDesc ? [prompts.first] : prompts,
     );
 
     if (type == ResultCategory.gResults) {
@@ -39,8 +39,8 @@ class Gpt {
     for (var _ in titles.choices) {
       var result = ResultModel(
         category: type,
-        title: titles.choices[i],
-        desc: descriptions?.choices[i],
+        title: titles.choices[i].toString().trim(),
+        desc: descriptions?.choices[i].toString().trim(),
       );
       results.add(result);
       i++;

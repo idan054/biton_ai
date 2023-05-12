@@ -131,7 +131,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           _isLoading = true;
                           setState(() {});
                           List<ResultModel> results = [];
-                          if (kDebugMode) {
+                          if (!kDebugMode) {
                             results = const [
                               ResultModel(
                                   title: 'A A great google result title will appear here',

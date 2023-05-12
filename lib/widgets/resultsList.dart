@@ -66,39 +66,46 @@ class _ResultsListState extends State<ResultsList> {
   @override
   void initState() {
     results = widget.results;
-    if (widget.results.length == 1) {
-      var tempResult = const ResultModel(
-        category: ResultCategory.gResults,
-        title: 'tempResult',
-      );
-      results = [...widget.results, tempResult, tempResult];
-    }
+    // if (widget.results.length == 1) {
+    //   var tempResult = const ResultModel(
+    //     category: ResultCategory.gResults,
+    //     title: 'tempResult',
+    //   );
+    //   results = [...widget.results, tempResult, tempResult];
+    // }
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
+    print('START: ResultsList()');
+    print('removeMode ${widget.removeMode}');
+    print('results ${results.length}');
+    print('results ${results}');
+    print('------');
+
     bool horizontalView = widget.horizontalView;
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
     String resultsTitle = '';
 
+    var cardHeight = 0.0;
     if (results.isNotEmpty) {
       var resultsCategory = results.first.category;
       resultsTitle = titleByCategory(resultsCategory!);
+      if (widget.results.first.category == ResultCategory.gResults) cardHeight = 230.0;
+      if (widget.results.first.category == ResultCategory.titles) cardHeight = 155.0;
+      if (widget.results.first.category == ResultCategory.shortDesc) cardHeight = 200.0;
+      if (widget.results.first.category == ResultCategory.longDesc) cardHeight = 350.0;
     }
 
     return Column(
       children: [
-        const SizedBox(height: 15),
-        if (results.isNotEmpty && !(widget.horizontalView))
-          resultsTitle
-              .toText(fontSize: 20, bold: true, color: AppColors.greyText)
-              .px(15)
-              .py(10)
-              .centerLeft,
+        // const SizedBox(height: 15),
+        if (results.isNotEmpty && (widget.horizontalView))
+          resultsTitle.toText(color: AppColors.greyUnavailable).px(15).py(10).topLeft,
         SizedBox(
-          height: horizontalView ? (results.isEmpty ? 10 : 240) : null,
+          height: horizontalView ? cardHeight : null,
           width: horizontalView ? width : null,
           child: ListView.builder(
             scrollDirection: horizontalView ? Axis.horizontal : Axis.vertical,
@@ -111,7 +118,8 @@ class _ResultsListState extends State<ResultsList> {
               return buildChoiceChip(isSelected, result, width).appearAll;
             },
           ),
-        ),
+        ).top
+        // .testContainer,
       ],
     );
   }
@@ -119,70 +127,62 @@ class _ResultsListState extends State<ResultsList> {
   Widget buildChoiceChip(bool isSelected, ResultModel result, double width) {
     bool horizontalView = widget.horizontalView;
     var isTempResult = result.title == 'tempResult';
-    var cardWidth = horizontalView ? 400.0 : null;
+
+    var wDrawer = 250;
+    var cardWidth = result.category == ResultCategory.longDesc
+        ? (width - wDrawer) * 0.9
+        : (width - wDrawer) * 0.3;
 
     if (isSelected) {
       return Stack(
         children: [
           SizedBox(width: cardWidth, child: buildCardResult(isSelected, result)),
-          if (widget.removeMode) Positioned(top: 10, right: 10, child: buildEditIcon()),
+          // Positioned(top: 30, right: 10, child: buildEditIcon()),
+
+          if (isSelected)
+            Positioned(
+                top: 20,
+                right: 20,
+                child: Icons.check_circle_rounded
+                    .icon(color: AppColors.primaryShiny, size: 30)),
         ],
       );
     }
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // if (horizontalView)
-        //   horizTitle
-        //       .toCapitalized()
-        //       .replaceAll('Select ', '')
-        //       .toText(color: AppColors.greyUnavailable)
-        //       .topLeft
-        //       .px(10)
-        //       .py(5),
-        SizedBox(
+    return SizedBox(
+      width: cardWidth,
+      child: ChoiceChip(
+        backgroundColor: AppColors.lightPrimaryBg,
+        selectedColor: AppColors.lightPrimaryBg,
+        pressElevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.5)),
+        selected: isSelected,
+        onSelected: (bool selected) {
+          if (selected) {
+            selectedResult = result;
+          } else {
+            selectedResult = null;
+          }
+          widget.onSelect(result);
+          setState(() {});
+        },
+        label: SizedBox(
           width: cardWidth,
-          child: ChoiceChip(
-            backgroundColor: AppColors.lightPrimaryBg,
-            selectedColor: AppColors.lightPrimaryBg,
-            pressElevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.5)),
-            selected: isSelected,
-            onSelected: (bool selected) {
-              if (selected) {
-                selectedResult = result;
-              } else {
-                selectedResult = null;
-              }
-              widget.onSelect(result);
-              setState(() {});
-            },
-            label: SizedBox(
-              width: cardWidth,
-              height: isTempResult ? 220 : null,
-              child: buildCardResult(isSelected, result),
-            ),
-          ),
+          child: buildCardResult(isSelected, result),
         ),
-      ],
+      ),
     );
   }
 
   Widget buildCardResult(bool isSelected, ResultModel result) {
     bool horizontalView = widget.horizontalView;
     var isGoogleItem = result.category == ResultCategory.gResults;
+    var isShortDesc = result.category == ResultCategory.shortDesc;
     var isProductTitle = result.category == ResultCategory.titles;
-    var horizTitle = titleByCategory(result.category!);
     var isTempResult = result.title == 'tempResult';
 
-    var maxLines = horizontalView
-        ? isGoogleItem
-            ? 4
-            : 6
-        : 100;
-
     return Card(
+      color: selectedResult == null || isSelected ? AppColors.white : Colors.grey[200],
       elevation: 3,
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12.5),
@@ -225,12 +225,12 @@ class _ResultsListState extends State<ResultsList> {
               enabled: isSelected,
               controller: TextEditingController(text: result.title.toString()),
               style: TextStyle(
-                fontSize: isGoogleItem ? 19 : 15,
+                fontSize: isProductTitle || isGoogleItem ? 19 : 15,
                 fontWeight: isProductTitle || isGoogleItem ? FontWeight.bold : null,
                 color: isGoogleItem ? AppColors.blueOld : AppColors.greyText,
               ),
               minLines: 1,
-              maxLines: maxLines,
+              maxLines: isGoogleItem ? 3 : (isShortDesc ? 6 : 999),
               decoration: InputDecoration(
                 isDense: true,
                 hintText: 'Add your Google Title',
@@ -246,7 +246,7 @@ class _ResultsListState extends State<ResultsList> {
                 controller: TextEditingController(text: result.desc.toString()),
                 style: TextStyle(fontSize: 15, color: AppColors.greyText),
                 minLines: 1,
-                maxLines: maxLines,
+                maxLines: 3,
                 decoration: InputDecoration(
                   hintText: 'Add your Google Description',
                   hintStyle: TextStyle(color: AppColors.greyText),

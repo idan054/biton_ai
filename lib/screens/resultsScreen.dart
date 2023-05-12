@@ -118,12 +118,12 @@ class _ResultsScreenState extends State<ResultsScreen> {
   List<ResultModel> longDescResults = [];
 
   List<ResultModel> selectedResults = []; // Top List (Remove)
-  List<ResultModel> currentResults = []; // Bottom List (Add)
+  // List<ResultModel> currentResults = []; // Bottom List (Add)
 
   @override
   void initState() {
     googleResults = [...widget.googleResults];
-    currentResults = googleResults;
+    // currentResults = googleResults;
 
     // autoFetchResults(ResultCategory.gResults);
     autoFetchResults(ResultCategory.titles);
@@ -136,14 +136,11 @@ class _ResultsScreenState extends State<ResultsScreen> {
 
   void autoFetchResults(ResultCategory type) async {
     // var n = type == ResultCategory.longDesc ? 1 : 3;
+    print('START: autoFetchResults() ${type.name}');
 
     var prompts = promptsByType(type, widget.input);
     final results = await Gpt.getResults(
-      type: type,
-      input: widget.input,
-      prompts: prompts,
-      gDescPrompts: prompts,
-    );
+        type: type, input: widget.input, prompts: prompts, gDescPrompts: prompts);
 
     // if (type == ResultCategory.gResults) googleResults = [...googleResults, ...results];
     if (type == ResultCategory.titles) titlesResults = results;
@@ -154,20 +151,22 @@ class _ResultsScreenState extends State<ResultsScreen> {
     //  auto add 2 missing results after homeScreen.dart
     // if (currentResults.length == 1) currentResults = googleResults;
 
-    if (currentResults.isEmpty) {
-      //  only if user chose gResults
-      if (selectedResults.any((result) => result.category == ResultCategory.gResults)) {
-        currentResults = titlesResults;
-      }
-      //  only if user chose titles
-      if (selectedResults.any((result) => result.category == ResultCategory.titles)) {
-        currentResults = shortDescResults;
-      }
-      //  only if user chose shortDesc
-      if (selectedResults.any((result) => result.category == ResultCategory.shortDesc)) {
-        currentResults = longDescResults;
-      }
-    }
+    // if (currentResults.isEmpty) {
+    //   print('START: currentResults.isEmpty()');
+    //
+    //   //  only if user chose gResults
+    //   if (selectedResults.any((result) => result.category == ResultCategory.gResults)) {
+    //     currentResults = titlesResults;
+    //   }
+    //   //  only if user chose titles
+    //   if (selectedResults.any((result) => result.category == ResultCategory.titles)) {
+    //     currentResults = shortDescResults;
+    //   }
+    //   //  only if user chose shortDesc
+    //   if (selectedResults.any((result) => result.category == ResultCategory.shortDesc)) {
+    //     currentResults = longDescResults;
+    //   }
+    // }
 
     setState(() {});
   }
@@ -175,14 +174,28 @@ class _ResultsScreenState extends State<ResultsScreen> {
   ResultModel? lastSelectedResult; // For restore when re-pick
   ResultCategory drawerCategory = ResultCategory.gResults;
 
+  Widget buildCardsRow(List<ResultModel> list) {
+    if (list.isEmpty) {
+      return const CircularProgressIndicator(
+        strokeWidth: 7,
+        color: AppColors.primaryShiny,
+      ).pOnly(top: 100).center;
+    }
+
+    return ResultsList(
+      exampleUrl: exampleUrl,
+      horizontalView: appConfig_horizontalSummery,
+      results: list,
+      onSelect: (result) {
+        // _removeIfAlreadySelected(result);
+        selectedResults.add(result);
+        _nextAvailableList();
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    // var googleResult = selectedResults
-    //     .firstWhereOrNull((item) => item.category == ResultCategory.googleResults);
-    //
-    // var horizontalList = selectedResults;
-    // if (googleResult != null) horizontalList.remove(googleResult);
-
     return Scaffold(
       backgroundColor: AppColors.lightPrimaryBg,
       body: Row(
@@ -190,52 +203,13 @@ class _ResultsScreenState extends State<ResultsScreen> {
           buildDrawer(),
           Column(
             children: [
-              // 'listTitle'.toText(fontSize: 22, bold: true).px(15).py(5).centerLeft,
               buildUserInput().pOnly(top: 20),
               Divider(color: AppColors.greyLight, thickness: 1, height: 0),
-
-              Builder(builder: (context) {
-                return Column(
-                  //~ Remove results:
-                  children: [
-                    // if (googleResult != null)
-                    //   ResultsList(
-                    //       removeMode: true,
-                    //       results: [googleResult],
-                    //       onSelect: (result) {
-                    //         selectedResults.remove(result);
-                    //         _nextAvailableList();
-                    //       }),
-                    ResultsList(
-                        exampleUrl: exampleUrl,
-                        horizontalView: appConfig_horizontalSummery,
-                        removeMode: true,
-                        results: selectedResults,
-                        onSelect: (result) {
-                          selectedResults.remove(result);
-                          _nextAvailableList();
-                        }),
-                  ],
-                );
-              }),
-
-              //~  Add results:
-              currentResults.isNotEmpty
-                  ? ResultsList(
-                      exampleUrl: exampleUrl,
-                      horizontalView: appConfig_horizontalSummery,
-                      results: currentResults,
-                      onSelect: (result) {
-                        // if (googleResult != null) selectedResults.add(googleResult);
-                        _removeIfAlreadySelected(result);
-                        selectedResults.add(result);
-                        _nextAvailableList();
-                      },
-                    )
-                  : const CircularProgressIndicator(
-                      strokeWidth: 7,
-                      color: AppColors.primaryShiny,
-                    ).pOnly(top: 100).center,
+              buildCardsRow(googleResults),
+              buildCardsRow(titlesResults),
+              buildCardsRow(shortDescResults),
+              buildCardsRow(longDescResults),
+              const SizedBox(height: 20)
             ],
           ).px(30).singleChildScrollView.top.expanded(),
         ],
@@ -250,41 +224,43 @@ class _ResultsScreenState extends State<ResultsScreen> {
   }
 
   void _changeListByCategory(ResultCategory? category) {
+    print('START: _changeListByCategory()');
     if (category == ResultCategory.gResults) {
       drawerCategory = ResultCategory.gResults;
-      currentResults = googleResults;
+      // currentResults = googleResults;
     } else if (category == ResultCategory.titles) {
       drawerCategory = ResultCategory.titles;
-      currentResults = titlesResults;
+      // currentResults = titlesResults;
     } else if (category == ResultCategory.shortDesc) {
       drawerCategory = ResultCategory.shortDesc;
-      currentResults = shortDescResults;
+      // currentResults = shortDescResults;
     } else if (category == ResultCategory.longDesc) {
       drawerCategory = ResultCategory.longDesc;
-      currentResults = longDescResults;
+      // currentResults = longDescResults;
     }
 
     setState(() {});
   }
 
   void _nextAvailableList() {
+    print('START: _nextAvailableList()');
     var selectedCategories =
         selectedResults.map((item) => item.category).toList(growable: true);
 
     if (!selectedCategories.contains(ResultCategory.gResults)) {
       drawerCategory = ResultCategory.gResults;
-      currentResults = googleResults;
+      // currentResults = googleResults;
     } else if (!selectedCategories.contains(ResultCategory.titles)) {
       drawerCategory = ResultCategory.titles;
-      currentResults = titlesResults;
+      // currentResults = titlesResults;
     } else if (!selectedCategories.contains(ResultCategory.shortDesc)) {
       drawerCategory = ResultCategory.shortDesc;
-      currentResults = shortDescResults;
+      // currentResults = shortDescResults;
     } else if (!selectedCategories.contains(ResultCategory.longDesc)) {
       drawerCategory = ResultCategory.longDesc;
-      currentResults = longDescResults;
+      // currentResults = longDescResults;
     }
-
+    // print('currentResults ${currentResults}');
     setState(() {});
   }
 
@@ -328,25 +304,6 @@ class _ResultsScreenState extends State<ResultsScreen> {
               },
             ),
             20.verticalSpace,
-
-            // Builder(builder: (context) {
-            //   // var i = categories.indexWhere((cat) => cat == selectedCategory);
-            //   // var title = i == 3 ? 'Finish' : "(${i + 1}/4) Next";
-            //   var title = 'Create Another Product';
-            //   return CustomButton(
-            //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            //     backgroundColor: AppColors.primaryShiny,
-            //     title: title,
-            //     width: 240,
-            //     height: 50,
-            //     onPressed: () {
-            //       // if (i != 3) {
-            //       //   selectedCategory = categories[i + 1];
-            //       // } else {}
-            //       // setState(() {});
-            //     },
-            //   );
-            // }),
           ],
         ).singleChildScrollView);
   }
