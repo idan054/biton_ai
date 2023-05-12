@@ -32,8 +32,6 @@ class _HomeScreenState extends State<HomeScreen> {
   var searchController =
       TextEditingController(text: kDebugMode ? 'Nike Air Max 90' : null);
   List<WooCategoryModel> _categories = [];
-  bool _isLoading = false;
-  bool _showLoadingText = false; // Only appear after 5 seconds
 
   @override
   void initState() {
@@ -47,18 +45,39 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {});
   }
 
-  var loadingSeconds = 0;
+  bool _isLoading = false;
+  bool _showLoadingText = false; // Only appear after 5 seconds
+  // var loadingSeconds = 0;
+  int loadingIndex = 0;
+
+  Timer? _timer; // 1 time run.
+  String? loadingText;
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      Timer.periodic(const Duration(seconds: 1), (_) {
-        loadingSeconds++;
-        if (loadingSeconds == 3) _showLoadingText = true;
+    List loaderActivities = [
+      'Get info about ${searchController.text}...',
+      'Summery info about ${searchController.text}...',
+      'Create 3 Google Titles...',
+      'Create 3 Google Descriptions...',
+      'Improve Google Titles & Descriptions SEO...',
+      'Generate 3 Amazing Titles for your Product page...',
+      'Generate 3 Short Descriptions (3-5 lines) for your Product page...',
+      'Create a sales article for your Product page...',
+    ];
+    loadingText ??= loaderActivities.first;
+    if (_isLoading && _timer == null) {
+      _timer = Timer.periodic(const Duration(milliseconds: 3000), (timer) {
+        //> Cycle loaderActivities list:
+        // loadingIndex = (loadingIndex + 1) % loaderActivities.length;
+        //> Stop at end loaderActivities list:
+        if (loadingIndex < loaderActivities.length - 1) loadingIndex++;
+
+        loadingText = loaderActivities[loadingIndex];
         setState(() {});
       });
     }
-
+    var textFieldWidth = 800.0;
     return Scaffold(
       backgroundColor: AppColors.lightPrimaryBg,
       body: Column(
@@ -69,7 +88,7 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 30),
           //~ Search TextField
           SizedBox(
-            width: 800,
+            width: textFieldWidth,
             child: Material(
               elevation: 3,
               borderRadius: BorderRadius.circular(99),
@@ -113,9 +132,19 @@ class _HomeScreenState extends State<HomeScreen> {
                           final results = await Gpt.getResults(
                             type: ResultCategory.gResults,
                             input: searchController.text,
-                            n: 3,
+                            prompts: [
+                              'Create a great google title for the product: ${searchController.text}',
+                              'Create a great google title for the product: ${searchController.text}',
+                              'Create a great google title for the product: ${searchController.text}',
+                            ],
+                            gDescPrompts: [
+                              'Create a great google description about 2 lines for the product: ${searchController.text}',
+                              'Create a great google description about 2 lines for the product: ${searchController.text}',
+                              'Create a great google description about 2 lines for the product: ${searchController.text}',
+                            ],
                           );
-                          _navigateToSearchResults(context, searchController.text, results);
+                          _navigateToSearchResults(
+                              context, searchController.text, results);
                         }, tapColor: AppColors.primaryShiny.withOpacity(0.15)),
                     ],
                   ),
@@ -142,17 +171,23 @@ class _HomeScreenState extends State<HomeScreen> {
             ).px(15),
           ),
 
-          if (_showLoadingText)
-            'This can take up to 60 seconds...'
-                .toText(color: AppColors.greyText, fontSize: 18)
-                .py(10)
-                .appearAll,
+          if (_isLoading)
+            // 'This can take up to 15 seconds...'
+            SizedBox(
+              width: textFieldWidth,
+              child: '$loadingText'
+                  .toText(color: AppColors.greyText, fontSize: 18)
+                  .py(10)
+                  .px(30)
+                  .appearAll,
+            ),
         ],
       ).center,
     );
   }
 
-  void _navigateToSearchResults(BuildContext context, String input,  List<ResultModel> results) {
+  void _navigateToSearchResults(
+      BuildContext context, String input, List<ResultModel> results) {
     _isLoading = false;
     setState(() {});
     Navigator.push(

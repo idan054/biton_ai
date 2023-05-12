@@ -65,6 +65,40 @@ import '../widgets/resultsList.dart';
 //       category: ResultCategory.longDesc),
 // ];
 
+List<String> promptsByType(ResultCategory type, String input) {
+  var prompts = <String>[];
+  if (type == ResultCategory.gResults) {
+    prompts = [
+      // 1st already from homeScreen.dart
+      // 'Create a great google title for the product: $input',
+      'Create a great google title for the product: $input',
+      'Create a great google title for the product: $input',
+    ];
+  }
+  if (type == ResultCategory.titles) {
+    prompts = [
+      'Create a great product title of 1-2 lines for: $input',
+      'Create a great product title of 1-2 lines for: $input',
+      'Create a great product title of 1-2 lines for: $input',
+    ];
+  }
+  if (type == ResultCategory.shortDesc) {
+    prompts = [
+      'Create a short SEO description of 3-5 lines about: $input',
+      'Create a short SEO description of 3-5 lines about: $input',
+      'Create a short SEO description of 3-5 lines about: $input',
+    ];
+  }
+  if (type == ResultCategory.longDesc) {
+    prompts = [
+      'Create a long SEO description of 20-30 lines about: $input',
+      'Create a long SEO description of 20-30 lines about: $input',
+      'Create a long SEO description of 20-30 lines about: $input',
+    ];
+  }
+  return prompts;
+}
+
 class ResultsScreen extends StatefulWidget {
   final String input;
   final List<ResultModel> googleResults;
@@ -78,6 +112,7 @@ class ResultsScreen extends StatefulWidget {
 class _ResultsScreenState extends State<ResultsScreen> {
   var inputController = TextEditingController(text: 'Nike Air Max 90');
   List<ResultModel> titlesResults = [];
+  List<ResultModel> googleResults = [];
   List<ResultModel> shortDescResults = [];
   List<ResultModel> longDescResults = [];
 
@@ -86,7 +121,10 @@ class _ResultsScreenState extends State<ResultsScreen> {
 
   @override
   void initState() {
-    currentResults = [...widget.googleResults];
+    googleResults = [...widget.googleResults];
+    currentResults = googleResults;
+
+    // autoFetchResults(ResultCategory.gResults);
     autoFetchResults(ResultCategory.titles);
     autoFetchResults(ResultCategory.shortDesc);
     autoFetchResults(ResultCategory.longDesc);
@@ -94,14 +132,25 @@ class _ResultsScreenState extends State<ResultsScreen> {
   }
 
   void autoFetchResults(ResultCategory type) async {
-    var n = type == ResultCategory.longDesc ? 1 : 3;
-    final results = await Gpt.getResults(type: type, input: widget.input, n: n);
+    // var n = type == ResultCategory.longDesc ? 1 : 3;
 
+    var prompts = promptsByType(type, widget.input);
+    final results = await Gpt.getResults(
+      type: type,
+      input: widget.input,
+      prompts: prompts,
+      gDescPrompts: prompts,
+    );
+
+    // if (type == ResultCategory.gResults) googleResults = [...googleResults, ...results];
     if (type == ResultCategory.titles) titlesResults = results;
     if (type == ResultCategory.shortDesc) shortDescResults = results;
     if (type == ResultCategory.longDesc) longDescResults = results;
 
     //> Auto deploy on [currentResults] if needed:
+    //  auto add 2 missing results after homeScreen.dart
+    if (currentResults.length == 1) currentResults = googleResults;
+
     if (currentResults.isEmpty) {
       //  only if user chose gResults
       if (selectedResults.any((result) => result.category == ResultCategory.gResults)) {
@@ -167,22 +216,21 @@ class _ResultsScreenState extends State<ResultsScreen> {
               }),
 
               //~  Add results:
-              currentResults.isEmpty
-                  ? const CircularProgressIndicator(
-                      strokeWidth: 7,
-                      color: AppColors.primaryShiny,
-                    ).pOnly(top: 100).center
-                  : ResultsList(
+              currentResults.isNotEmpty
+                  ? ResultsList(
                       horizontalView: appConfig_horizontalSummery,
                       results: currentResults,
                       onSelect: (result) {
                         // if (googleResult != null) selectedResults.add(googleResult);
-
                         _removeIfAlreadySelected(result);
                         selectedResults.add(result);
                         _nextAvailableList();
                       },
-                    ),
+                    )
+                  : const CircularProgressIndicator(
+                      strokeWidth: 7,
+                      color: AppColors.primaryShiny,
+                    ).pOnly(top: 100).center,
             ],
           ).px(30).singleChildScrollView.top.expanded(),
         ],
@@ -199,7 +247,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
   void _changeListByCategory(ResultCategory? category) {
     if (category == ResultCategory.gResults) {
       drawerCategory = ResultCategory.gResults;
-      currentResults = widget.googleResults;
+      currentResults = googleResults;
     } else if (category == ResultCategory.titles) {
       drawerCategory = ResultCategory.titles;
       currentResults = titlesResults;
@@ -220,7 +268,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
 
     if (!selectedCategories.contains(ResultCategory.gResults)) {
       drawerCategory = ResultCategory.gResults;
-      currentResults = widget.googleResults;
+      currentResults = googleResults;
     } else if (!selectedCategories.contains(ResultCategory.titles)) {
       drawerCategory = ResultCategory.titles;
       currentResults = titlesResults;

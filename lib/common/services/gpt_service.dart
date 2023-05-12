@@ -9,41 +9,29 @@ import 'color_printer.dart';
 class Gpt {
   static Future<List<ResultModel>> getResults({
     required ResultCategory type,
+    required List<String> prompts,
+    List<String>? gDescPrompts,
     required String input,
-    required int n,
+    // required int n,
   }) async {
-    print('\nSTART: getResults: ${type.name}');
+    assert(type != ResultCategory.gResults || gDescPrompts != null,
+        'gDescPrompts is required when type is ResultCategory.gResults');
+
+    print('START: getResults: ${type.name}');
 
     List<ResultModel> results = [];
     ChatGPTModel? titles;
     ChatGPTModel? descriptions;
 
-    String? promptBase;
-    switch (type) {
-      case ResultCategory.titles:
-        promptBase = 'Create a great product title of 1-2 lines for:';
-        break;
-      case ResultCategory.gResults:
-        promptBase = 'Create a great google title for the product:';
-        break;
-      case ResultCategory.shortDesc:
-        promptBase = 'Create a short SEO description of 3-5 lines about:';
-        break;
-      case ResultCategory.longDesc:
-        promptBase = 'Create a long SEO description of 20-30 lines about:';
-    }
-
-    titles = await _callChatGPT(
-      prompt: '$promptBase $input',
+    titles = await _multiCallChatGPT(
       reqType: type.name.toUpperCase(),
-      n: n,
+      prompts: prompts,
     );
 
     if (type == ResultCategory.gResults) {
-      descriptions = await _callChatGPT(
-        n: n,
+      descriptions = await _multiCallChatGPT(
         reqType: '${type.name} - Descriptions',
-        prompt: 'Create a great google description for the product: $input',
+        prompts: gDescPrompts!,
       );
     }
 
@@ -60,41 +48,47 @@ class Gpt {
     return results;
   }
 
-  // So prompts can be different
-  // static Future<ChatGPTModel> _multiCallChatGPT({
-  //   String? reqType,
-  //   required List<String> prompts,
-  // }) async {
-  //   print('START: _multiCallChatGPT()');
-  //
-  //   var gptResponses = <ChatGPTModel>[];
-  //   for (var prompt in [...prompts]) {
-  //     printYellow('prompt: $prompt');
-  //     const url = '$baseUrl/ai-engine/v1/call-chat-gpt';
-  //     final headers = {'Content-Type': 'application/json'};
-  //     final body = json.encode({'prompt': prompt, 'n': 1});
-  //     final response = await http.post(Uri.parse(url), headers: headers, body: body);
-  //
-  //     if (response.statusCode == 200) {
-  //       printGreen('response.statusCode ${response.statusCode} ($reqType)');
-  //       final jsonResponse = json.decode(response.body);
-  //       var gptResp = ChatGPTModel.fromJson(jsonResponse);
-  //       print('gptModel.tokenUsage ${gptResp.tokenUsage}');
-  //       gptResponses.add(gptResp);
-  //     } else {
-  //       throw Exception('Failed to call API');
-  //     }
-  //   }
-  //
-  //   var fullGptModel = ChatGPTModel(tokenUsage: 0, choices: []);
-  //   for (var gptResp in gptResponses) {
-  //     fullGptModel.choices.addAll(gptResp.choices);
-  //     fullGptModel =
-  //         fullGptModel.copyWith(tokenUsage: fullGptModel.tokenUsage + gptResp.tokenUsage);
-  //   }
-  //
-  //   return fullGptModel;
-  // }
+  /// _multiCallChatGPT() So prompts can be different
+  static Future<ChatGPTModel> _multiCallChatGPT({
+    String? reqType,
+    required List<String> prompts,
+  }) async {
+    printWhite('START: _multiCallChatGPT()');
+
+    var gptResponses = <ChatGPTModel>[];
+    var i = 0;
+    for (var prompt in [...prompts]) {
+      i++;
+      print('($reqType) prompt: $prompt');
+      const url = '$baseUrl/ai-engine/v1/call-chat-gpt';
+      final headers = {'Content-Type': 'application/json'};
+      final body = json.encode({'prompt': prompt, 'n': 1});
+      final response = await http.post(Uri.parse(url), headers: headers, body: body);
+      var counter = '[$i/${prompts.length}]';
+
+      if (response.statusCode == 200) {
+        printGreen('($reqType) $counter response.statusCode ${response.statusCode}');
+        final jsonResponse = json.decode(response.body);
+        var gptResp = ChatGPTModel.fromJson(jsonResponse);
+        print('($reqType) $counter gptModel.tokenUsage ${gptResp.tokenUsage}');
+        gptResponses.add(gptResp);
+      } else {
+        throw Exception('Failed to call API');
+      }
+    }
+
+    var tempList = [];
+    var fullGptModel = ChatGPTModel(tokenUsage: 0, choices: []);
+    for (var gptResp in gptResponses) {
+      tempList.addAll(gptResp.choices);
+      fullGptModel = fullGptModel.copyWith(
+        tokenUsage: fullGptModel.tokenUsage + gptResp.tokenUsage,
+        choices: tempList,
+      );
+    }
+
+    return fullGptModel;
+  }
 
   // Make GPT Functions in this class
   static Future<ChatGPTModel> _callChatGPT({

@@ -8,6 +8,7 @@ import 'package:biton_ai/widgets/resultsList.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:http/http.dart' as http;
+import 'package:shimmer/shimmer.dart';
 import 'dart:convert';
 
 import '../common/constants.dart';
@@ -58,6 +59,20 @@ class ResultsList extends StatefulWidget {
 
 class _ResultsListState extends State<ResultsList> {
   ResultModel? selectedResult; // AKA var
+  List<ResultModel> results = [];
+
+  @override
+  void initState() {
+    results = widget.results;
+    if (widget.results.length == 1) {
+      var tempResult = const ResultModel(
+        category: ResultCategory.gResults,
+        title: 'tempResult',
+      );
+      results = [...widget.results, tempResult, tempResult];
+    }
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,29 +81,29 @@ class _ResultsListState extends State<ResultsList> {
     double height = MediaQuery.of(context).size.height;
     String resultsTitle = '';
 
-    if (widget.results.isNotEmpty) {
-      var resultsCategory = widget.results.first.category;
+    if (results.isNotEmpty) {
+      var resultsCategory = results.first.category;
       resultsTitle = titleByCategory(resultsCategory!);
     }
 
     return Column(
       children: [
         const SizedBox(height: 15),
-        if (widget.results.isNotEmpty && !(widget.horizontalView))
+        if (results.isNotEmpty && !(widget.horizontalView))
           resultsTitle
               .toText(fontSize: 20, bold: true, color: AppColors.greyText)
               .px(15)
               .py(10)
               .centerLeft,
         SizedBox(
-          height: horizontalView ? (widget.results.isEmpty ? 10 : 400) : null,
+          height: horizontalView ? (results.isEmpty ? 10 : 400) : null,
           width: horizontalView ? width : null,
           child: ListView.builder(
             scrollDirection: horizontalView ? Axis.horizontal : Axis.vertical,
             shrinkWrap: true,
-            itemCount: widget.results.length,
+            itemCount: results.length,
             itemBuilder: (BuildContext context, int i) {
-              var result = widget.results[i];
+              var result = results[i];
               var isSelected = widget.removeMode || selectedResult == result;
 
               return widget.removeMode
@@ -106,6 +121,8 @@ class _ResultsListState extends State<ResultsList> {
     var isGoogleItem = result.category == ResultCategory.gResults;
     var isProductTitle = result.category == ResultCategory.titles;
     var horizTitle = titleByCategory(result.category!);
+
+    var isTempResult = result.title == 'tempResult';
 
     var cardWidth = horizontalView
         ? isGoogleItem
@@ -142,6 +159,7 @@ class _ResultsListState extends State<ResultsList> {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.5)),
                 label: SizedBox(
                   width: cardWidth,
+                  height: isTempResult ? 220 : null,
                   child: Card(
                     elevation: 3,
                     shape: RoundedRectangleBorder(

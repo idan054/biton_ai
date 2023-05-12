@@ -36,6 +36,7 @@ dependencies:
   shared_preferences: ^2.1.0
   flutter_screenutil: ^5.7.0
   entry: ^0.0.8+1
+  shimmer: ^2.0.0
 #  text_selection_controls: ^0.0.2
 
 
