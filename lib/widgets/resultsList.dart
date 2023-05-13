@@ -18,6 +18,7 @@ import '../screens/resultsScreen.dart';
 
 String titleByCategory(ResultCategory resultsCategory) {
   var title = '';
+  // if(resultsCategory == null) return '';
   switch (resultsCategory) {
     case ResultCategory.gResults:
       title += // '1/4 '
@@ -42,14 +43,10 @@ String titleByCategory(ResultCategory resultsCategory) {
 class ResultsList extends StatefulWidget {
   final String exampleUrl;
   final List<ResultModel> results;
-  final bool horizontalView;
-  final bool removeMode; // Remove items from [selectedResults] resultsScreen.dart
   final void Function(ResultModel result) onSelect;
 
   const ResultsList({
     super.key,
-    this.removeMode = false,
-    this.horizontalView = false,
     required this.exampleUrl,
     required this.results,
     required this.onSelect,
@@ -66,68 +63,45 @@ class _ResultsListState extends State<ResultsList> {
   @override
   void initState() {
     results = widget.results;
-    // if (widget.results.length == 1) {
-    //   var tempResult = const ResultModel(
-    //     category: ResultCategory.gResults,
-    //     title: 'tempResult',
-    //   );
-    //   results = [...widget.results, tempResult, tempResult];
-    // }
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     print('START: ResultsList()');
-    print('removeMode ${widget.removeMode}');
-    print('results ${results.length}');
-    print('results ${results}');
+    print('${results.length} results: $results');
     print('------');
 
-    bool horizontalView = widget.horizontalView;
     double width = MediaQuery.of(context).size.width;
-    double height = MediaQuery.of(context).size.height;
+
     String resultsTitle = '';
-
-    var cardHeight = 0.0;
-    if (results.isNotEmpty) {
-      var resultsCategory = results.first.category;
-      resultsTitle = titleByCategory(resultsCategory!);
-      if (widget.results.first.category == ResultCategory.gResults) cardHeight = 230.0;
-      if (widget.results.first.category == ResultCategory.titles) cardHeight = 155.0;
-      if (widget.results.first.category == ResultCategory.shortDesc) cardHeight = 200.0;
-      if (widget.results.first.category == ResultCategory.longDesc) cardHeight = 350.0;
-    }
-
+    if (results.isNotEmpty) resultsTitle = titleByCategory(results.first.category!);
     return Column(
       children: [
-        // const SizedBox(height: 15),
-        if (results.isNotEmpty && (widget.horizontalView))
-          resultsTitle.toText(color: AppColors.greyUnavailable).px(15).py(10).topLeft,
+        if (results.isNotEmpty)
+          resultsTitle
+              .toText(color: AppColors.greyUnavailable, fontSize: 16)
+              .px(15)
+              .py(5)
+              .topLeft,
         SizedBox(
-          height: horizontalView ? cardHeight : null,
-          width: horizontalView ? width : null,
-          child: ListView.builder(
-            scrollDirection: horizontalView ? Axis.horizontal : Axis.vertical,
-            shrinkWrap: true,
-            itemCount: results.length,
-            itemBuilder: (BuildContext context, int i) {
-              var result = results[i];
-              var isSelected = widget.removeMode || selectedResult == result;
-
-              return buildChoiceChip(isSelected, result, width).appearAll;
-            },
-          ),
-        ).top
-        // .testContainer,
+            width: width,
+            child: Row(children: cardList(width)).singleChildScrollViewHoriz),
       ],
     );
   }
 
-  Widget buildChoiceChip(bool isSelected, ResultModel result, double width) {
-    bool horizontalView = widget.horizontalView;
-    var isTempResult = result.title == 'tempResult';
+  List<Widget> cardList(double width) {
+    List<Widget> list = [];
+    // for (int i = 0; i < 3; i++) {
+    for (var result in results) {
+      var isSelected = selectedResult == result;
+      list.add(buildChoiceChip(isSelected, result, width).appearAll);
+    }
+    return list;
+  }
 
+  Widget buildChoiceChip(bool isSelected, ResultModel result, double width) {
     var wDrawer = 250;
     var cardWidth = result.category == ResultCategory.longDesc
         ? (width - wDrawer) * 0.9
@@ -175,7 +149,6 @@ class _ResultsListState extends State<ResultsList> {
   }
 
   Widget buildCardResult(bool isSelected, ResultModel result) {
-    bool horizontalView = widget.horizontalView;
     var isGoogleItem = result.category == ResultCategory.gResults;
     var isShortDesc = result.category == ResultCategory.shortDesc;
     var isProductTitle = result.category == ResultCategory.titles;

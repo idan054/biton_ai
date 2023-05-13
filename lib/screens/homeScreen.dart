@@ -52,9 +52,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Timer? _timer; // 1 time run.
   String? loadingText;
+  String? errorMessage;
 
   @override
   Widget build(BuildContext context) {
+    _isLoading = _isLoading && errorMessage == null;
+
     List loaderActivities = [
       'Get info about ${searchController.text}...',
       'Summery info about ${searchController.text}...',
@@ -128,43 +131,50 @@ class _HomeScreenState extends State<HomeScreen> {
                                 color: AppColors.primaryShiny, medium: true, fontSize: 14)
                           ],
                         ).px(20).py(15).onTap(() async {
+                          errorMessage = null;
                           _isLoading = true;
                           setState(() {});
                           List<ResultModel> results = [];
-                          if (!kDebugMode) {
-                            results = const [
-                              ResultModel(
-                                  title: 'A A great google result title will appear here',
-                                  desc:
-                                      'A A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
-                                  category: ResultCategory.gResults),
-                              ResultModel(
-                                  title: 'B A great google result title will appear here',
-                                  desc:
-                                      'B A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
-                                  category: ResultCategory.gResults),
-                              ResultModel(
-                                  title: 'C A great google result title will appear here',
-                                  desc:
-                                      'C A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
-                                  category: ResultCategory.gResults),
-                            ];
-                          } else {
-                            results = await Gpt.getResults(
-                              type: ResultCategory.gResults,
-                              input: searchController.text,
-                              prompts: [
-                                'Create a great google title for the product: ${searchController.text}',
-                                'Create a great google title for the product: ${searchController.text}',
-                                'Create a great google title for the product: ${searchController.text}',
-                              ],
-                              gDescPrompts: [
-                                'Create a great google description about 2 lines for the product: ${searchController.text}',
-                                'Create a great google description about 2 lines for the product: ${searchController.text}',
-                                'Create a great google description about 2 lines for the product: ${searchController.text}',
-                              ],
-                            );
-                          }
+                          // if (kDebugMode) {
+                          //   results = const [
+                          //     ResultModel(
+                          //         title: 'A A great google result title will appear here',
+                          //         desc:
+                          //             'A A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
+                          //         category: ResultCategory.gResults),
+                          //     ResultModel(
+                          //         title: 'B A great google result title will appear here',
+                          //         desc:
+                          //             'B A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
+                          //         category: ResultCategory.gResults),
+                          //     ResultModel(
+                          //         title: 'C A great google result title will appear here',
+                          //         desc:
+                          //             'C A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
+                          //         category: ResultCategory.gResults),
+                          //   ];
+                          // } else {
+                          results = await Gpt.getResults(
+                            type: ResultCategory.gResults,
+                            input: searchController.text,
+                            prompts: [
+                              'Create a great google title for the product: ${searchController.text}',
+                              'Create a great google title for the product: ${searchController.text}',
+                              'Create a great google title for the product: ${searchController.text}',
+                            ],
+                            gDescPrompts: [
+                              'Create a great google description about 2 lines for the product: ${searchController.text}',
+                              'Create a great google description about 2 lines for the product: ${searchController.text}',
+                              'Create a great google description about 2 lines for the product: ${searchController.text}',
+                            ],
+                          ).catchError((err) {
+                            printRed('My ERROR: $err');
+                            print('err.runtimeType ${err.runtimeType}');
+                            errorMessage = err.toString();
+                            setState(() {});
+                          });
+
+                          // }
                           _navigateToSearchResults(
                               context, searchController.text, results);
                         }, tapColor: AppColors.primaryShiny.withOpacity(0.15)),
@@ -192,6 +202,17 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ).px(15),
           ),
+
+          if (errorMessage != null)
+            // 'This can take up to 15 seconds...'
+            SizedBox(
+              width: textFieldWidth,
+              child: 'Something went wrong. Please try again'
+                  .toText(color: AppColors.errRed, fontSize: 18)
+                  .py(10)
+                  .px(30)
+                  .appearAll,
+            ),
 
           if (_isLoading)
             // 'This can take up to 15 seconds...'

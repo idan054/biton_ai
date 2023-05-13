@@ -71,25 +71,24 @@ extension WidgetX on Widget {
       ClipRRect(borderRadius: BorderRadius.circular(radius ?? 99), child: this);
 
   Entry get appearAll => Entry.all(
-    duration: Duration(milliseconds: appearDuration),
-    child: this,
-  );
-
+        duration: Duration(milliseconds: appearDuration),
+        child: this,
+      );
 
   Entry get appearScale => Entry.scale(
-    duration: Duration(milliseconds: appearDuration),
-    child: this,
-  );
+        duration: Duration(milliseconds: appearDuration),
+        child: this,
+      );
 
   Entry get appearOffset => Entry.offset(
-    duration: Duration(milliseconds: appearDuration),
-    child: this,
-  );
+        duration: Duration(milliseconds: appearDuration),
+        child: this,
+      );
 
   Entry get appearOpacity => Entry.opacity(
-    duration: Duration(milliseconds: appearDuration),
-    child: this,
-  );
+        duration: Duration(milliseconds: appearDuration),
+        child: this,
+      );
 
   // rest extension:
   Padding px(double padding) => Padding(
@@ -140,14 +139,14 @@ extension WidgetX on Widget {
       );
 
   Align get topRight => Align(
-    alignment: Alignment.topRight,
-    child: this,
-  );
+        alignment: Alignment.topRight,
+        child: this,
+      );
 
   Align get topLeft => Align(
-    alignment: Alignment.topLeft,
-    child: this,
-  );
+        alignment: Alignment.topLeft,
+        child: this,
+      );
 
   Align get bottom => Align(
         alignment: Alignment.bottomCenter,
@@ -216,6 +215,11 @@ extension WidgetX on Widget {
 
   Padding get customRowPadding =>
       Padding(padding: const EdgeInsets.only(top: 15, bottom: 12), child: this);
+
+  SingleChildScrollView get singleChildScrollViewHoriz => SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: this,
+      );
 
   SingleChildScrollView get singleChildScrollView => SingleChildScrollView(child: this);
 }

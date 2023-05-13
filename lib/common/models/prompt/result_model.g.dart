@@ -24,7 +24,7 @@ Map<String, dynamic> _$$_ResultModelToJson(_$_ResultModel instance) =>
 
 const _$ResultCategoryEnumMap = {
   ResultCategory.titles: 'titles',
-  ResultCategory.gResults: 'googleResults',
+  ResultCategory.gResults: 'gResults',
   ResultCategory.shortDesc: 'shortDesc',
   ResultCategory.longDesc: 'longDesc',
 };

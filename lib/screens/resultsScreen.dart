@@ -184,10 +184,8 @@ class _ResultsScreenState extends State<ResultsScreen> {
 
     return ResultsList(
       exampleUrl: exampleUrl,
-      horizontalView: appConfig_horizontalSummery,
       results: list,
       onSelect: (result) {
-        // _removeIfAlreadySelected(result);
         selectedResults.add(result);
         _nextAvailableList();
       },
@@ -196,6 +194,9 @@ class _ResultsScreenState extends State<ResultsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    var sCategoryItems =
+        selectedResults.map((item) => item.category).toList(growable: true);
+
     return Scaffold(
       backgroundColor: AppColors.lightPrimaryBg,
       body: Row(
@@ -206,9 +207,12 @@ class _ResultsScreenState extends State<ResultsScreen> {
               buildUserInput().pOnly(top: 20),
               Divider(color: AppColors.greyLight, thickness: 1, height: 0),
               buildCardsRow(googleResults),
-              buildCardsRow(titlesResults),
-              buildCardsRow(shortDescResults),
-              buildCardsRow(longDescResults),
+              if (sCategoryItems.contains(ResultCategory.gResults))
+                buildCardsRow(titlesResults),
+              if (sCategoryItems.contains(ResultCategory.titles))
+                buildCardsRow(shortDescResults),
+              if (sCategoryItems.contains(ResultCategory.shortDesc))
+                buildCardsRow(longDescResults),
               const SizedBox(height: 20)
             ],
           ).px(30).singleChildScrollView.top.expanded(),
@@ -217,11 +221,11 @@ class _ResultsScreenState extends State<ResultsScreen> {
     );
   }
 
-  void _removeIfAlreadySelected(ResultModel result) {
-    var sItem =
-        selectedResults.firstWhereOrNull((item) => item.category == result.category);
-    if (sItem != null) selectedResults.remove(sItem);
-  }
+  // void _removeIfAlreadySelected(ResultModel result) {
+  //   var sItem =
+  //       selectedResults.firstWhereOrNull((item) => item.category == result.category);
+  //   if (sItem != null) selectedResults.remove(sItem);
+  // }
 
   void _changeListByCategory(ResultCategory? category) {
     print('START: _changeListByCategory()');
@@ -300,7 +304,8 @@ class _ResultsScreenState extends State<ResultsScreen> {
                 Icons.description_rounded, // subject_rounded
               ],
               onSelect: (category) {
-                _changeListByCategory(category);
+                // Clickable category:
+                // _changeListByCategory(category);
               },
             ),
             20.verticalSpace,

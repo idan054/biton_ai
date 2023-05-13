@@ -20,8 +20,8 @@ class Gpt {
     print('START: getResults: ${type.name}');
 
     List<ResultModel> results = [];
-    ChatGPTModel? titles;
-    ChatGPTModel? descriptions;
+    ChatGptModel? titles;
+    ChatGptModel? descriptions;
 
     titles = await _multiCallChatGPT(
       reqType: type.name.toUpperCase(),
@@ -49,49 +49,55 @@ class Gpt {
   }
 
   /// _multiCallChatGPT() So prompts can be different
-  static Future<ChatGPTModel> _multiCallChatGPT({
+  static Future<ChatGptModel> _multiCallChatGPT({
     String? reqType,
     required List<String> prompts,
   }) async {
     printWhite('START: _multiCallChatGPT()');
 
-    var gptResponses = <ChatGPTModel>[];
-    var i = 0;
-    for (var prompt in [...prompts]) {
-      i++;
-      print('($reqType) prompt: $prompt');
-      const url = '$baseUrl/ai-engine/v1/call-chat-gpt';
-      final headers = {'Content-Type': 'application/json'};
-      final body = json.encode({'prompt': prompt, 'n': 1});
-      final response = await http.post(Uri.parse(url), headers: headers, body: body);
-      var counter = '[$i/${prompts.length}]';
+    try {
+      var gptResponses = <ChatGptModel>[];
+      var i = 0;
+      for (var prompt in [...prompts]) {
+        i++;
+        print('($reqType) prompt: $prompt');
+        const url = '$baseUrl/ai-engine/v1/call-chat-gpt';
+        final headers = {'Content-Type': 'application/json'};
+        final body = json.encode({'prompt': prompt, 'n': 1});
+        final response = await http.post(Uri.parse(url), headers: headers, body: body);
+        var counter = '[$i/${prompts.length}]';
 
-      if (response.statusCode == 200) {
+        if (response.statusCode == 200) {
         printGreen('($reqType) $counter response.statusCode ${response.statusCode}');
-        final jsonResponse = json.decode(response.body);
-        var gptResp = ChatGPTModel.fromJson(jsonResponse);
-        print('($reqType) $counter gptModel.tokenUsage ${gptResp.tokenUsage}');
-        gptResponses.add(gptResp);
-      } else {
-        throw Exception('Failed to call API');
+          final jsonResponse = json.decode(response.body);
+          print('jsonResponse $jsonResponse');
+          var gptResp = ChatGptModel.fromJson(jsonResponse);
+          print('($reqType) $counter gptModel.tokenUsage ${gptResp.tokenUsage}');
+          gptResponses.add(gptResp);
+        } else {
+          throw Exception('Failed to call API');
+        }
       }
-    }
 
-    var tempList = [];
-    var fullGptModel = ChatGPTModel(tokenUsage: 0, choices: []);
-    for (var gptResp in gptResponses) {
-      tempList.addAll(gptResp.choices);
-      fullGptModel = fullGptModel.copyWith(
-        tokenUsage: fullGptModel.tokenUsage + gptResp.tokenUsage,
-        choices: tempList,
-      );
+      var tempList = [];
+      var fullGptModel = ChatGptModel(tokenUsage: 0, choices: []);
+      for (var gptResp in gptResponses) {
+        tempList.addAll(gptResp.choices);
+        fullGptModel = fullGptModel.copyWith(
+          tokenUsage: fullGptModel.tokenUsage + gptResp.tokenUsage,
+          choices: tempList,
+        );
+      }
+      return fullGptModel;
+    } catch (e, s) {
+      print('e $e');
+      // USAGE: _multiCallChatGPT.catchError((error) {)
+      throw Exception('Failed to call API');
     }
-
-    return fullGptModel;
   }
 
   // Make GPT Functions in this class
-  static Future<ChatGPTModel> _callChatGPT({
+  static Future<ChatGptModel> _callChatGPT({
     String? reqType, // As Request PRINT name
     required String prompt,
     required int n,
@@ -107,7 +113,7 @@ class Gpt {
     if (response.statusCode == 200) {
       printGreen('response.statusCode ${response.statusCode} ($reqType)');
       final jsonResponse = json.decode(response.body);
-      var gptModel = ChatGPTModel.fromJson(jsonResponse);
+      var gptModel = ChatGptModel.fromJson(jsonResponse);
       print('gptModel.tokenUsage ${gptModel.tokenUsage}');
       return gptModel;
     } else {
