@@ -24,12 +24,13 @@ class Gpt {
     ChatGptModel? descriptions;
 
     titles = await _multiCallChatGPT(
-      reqType: type.name.toUpperCase(),
-      prompts: type == ResultCategory.longDesc ? [prompts.first] : prompts,
-    );
+        reqType: type.name.toUpperCase(),
+        prompts: prompts,
+        model: type == ResultCategory.longDesc ? 3 : 4);
 
     if (type == ResultCategory.gResults) {
       descriptions = await _multiCallChatGPT(
+        model: 4,
         reqType: '${type.name} - Descriptions',
         prompts: gDescPrompts!,
       );
@@ -51,6 +52,7 @@ class Gpt {
   /// _multiCallChatGPT() So prompts can be different
   static Future<ChatGptModel> _multiCallChatGPT({
     String? reqType,
+    required int model, // 3 & 4 available
     required List<String> prompts,
   }) async {
     printWhite('START: _multiCallChatGPT()');
@@ -61,16 +63,16 @@ class Gpt {
       for (var prompt in [...prompts]) {
         i++;
         print('($reqType) prompt: $prompt');
-        const url = '$baseUrl/ai-engine/v1/call-chat-gpt';
+        var url = '$baseUrl/ai-engine/v1/call-chat-gpt-$model';
         final headers = {'Content-Type': 'application/json'};
         final body = json.encode({'prompt': prompt, 'n': 1});
         final response = await http.post(Uri.parse(url), headers: headers, body: body);
         var counter = '[$i/${prompts.length}]';
 
         if (response.statusCode == 200) {
-        printGreen('($reqType) $counter response.statusCode ${response.statusCode}');
+          printGreen('($reqType) $counter response.statusCode ${response.statusCode}');
           final jsonResponse = json.decode(response.body);
-          print('jsonResponse $jsonResponse');
+          // print('jsonResponse $jsonResponse');
           var gptResp = ChatGptModel.fromJson(jsonResponse);
           print('($reqType) $counter gptModel.tokenUsage ${gptResp.tokenUsage}');
           gptResponses.add(gptResp);
@@ -80,13 +82,13 @@ class Gpt {
       }
 
       var tempList = [];
-      var fullGptModel = ChatGptModel(tokenUsage: 0, choices: []);
+      var fullGptModel = ChatGptModel(tokenUsage: 0, choices: [], model: ''); // Base only
       for (var gptResp in gptResponses) {
         tempList.addAll(gptResp.choices);
         fullGptModel = fullGptModel.copyWith(
-          tokenUsage: fullGptModel.tokenUsage + gptResp.tokenUsage,
-          choices: tempList,
-        );
+            tokenUsage: fullGptModel.tokenUsage + gptResp.tokenUsage,
+            choices: tempList,
+            model: gptResp.model);
       }
       return fullGptModel;
     } catch (e, s) {
@@ -101,11 +103,12 @@ class Gpt {
     String? reqType, // As Request PRINT name
     required String prompt,
     required int n,
+    required int model, // 3 & 4 available
   }) async {
     // print('\nSTART: callChatGPT()');
     printYellow('prompt: $prompt');
 
-    const url = '$baseUrl/ai-engine/v1/call-chat-gpt';
+    var url = '$baseUrl/ai-engine/v1/call-chat-gpt-$model';
     final headers = {'Content-Type': 'application/json'};
     final body = json.encode({'prompt': prompt, 'n': n});
     final response = await http.post(Uri.parse(url), headers: headers, body: body);

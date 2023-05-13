@@ -1,3 +1,5 @@
+// ignore_for_file: no_leading_underscores_for_local_identifiers
+
 import 'package:biton_ai/common/extensions/string_ext.dart';
 import 'package:biton_ai/common/extensions/widget_ext.dart';
 import 'package:biton_ai/widgets/resultsCategoriesList.dart';
@@ -91,9 +93,7 @@ List<String> promptsByType(ResultCategory type, String input) {
   }
   if (type == ResultCategory.longDesc) {
     prompts = [
-      'Create a long SEO description of 20-30 lines about: $input',
-      'Create a long SEO description of 20-30 lines about: $input',
-      'Create a long SEO description of 20-30 lines about: $input',
+      'Create a long SEO description of at least 600 words about: $input',
     ];
   }
   return prompts;
@@ -174,17 +174,31 @@ class _ResultsScreenState extends State<ResultsScreen> {
   ResultModel? lastSelectedResult; // For restore when re-pick
   ResultCategory drawerCategory = ResultCategory.gResults;
 
-  Widget buildCardsRow(List<ResultModel> list) {
-    if (list.isEmpty) {
-      return const CircularProgressIndicator(
-        strokeWidth: 7,
-        color: AppColors.primaryShiny,
-      ).pOnly(top: 100).center;
+  Widget buildCardsRow(List<ResultModel> currList) {
+    if (currList.isEmpty) {
+      return Column(
+        children: [
+          if (drawerCategory == ResultCategory.longDesc)
+          'Finish writing product article... it can take up to 15 seconds.'
+              .toText(color: AppColors.greyText, fontSize: 18)
+              .py(10)
+              .px(30)
+              .centerLeft
+              .appearAll,
+          const CircularProgressIndicator(
+            strokeWidth: 7,
+            color: AppColors.primaryShiny,
+          ).pOnly(top: 100).center,
+        ],
+      );
     }
 
     return ResultsList(
       exampleUrl: exampleUrl,
-      results: list,
+      results: currList,
+      onChange: (results, sResult) {
+        _updateNeededList(currList, results, sResult);
+      },
       onSelect: (result) {
         selectedResults.add(result);
         _nextAvailableList();
@@ -247,7 +261,6 @@ class _ResultsScreenState extends State<ResultsScreen> {
   }
 
   void _nextAvailableList() {
-    print('START: _nextAvailableList()');
     var selectedCategories =
         selectedResults.map((item) => item.category).toList(growable: true);
 
@@ -266,6 +279,43 @@ class _ResultsScreenState extends State<ResultsScreen> {
     }
     // print('currentResults ${currentResults}');
     setState(() {});
+  }
+
+  void _updateNeededList(
+      List<ResultModel> currList, List<ResultModel> results, ResultModel sResult) {
+    var currCategory = currList.first.category;
+    print('START: _updateNeededList() [${currCategory?.name.toString().toUpperCase()}]');
+
+    if (currCategory == ResultCategory.gResults) {
+      googleResults = results;
+      var oldSResult =
+          selectedResults.firstWhere((r) => r.category == ResultCategory.gResults);
+      selectedResults.remove(oldSResult);
+      selectedResults.add(sResult);
+      //
+    } else if (currCategory == ResultCategory.titles) {
+      titlesResults = results;
+      var oldSResult =
+          selectedResults.firstWhere((r) => r.category == ResultCategory.titles);
+      selectedResults.remove(oldSResult);
+      selectedResults.add(sResult);
+      //
+    } else if (currCategory == ResultCategory.shortDesc) {
+      shortDescResults = results;
+      var oldSResult =
+          selectedResults.firstWhere((r) => r.category == ResultCategory.shortDesc);
+      selectedResults.remove(oldSResult);
+      selectedResults.add(sResult);
+      //
+    } else if (currCategory == ResultCategory.longDesc) {
+      longDescResults = results;
+      var oldSResult =
+          selectedResults.firstWhere((r) => r.category == ResultCategory.longDesc);
+      selectedResults.remove(oldSResult);
+      selectedResults.add(sResult);
+    }
+    // print('currentResults ${currentResults}');
+    // setState(() {});
   }
 
   String _getUrl(String input) {

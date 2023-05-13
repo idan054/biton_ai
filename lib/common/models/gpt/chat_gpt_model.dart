@@ -1,12 +1,15 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../services/convertors.dart';
+
 part 'chat_gpt_model.freezed.dart';
+
 part 'chat_gpt_model.g.dart';
 
 @freezed
 class ChatGptModel with _$ChatGptModel {
   @JsonSerializable()
   factory ChatGptModel({
+    @JsonKey(name: 'model') required String model,
     @JsonKey(name: 'choices', fromJson: fetchChoicesFromJson) required List choices,
     @JsonKey(name: 'usage', fromJson: fetchUsageFromJson) required int tokenUsage,
   }) = _ChatGptModel;

@@ -44,12 +44,14 @@ class ResultsList extends StatefulWidget {
   final String exampleUrl;
   final List<ResultModel> results;
   final void Function(ResultModel result) onSelect;
+  final void Function(List<ResultModel> results, ResultModel sResult) onChange;
 
   const ResultsList({
     super.key,
     required this.exampleUrl,
     required this.results,
     required this.onSelect,
+    required this.onChange,
   });
 
   @override
@@ -68,9 +70,9 @@ class _ResultsListState extends State<ResultsList> {
 
   @override
   Widget build(BuildContext context) {
-    print('START: ResultsList()');
-    print('${results.length} results: $results');
-    print('------');
+    // print('START: ResultsList()');
+    // print('${results.length} results: $results');
+    // print('------');
 
     double width = MediaQuery.of(context).size.width;
 
@@ -78,9 +80,10 @@ class _ResultsListState extends State<ResultsList> {
     if (results.isNotEmpty) resultsTitle = titleByCategory(results.first.category!);
     return Column(
       children: [
+        const SizedBox(height: 5),
         if (results.isNotEmpty)
           resultsTitle
-              .toText(color: AppColors.greyUnavailable, fontSize: 16)
+              .toText(color: AppColors.greyText, fontSize: 18)
               .px(15)
               .py(5)
               .topLeft,
@@ -149,10 +152,31 @@ class _ResultsListState extends State<ResultsList> {
   }
 
   Widget buildCardResult(bool isSelected, ResultModel result) {
+    double width = MediaQuery.of(context).size.width;
+    double height = MediaQuery.of(context).size.height;
+
+    // This rebuild when user select choiceship()
+    var mainTitleController = TextEditingController(text: result.title.toString());
+    var gDescController = TextEditingController(text: result.desc.toString());
+
     var isGoogleItem = result.category == ResultCategory.gResults;
-    var isShortDesc = result.category == ResultCategory.shortDesc;
     var isProductTitle = result.category == ResultCategory.titles;
-    var isTempResult = result.title == 'tempResult';
+    var isShortDesc = result.category == ResultCategory.shortDesc;
+    var isLongDesc = result.category == ResultCategory.longDesc;
+
+    ResultModel? oldResultChange;
+    void onTextFieldChange() {
+      var newResultChange = result.copyWith(
+        title: mainTitleController.text,
+        desc: gDescController.text,
+      );
+      selectedResult = newResultChange;
+      var i = results.indexWhere((r) => r == (oldResultChange ?? result));
+      results.remove(oldResultChange ?? result);
+      oldResultChange = newResultChange;
+      results.insert(i, newResultChange);
+      widget.onChange(results, newResultChange);
+    }
 
     return Card(
       color: selectedResult == null || isSelected ? AppColors.white : Colors.grey[200],
@@ -196,7 +220,7 @@ class _ResultsListState extends State<ResultsList> {
             const SizedBox(height: 5),
             TextField(
               enabled: isSelected,
-              controller: TextEditingController(text: result.title.toString()),
+              controller: mainTitleController,
               style: TextStyle(
                 fontSize: isProductTitle || isGoogleItem ? 19 : 15,
                 fontWeight: isProductTitle || isGoogleItem ? FontWeight.bold : null,
@@ -210,13 +234,14 @@ class _ResultsListState extends State<ResultsList> {
                 hintStyle: TextStyle(color: AppColors.greyText),
                 border: InputBorder.none,
               ),
-            ),
+              onChanged: (value) => onTextFieldChange(),
+            ).pOnly(right: isLongDesc ? width * 0.25 : 0),
           ],
         ),
         subtitle: (isGoogleItem && (result.desc ?? '').isNotEmpty)
             ? TextField(
                 enabled: isSelected,
-                controller: TextEditingController(text: result.desc.toString()),
+                controller: gDescController,
                 style: TextStyle(fontSize: 15, color: AppColors.greyText),
                 minLines: 1,
                 maxLines: 3,
@@ -225,8 +250,8 @@ class _ResultsListState extends State<ResultsList> {
                   hintStyle: TextStyle(color: AppColors.greyText),
                   border: InputBorder.none,
                 ),
+                onChanged: (value) => onTextFieldChange(),
               )
-            // .pOnly(right: widget.horizontalView ? 0 : width * 0.25, top: 10)
             : null,
       ).px(15),
       // endregion child
