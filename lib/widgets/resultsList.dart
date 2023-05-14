@@ -1,4 +1,5 @@
 import 'package:biton_ai/common/extensions/string_ext.dart';
+import 'package:biton_ai/widgets/hoverFadeWidget.dart';
 import 'package:flutter/material.dart';
 import 'package:biton_ai/common/extensions/string_ext.dart';
 import 'package:biton_ai/common/extensions/widget_ext.dart';
@@ -106,24 +107,54 @@ class _ResultsListState extends State<ResultsList> {
 
   Widget buildChoiceChip(bool isSelected, ResultModel result, double width) {
     var wDrawer = 250;
+    bool isHovered = false;
     var cardWidth = result.category == ResultCategory.longDesc
         ? (width - wDrawer) * 0.9
         : (width - wDrawer) * 0.3;
 
     if (isSelected) {
-      return Stack(
-        children: [
-          SizedBox(width: cardWidth, child: buildCardResult(isSelected, result)),
-          // Positioned(top: 30, right: 10, child: buildEditIcon()),
+      return StatefulBuilder(builder: (context, setState) {
+        return MouseRegion(
+          onEnter: (_) => setState(() => isHovered = true),
+          onExit: (_) => setState(() => isHovered = false),
+          child: Stack(
+            children: [
+              SizedBox(width: cardWidth, child: buildCardResult(isSelected, result)),
+              // Positioned(top: 30, right: 10, child: buildEditIcon()),
 
-          if (isSelected)
-            Positioned(
-                top: 20,
-                right: 20,
-                child: Icons.check_circle_rounded
-                    .icon(color: AppColors.primaryShiny, size: 30)),
-        ],
-      );
+              // if (isSelected)
+              //   Positioned(
+              //       top: 20, right: 20,
+              //       child: Icons.check_circle_rounded
+              //           .icon(color: AppColors.primaryShiny, size: 30)),
+
+              if (isSelected)
+                Positioned(
+                    top: 20,
+                    right: 20,
+                    child: AnimatedOpacity(
+                      opacity: isHovered ? 1.0 : 0.0,
+                      duration: const Duration(milliseconds: 150),
+                      child: TextButton.icon(
+                        style: TextButton.styleFrom(
+                          elevation: 5,
+                          backgroundColor: AppColors.white,
+                          shape: 5.roundedShape,
+                          padding:
+                              const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                        ),
+                        onPressed: () {
+                          // Todo: Makes COPY button works
+                        },
+                        icon:
+                            Icons.content_copy.icon(size: 25, color: AppColors.greyText),
+                        label: 'Copy'.toText(color: AppColors.greyText, medium: true),
+                      ),
+                    )),
+            ],
+          ),
+        );
+      });
     }
 
     return SizedBox(
@@ -179,7 +210,8 @@ class _ResultsListState extends State<ResultsList> {
     }
 
     return Card(
-      color: selectedResult == null || isSelected ? AppColors.white : Colors.grey[200],
+      // color: (selectedResult == null || isSelected) ? AppColors.white : Colors.grey[200],
+      color: AppColors.white,
       elevation: 3,
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12.5),
@@ -188,72 +220,75 @@ class _ResultsListState extends State<ResultsList> {
               : BorderSide.none),
       child:
           // region LisTile
-          ListTile(
-        minVerticalPadding: 30,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.5)),
-        title: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (isGoogleItem)
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icons.travel_explore
-                      .icon(color: AppColors.greyUnavailable)
-                      .pOnly(right: 5),
-                  TextField(
-                    enabled: false,
-                    controller: TextEditingController(text: widget.exampleUrl),
-                    style:
-                        const TextStyle(fontSize: 15, color: AppColors.greyUnavailable),
-                    maxLines: 1,
-                    decoration: InputDecoration(
-                      isDense: true,
-                      contentPadding: EdgeInsets.zero,
-                      hintText: 'Add your Google Title',
-                      hintStyle: TextStyle(color: AppColors.greyText),
-                      border: InputBorder.none,
-                    ),
-                  ).expanded(),
-                ],
-              ),
-            const SizedBox(height: 5),
-            TextField(
-              enabled: isSelected,
-              controller: mainTitleController,
-              style: TextStyle(
-                fontSize: isProductTitle || isGoogleItem ? 19 : 15,
-                fontWeight: isProductTitle || isGoogleItem ? FontWeight.bold : null,
-                color: isGoogleItem ? AppColors.blueOld : AppColors.greyText,
-              ),
-              minLines: 1,
-              maxLines: isGoogleItem ? 3 : (isShortDesc ? 6 : 999),
-              decoration: InputDecoration(
-                isDense: true,
-                hintText: 'Add your Google Title',
-                hintStyle: TextStyle(color: AppColors.greyText),
-                border: InputBorder.none,
-              ),
-              onChanged: (value) => onTextFieldChange(),
-            ).pOnly(right: isLongDesc ? width * 0.25 : 0),
-          ],
-        ),
-        subtitle: (isGoogleItem && (result.desc ?? '').isNotEmpty)
-            ? TextField(
+          Opacity(
+        opacity: (selectedResult == null || isSelected) ? 1 : .4,
+        child: ListTile(
+          minVerticalPadding: 30,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.5)),
+          title: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (isGoogleItem)
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icons.travel_explore
+                        .icon(color: AppColors.greyUnavailable)
+                        .pOnly(right: 5),
+                    TextField(
+                      enabled: false,
+                      controller: TextEditingController(text: widget.exampleUrl),
+                      style:
+                          const TextStyle(fontSize: 15, color: AppColors.greyUnavailable),
+                      maxLines: 1,
+                      decoration: InputDecoration(
+                        isDense: true,
+                        contentPadding: EdgeInsets.zero,
+                        hintText: 'Add your Google Title',
+                        hintStyle: TextStyle(color: AppColors.greyText),
+                        border: InputBorder.none,
+                      ),
+                    ).expanded(),
+                  ],
+                ),
+              const SizedBox(height: 5),
+              TextField(
                 enabled: isSelected,
-                controller: gDescController,
-                style: TextStyle(fontSize: 15, color: AppColors.greyText),
+                controller: mainTitleController,
+                style: TextStyle(
+                  fontSize: isProductTitle || isGoogleItem ? 19 : 15,
+                  fontWeight: isProductTitle || isGoogleItem ? FontWeight.bold : null,
+                  color: isGoogleItem ? AppColors.blueOld : AppColors.greyText,
+                ),
                 minLines: 1,
-                maxLines: 3,
+                maxLines: isGoogleItem ? 3 : (isShortDesc ? 6 : 999),
                 decoration: InputDecoration(
-                  hintText: 'Add your Google Description',
+                  isDense: true,
+                  hintText: 'Add your Google Title',
                   hintStyle: TextStyle(color: AppColors.greyText),
                   border: InputBorder.none,
                 ),
                 onChanged: (value) => onTextFieldChange(),
-              )
-            : null,
-      ).px(15),
+              ).pOnly(right: isLongDesc ? width * 0.25 : 0),
+            ],
+          ),
+          subtitle: (isGoogleItem && (result.desc ?? '').isNotEmpty)
+              ? TextField(
+                  enabled: isSelected,
+                  controller: gDescController,
+                  style: TextStyle(fontSize: 15, color: AppColors.greyText),
+                  minLines: 1,
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                    hintText: 'Add your Google Description',
+                    hintStyle: TextStyle(color: AppColors.greyText),
+                    border: InputBorder.none,
+                  ),
+                  onChanged: (value) => onTextFieldChange(),
+                )
+              : null,
+        ).px(15),
+      ),
       // endregion child
     );
   }

@@ -179,12 +179,12 @@ class _ResultsScreenState extends State<ResultsScreen> {
       return Column(
         children: [
           if (drawerCategory == ResultCategory.longDesc)
-          'Finish writing product article... it can take up to 15 seconds.'
-              .toText(color: AppColors.greyText, fontSize: 18)
-              .py(10)
-              .px(30)
-              .centerLeft
-              .appearAll,
+            'Finish writing product article... it can take up to 15 seconds.'
+                .toText(color: AppColors.greyText, fontSize: 18)
+                .py(10)
+                .px(30)
+                .centerLeft
+                .appearAll,
           const CircularProgressIndicator(
             strokeWidth: 7,
             color: AppColors.primaryShiny,
@@ -324,7 +324,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
     return url;
   }
 
-  Drawer buildDrawer() {
+  Widget buildDrawer() {
     return Drawer(
         backgroundColor: AppColors.white,
         elevation: 0,

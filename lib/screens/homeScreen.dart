@@ -135,46 +135,45 @@ class _HomeScreenState extends State<HomeScreen> {
                           _isLoading = true;
                           setState(() {});
                           List<ResultModel> results = [];
-                          // if (kDebugMode) {
-                          //   results = const [
-                          //     ResultModel(
-                          //         title: 'A A great google result title will appear here',
-                          //         desc:
-                          //             'A A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
-                          //         category: ResultCategory.gResults),
-                          //     ResultModel(
-                          //         title: 'B A great google result title will appear here',
-                          //         desc:
-                          //             'B A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
-                          //         category: ResultCategory.gResults),
-                          //     ResultModel(
-                          //         title: 'C A great google result title will appear here',
-                          //         desc:
-                          //             'C A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
-                          //         category: ResultCategory.gResults),
-                          //   ];
-                          // } else {
-                          results = await Gpt.getResults(
-                            type: ResultCategory.gResults,
-                            input: searchController.text,
-                            prompts: [
-                              'Create a great google title for the product: ${searchController.text}',
-                              'Create a great google title for the product: ${searchController.text}',
-                              'Create a great google title for the product: ${searchController.text}',
-                            ],
-                            gDescPrompts: [
-                              'Create a great google description about 2 lines for the product: ${searchController.text}',
-                              'Create a great google description about 2 lines for the product: ${searchController.text}',
-                              'Create a great google description about 2 lines for the product: ${searchController.text}',
-                            ],
-                          ).catchError((err) {
-                            printRed('My ERROR: $err');
-                            print('err.runtimeType ${err.runtimeType}');
-                            errorMessage = err.toString();
-                            setState(() {});
-                          });
-
-                          // }
+                          if (kDebugMode && appConfig_fastHomeScreen) {
+                            results = const [
+                              ResultModel(
+                                  title: 'A A great google result title will appear here',
+                                  desc:
+                                      'A A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
+                                  category: ResultCategory.gResults),
+                              ResultModel(
+                                  title: 'B A great google result title will appear here',
+                                  desc:
+                                      'B A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
+                                  category: ResultCategory.gResults),
+                              ResultModel(
+                                  title: 'C A great google result title will appear here',
+                                  desc:
+                                      'C A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
+                                  category: ResultCategory.gResults),
+                            ];
+                          } else {
+                            results = await Gpt.getResults(
+                              type: ResultCategory.gResults,
+                              input: searchController.text,
+                              prompts: [
+                                'Create a great google title for the product: ${searchController.text}',
+                                'Create a great google title for the product: ${searchController.text}',
+                                'Create a great google title for the product: ${searchController.text}',
+                              ],
+                              gDescPrompts: [
+                                'Create a great google description about 2 lines for the product: ${searchController.text}',
+                                'Create a great google description about 2 lines for the product: ${searchController.text}',
+                                'Create a great google description about 2 lines for the product: ${searchController.text}',
+                              ],
+                            ).catchError((err) {
+                              printRed('My ERROR: $err');
+                              print('err.runtimeType ${err.runtimeType}');
+                              errorMessage = err.toString();
+                              setState(() {});
+                            });
+                          }
                           _navigateToSearchResults(
                               context, searchController.text, results);
                         }, tapColor: AppColors.primaryShiny.withOpacity(0.15)),

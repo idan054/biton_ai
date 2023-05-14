@@ -69,10 +69,11 @@ class Gpt {
         final response = await http.post(Uri.parse(url), headers: headers, body: body);
         var counter = '[$i/${prompts.length}]';
 
+        printGreen('($reqType) $counter response.statusCode ${response.statusCode}');
+        // print('response.body ${response.body}');
         if (response.statusCode == 200) {
-          printGreen('($reqType) $counter response.statusCode ${response.statusCode}');
           final jsonResponse = json.decode(response.body);
-          // print('jsonResponse $jsonResponse');
+          /**/ // print('jsonResponse $jsonResponse');
           var gptResp = ChatGptModel.fromJson(jsonResponse);
           print('($reqType) $counter gptModel.tokenUsage ${gptResp.tokenUsage}');
           gptResponses.add(gptResp);
@@ -113,8 +114,8 @@ class Gpt {
     final body = json.encode({'prompt': prompt, 'n': n});
     final response = await http.post(Uri.parse(url), headers: headers, body: body);
 
+    printGreen('response.statusCode ${response.statusCode} ($reqType)');
     if (response.statusCode == 200) {
-      printGreen('response.statusCode ${response.statusCode} ($reqType)');
       final jsonResponse = json.decode(response.body);
       var gptModel = ChatGptModel.fromJson(jsonResponse);
       print('gptModel.tokenUsage ${gptModel.tokenUsage}');
