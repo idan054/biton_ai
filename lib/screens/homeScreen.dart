@@ -45,6 +45,12 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {});
   }
 
+  void getDefaultPrompts() async {
+    var categories = await WooApi.getCategories();
+    _categories = categories;
+    setState(() {});
+  }
+
   bool _isLoading = false;
   bool _showLoadingText = false; // Only appear after 5 seconds
   // var loadingSeconds = 0;
