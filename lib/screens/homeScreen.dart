@@ -88,8 +88,12 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           const SizedBox(height: 300),
 
-          betterSeller.toText(fontSize: 50, bold: true),
-          const SizedBox(height: 30),
+          textStoreAi.toText(fontSize: 50, bold: true),
+          const SizedBox(height: 10),
+          // 'Sell more by Ai Text for your store'.toText(fontSize: 20).px(25),
+          // 'Fast | Create product | SEO'.toText(fontSize: 20).px(25),
+          'Best Ai text maker for your store.'.toText(fontSize: 20).px(25),
+          const SizedBox(height: 20),
           //~ Search TextField
           buildSearchBar(textFieldWidth, context),
 

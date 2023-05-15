@@ -18,16 +18,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(
-      builder: (BuildContext context, Widget? child) =>
-          MaterialApp(
-              debugShowCheckedModeBanner: false,
-              title: 'Better Seller',
-              theme: ThemeData(primarySwatch: Colors.blue),
-              home: const HomeScreen()
-              // home: ResultsScreen()
+      builder: (BuildContext context, Widget? child) => MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'TextStore.AI',
+          theme: ThemeData(primarySwatch: Colors.blue),
+          home: const HomeScreen()
+          // home: ResultsScreen()
           ),
     );
   }
 }
-
-

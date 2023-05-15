@@ -343,7 +343,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
         child: Column(
           children: [
             20.verticalSpace,
-            betterSeller.toText(fontSize: 25, bold: true).px(25).centerLeft,
+            textStoreAi.toText(fontSize: 25, bold: true).px(25).centerLeft,
             20.verticalSpace,
             ResultsCategoriesList(
               categories: const [

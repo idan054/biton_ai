@@ -8,7 +8,8 @@ const baseUrl = 'https://betterseller.ai/wp-json';
 const debugJwt =
     'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3dvcmRwcmVzcy02NjU4NjYtMzQ2MjgwMi5jbG91ZHdheXNhcHBzLmNvbSIsImlhdCI6MTY4MzU0Nzk5MywibmJmIjoxNjgzNTQ3OTkzLCJleHAiOjE2ODQxNTI3OTMsImRhdGEiOnsidXNlciI6eyJpZCI6IjEifX19.n96I309puSOOS1kvX2MOOuUFZ2PsbykzFeab5koj72Y';
 const debugUid = 1;
-const betterSeller = 'Better \$eller';
+// const betterSeller = 'Better \$eller';
+const textStoreAi = 'TextStore';
 
 //~ App config:
 const appConfig_highlightSelection = true;
