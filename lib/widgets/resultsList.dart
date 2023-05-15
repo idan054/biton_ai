@@ -100,20 +100,30 @@ class _ResultsListState extends State<ResultsList> {
     // for (int i = 0; i < 3; i++) {
     for (var result in results) {
       var isSelected = selectedResult == result;
-      list.add(buildChoiceChip(isSelected, result, width).appearAll);
+      list.add(buildChoiceChip(isSelected, result).appearAll);
     }
     return list;
   }
 
-  Widget buildChoiceChip(bool isSelected, ResultModel result, double width) {
+  Widget buildChoiceChip(bool isSelected, ResultModel result) {
     // This rebuild when user select choiceship()
     var mainTitleController = TextEditingController(text: result.title.toString());
     var gDescController = TextEditingController(text: result.desc.toString());
     var wDrawer = 250;
     bool isHovered = false;
+
+    double width = MediaQuery.of(context).size.width;
     var cardWidth = result.category == ResultCategory.longDesc
         ? (width - wDrawer) * 0.9
         : (width - wDrawer) * 0.3;
+
+    dynamic cardHeight = 0.0;
+    if (results.isNotEmpty) {
+      if (widget.results.first.category == ResultCategory.gResults) cardHeight = 200.0;
+      if (widget.results.first.category == ResultCategory.titles) cardHeight = 115.0;
+      if (widget.results.first.category == ResultCategory.shortDesc) cardHeight = 150.0;
+      // if (widget.results.first.category == ResultCategory.longDesc) cardHeight = 350.0;
+    }
 
     if (isSelected) {
       return StatefulBuilder(builder: (context, setState) {
@@ -124,18 +134,15 @@ class _ResultsListState extends State<ResultsList> {
             children: [
               SizedBox(
                   width: cardWidth,
+                  height: cardHeight,
                   child: buildCardResult(
                       isSelected, result, mainTitleController, gDescController)),
-              // Positioned(top: 30, right: 10, child: buildEditIcon()),
-
-              // if (isSelected)
-              //   Positioned(
-              //       top: 20, right: 20,
-              //       child: Icons.check_circle_rounded
-              //           .icon(color: AppColors.primaryShiny, size: 30)),
-
-              buildCopyButton(context, isHovered, '${mainTitleController.text}'
-                  '${gDescController.text.isNotEmpty ? '\n${gDescController.text}' : ''} ', ),
+              buildCopyButton(
+                context,
+                isHovered,
+                '${mainTitleController.text}'
+                '${gDescController.text.isNotEmpty ? '\n${gDescController.text}' : ''} ',
+              ),
             ],
           ),
         );
@@ -144,6 +151,7 @@ class _ResultsListState extends State<ResultsList> {
 
     return SizedBox(
       width: cardWidth,
+      height: cardHeight,
       child: ChoiceChip(
         backgroundColor: AppColors.lightPrimaryBg,
         selectedColor: AppColors.lightPrimaryBg,
@@ -174,8 +182,8 @@ class _ResultsListState extends State<ResultsList> {
     TextEditingController mainTitleController,
     TextEditingController gDescController,
   ) {
-    double width = MediaQuery.of(context).size.width;
-    double height = MediaQuery.of(context).size.height;
+    // double width = MediaQuery.of(context).size.width;
+    // double height = MediaQuery.of(context).size.height;
 
     var isGoogleItem = result.category == ResultCategory.gResults;
     var isProductTitle = result.category == ResultCategory.titles;
@@ -214,7 +222,7 @@ class _ResultsListState extends State<ResultsList> {
           minVerticalPadding: 12,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.5)),
           title: Column(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisSize: isGoogleItem ? MainAxisSize.min : MainAxisSize.max,
             children: [
               if (isGoogleItem)
                 Row(
@@ -257,7 +265,8 @@ class _ResultsListState extends State<ResultsList> {
                   border: InputBorder.none,
                 ),
                 onChanged: (value) => onTextFieldChange(),
-              ).pOnly(right: isLongDesc ? width * 0.25 : 0),
+              ),
+              // .pOnly(right: isLongDesc ? width * 0.25 : 0),
             ],
           ),
           subtitle: (isGoogleItem && (result.desc ?? '').isNotEmpty)
@@ -302,11 +311,9 @@ Positioned buildCopyButton(BuildContext context, bool showButton, String text) {
             padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
           ),
           onPressed: () {
-            Clipboard.setData(ClipboardData(
-                text: text))
-                .then((_) {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                  content: Text("Data successfully copied to clipboard")));
+            Clipboard.setData(ClipboardData(text: text)).then((_) {
+              // ScaffoldMessenger.of(context).showSnackBar(
+              //     const SnackBar(content: Text("Data successfully copied to clipboard")));
             });
           },
           icon: Icons.content_copy.icon(size: 25, color: AppColors.greyText),

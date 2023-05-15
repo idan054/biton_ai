@@ -202,7 +202,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
         child: HtmlEditorViewer(kDebugMode && appConfig_fastHomeScreen
             ? googleResults.first.title
             : longDescResults.first.title),
-      ).px(20);
+      ).pOnly(left: 20, right: 40, top: 20);
     }
 
     return ResultsList(
