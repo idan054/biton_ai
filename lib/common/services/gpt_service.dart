@@ -69,7 +69,8 @@ class Gpt {
         final response = await http.post(Uri.parse(url), headers: headers, body: body);
         var counter = '[$i/${prompts.length}]';
 
-        printGreen('($reqType) $counter response.statusCode ${response.statusCode}');
+        printGreen(
+            '($reqType) $counter response.statusCode ${response.statusCode} [GPT$model]');
         // print('response.body ${response.body}');
         if (response.statusCode == 200) {
           final jsonResponse = json.decode(response.body);

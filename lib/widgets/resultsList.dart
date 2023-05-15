@@ -7,6 +7,7 @@ import 'package:biton_ai/common/extensions/num_ext.dart';
 import 'package:biton_ai/common/services/color_printer.dart';
 import 'package:biton_ai/widgets/resultsList.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:http/http.dart' as http;
 import 'package:shimmer/shimmer.dart';
@@ -84,9 +85,8 @@ class _ResultsListState extends State<ResultsList> {
         const SizedBox(height: 5),
         if (results.isNotEmpty)
           resultsTitle
-              .toText(color: AppColors.greyText, fontSize: 18)
+              .toText(color: AppColors.greyText, fontSize: 18, medium: true)
               .px(15)
-              .py(5)
               .topLeft,
         SizedBox(
             width: width,
@@ -106,6 +106,9 @@ class _ResultsListState extends State<ResultsList> {
   }
 
   Widget buildChoiceChip(bool isSelected, ResultModel result, double width) {
+    // This rebuild when user select choiceship()
+    var mainTitleController = TextEditingController(text: result.title.toString());
+    var gDescController = TextEditingController(text: result.desc.toString());
     var wDrawer = 250;
     bool isHovered = false;
     var cardWidth = result.category == ResultCategory.longDesc
@@ -119,7 +122,10 @@ class _ResultsListState extends State<ResultsList> {
           onExit: (_) => setState(() => isHovered = false),
           child: Stack(
             children: [
-              SizedBox(width: cardWidth, child: buildCardResult(isSelected, result)),
+              SizedBox(
+                  width: cardWidth,
+                  child: buildCardResult(
+                      isSelected, result, mainTitleController, gDescController)),
               // Positioned(top: 30, right: 10, child: buildEditIcon()),
 
               // if (isSelected)
@@ -128,29 +134,8 @@ class _ResultsListState extends State<ResultsList> {
               //       child: Icons.check_circle_rounded
               //           .icon(color: AppColors.primaryShiny, size: 30)),
 
-              if (isSelected)
-                Positioned(
-                    top: 20,
-                    right: 20,
-                    child: AnimatedOpacity(
-                      opacity: isHovered ? 1.0 : 0.0,
-                      duration: const Duration(milliseconds: 150),
-                      child: TextButton.icon(
-                        style: TextButton.styleFrom(
-                          elevation: 5,
-                          backgroundColor: AppColors.white,
-                          shape: 5.roundedShape,
-                          padding:
-                              const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
-                        ),
-                        onPressed: () {
-                          // Todo: Makes COPY button works
-                        },
-                        icon:
-                            Icons.content_copy.icon(size: 25, color: AppColors.greyText),
-                        label: 'Copy'.toText(color: AppColors.greyText, medium: true),
-                      ),
-                    )),
+              buildCopyButton(context, isHovered, '${mainTitleController.text}'
+                  '${gDescController.text.isNotEmpty ? '\n${gDescController.text}' : ''} ', ),
             ],
           ),
         );
@@ -176,19 +161,21 @@ class _ResultsListState extends State<ResultsList> {
         },
         label: SizedBox(
           width: cardWidth,
-          child: buildCardResult(isSelected, result),
+          child:
+              buildCardResult(isSelected, result, mainTitleController, gDescController),
         ),
       ),
     );
   }
 
-  Widget buildCardResult(bool isSelected, ResultModel result) {
+  Widget buildCardResult(
+    bool isSelected,
+    ResultModel result,
+    TextEditingController mainTitleController,
+    TextEditingController gDescController,
+  ) {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
-
-    // This rebuild when user select choiceship()
-    var mainTitleController = TextEditingController(text: result.title.toString());
-    var gDescController = TextEditingController(text: result.desc.toString());
 
     var isGoogleItem = result.category == ResultCategory.gResults;
     var isProductTitle = result.category == ResultCategory.titles;
@@ -215,7 +202,7 @@ class _ResultsListState extends State<ResultsList> {
       elevation: 3,
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12.5),
-          side: isSelected && appConfig_highlightSelection
+          side: isSelected && !isLongDesc && appConfig_highlightSelection
               ? const BorderSide(color: AppColors.primaryShiny, width: 3.0)
               : BorderSide.none),
       child:
@@ -223,7 +210,8 @@ class _ResultsListState extends State<ResultsList> {
           Opacity(
         opacity: (selectedResult == null || isSelected) ? 1 : .4,
         child: ListTile(
-          minVerticalPadding: 30,
+          // minVerticalPadding: 30,
+          minVerticalPadding: 12,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.5)),
           title: Column(
             mainAxisSize: MainAxisSize.min,
@@ -248,7 +236,7 @@ class _ResultsListState extends State<ResultsList> {
                         hintStyle: TextStyle(color: AppColors.greyText),
                         border: InputBorder.none,
                       ),
-                    ).expanded(),
+                    ).pOnly(top: 5).expanded(),
                   ],
                 ),
               const SizedBox(height: 5),
@@ -292,4 +280,37 @@ class _ResultsListState extends State<ResultsList> {
       // endregion child
     );
   }
+}
+
+// Use it with Stack (needed) + below code for HoverOnly mode (optional)
+// MouseRegion(
+// onEnter: (_) => setState(() => isHovered = true),
+// onExit: (_) => setState(() => isHovered = false),
+// child:
+Positioned buildCopyButton(BuildContext context, bool showButton, String text) {
+  return Positioned(
+      top: 20,
+      right: 20,
+      child: AnimatedOpacity(
+        opacity: showButton ? 1.0 : 0.0,
+        duration: const Duration(milliseconds: 150),
+        child: TextButton.icon(
+          style: TextButton.styleFrom(
+            elevation: 5,
+            backgroundColor: AppColors.white,
+            shape: 5.roundedShape,
+            padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+          ),
+          onPressed: () {
+            Clipboard.setData(ClipboardData(
+                text: text))
+                .then((_) {
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                  content: Text("Data successfully copied to clipboard")));
+            });
+          },
+          icon: Icons.content_copy.icon(size: 25, color: AppColors.greyText),
+          label: 'Copy'.toText(color: AppColors.greyText, medium: true),
+        ),
+      ));
 }

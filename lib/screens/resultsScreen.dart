@@ -2,8 +2,10 @@
 
 import 'package:biton_ai/common/extensions/string_ext.dart';
 import 'package:biton_ai/common/extensions/widget_ext.dart';
+import 'package:biton_ai/widgets/htmlEditorViewerWidget.dart';
 import 'package:biton_ai/widgets/resultsCategoriesList.dart';
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -79,21 +81,22 @@ List<String> promptsByType(ResultCategory type, String input) {
   }
   if (type == ResultCategory.titles) {
     prompts = [
-      'Create a great product title of 1-2 lines for: $input',
-      'Create a great product title of 1-2 lines for: $input',
-      'Create a great product title of 1-2 lines for: $input',
+      'Create a great product title of max 15 words for: $input',
+      'Create a great product title of max 15 words for: $input',
+      'Create a great product title of max 15 words for: $input',
     ];
   }
   if (type == ResultCategory.shortDesc) {
     prompts = [
-      'Create a short SEO description of 3-5 lines about: $input',
-      'Create a short SEO description of 3-5 lines about: $input',
-      'Create a short SEO description of 3-5 lines about: $input',
+      'Create a short SEO description of max 45 words about: $input',
+      'Create a short SEO description of max 45 words about: $input',
+      'Create a short SEO description of max 45 words about: $input',
     ];
   }
   if (type == ResultCategory.longDesc) {
     prompts = [
-      'Create a long SEO description of at least 600 words about: $input',
+      // 'Create a long SEO description of at least 600 words about: $input',
+      'Create html example file of an article about $input, add titles and sub titles',
     ];
   }
   return prompts;
@@ -179,7 +182,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
       return Column(
         children: [
           if (drawerCategory == ResultCategory.longDesc)
-            'Finish writing product article... it can take up to 15 seconds.'
+            'Finish writing product article... (it can take up to 60 seconds)'
                 .toText(color: AppColors.greyText, fontSize: 18)
                 .py(10)
                 .px(30)
@@ -191,6 +194,15 @@ class _ResultsScreenState extends State<ResultsScreen> {
           ).pOnly(top: 100).center,
         ],
       );
+    }
+
+    if (currList.first.category == ResultCategory.longDesc) {
+      return SizedBox(
+        height: 600,
+        child: HtmlEditorViewer(kDebugMode && appConfig_fastHomeScreen
+            ? googleResults.first.title
+            : longDescResults.first.title),
+      ).px(20);
     }
 
     return ResultsList(

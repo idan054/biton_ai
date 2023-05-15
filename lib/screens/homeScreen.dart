@@ -91,116 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
           betterSeller.toText(fontSize: 50, bold: true),
           const SizedBox(height: 30),
           //~ Search TextField
-          SizedBox(
-            width: textFieldWidth,
-            child: Material(
-              elevation: 3,
-              borderRadius: BorderRadius.circular(99),
-              child: TextField(
-                controller: searchController,
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: AppColors.white,
-                  hoverColor: AppColors.greyLight.withOpacity(0.1),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide.none,
-                    borderRadius: BorderRadius.circular(99),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: AppColors.greyLight),
-                    borderRadius: BorderRadius.circular(99),
-                  ),
-                  hintText: 'Enter full product name',
-                  hintStyle: const TextStyle(color: Colors.grey),
-                  suffixIcon: Stack(
-                    // Use Stack to overlay prefixIcon and CircularProgressIndicator
-                    alignment: Alignment.center,
-                    children: [
-                      if (_isLoading)
-                        const CircularProgressIndicator(
-                          strokeWidth: 7,
-                          color: AppColors.primaryShiny,
-                        ),
-                      if (!_isLoading)
-                        // Icons.search_rounded.icon(color: Colors.blueAccent, size: 30)
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            // Icons.inventory_2_rounded.icon(color: Colors.blueAccent, size: 25),
-                            'Create'.toText(
-                                color: AppColors.primaryShiny, medium: true, fontSize: 14)
-                          ],
-                        ).px(20).py(15).onTap(() async {
-                          errorMessage = null;
-                          _isLoading = true;
-                          setState(() {});
-                          List<ResultModel> results = [];
-                          if (kDebugMode && appConfig_fastHomeScreen) {
-                            results = const [
-                              ResultModel(
-                                  title: 'A A great google result title will appear here',
-                                  desc:
-                                      'A A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
-                                  category: ResultCategory.gResults),
-                              ResultModel(
-                                  title: 'B A great google result title will appear here',
-                                  desc:
-                                      'B A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
-                                  category: ResultCategory.gResults),
-                              ResultModel(
-                                  title: 'C A great google result title will appear here',
-                                  desc:
-                                      'C A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
-                                  category: ResultCategory.gResults),
-                            ];
-                          } else {
-                            results = await Gpt.getResults(
-                              type: ResultCategory.gResults,
-                              input: searchController.text,
-                              prompts: [
-                                'Create a great google title for the product: ${searchController.text}',
-                                'Create a great google title for the product: ${searchController.text}',
-                                'Create a great google title for the product: ${searchController.text}',
-                              ],
-                              gDescPrompts: [
-                                'Create a great google description about 2 lines for the product: ${searchController.text}',
-                                'Create a great google description about 2 lines for the product: ${searchController.text}',
-                                'Create a great google description about 2 lines for the product: ${searchController.text}',
-                              ],
-                            ).catchError((err) {
-                              printRed('My ERROR: $err');
-                              print('err.runtimeType ${err.runtimeType}');
-                              errorMessage = err.toString();
-                              setState(() {});
-                            });
-                          }
-                          _navigateToSearchResults(
-                              context, searchController.text, results);
-                        }, tapColor: AppColors.primaryShiny.withOpacity(0.15)),
-                    ],
-                  ),
-                  prefixIcon: Icons.tune
-                      .icon(
-                          color: _categories.isEmpty
-                              ? AppColors.greyText.withOpacity(0.30)
-                              : AppColors.greyText,
-                          size: 25)
-                      .px(20)
-                      .py(12)
-                      .onTap(_categories.isEmpty
-                          ? null
-                          : () {
-                              showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return ThreeColumnDialog(_categories);
-                                },
-                              );
-                            }),
-                ),
-              ),
-            ).px(15),
-          ),
+          buildSearchBar(textFieldWidth, context),
 
           if (errorMessage != null)
             // 'This can take up to 15 seconds...'
@@ -226,6 +117,112 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ).center,
     );
+  }
+
+  SizedBox buildSearchBar(double textFieldWidth, BuildContext context) {
+    return SizedBox(
+      width: textFieldWidth,
+      child: Material(
+        elevation: 3,
+        borderRadius: BorderRadius.circular(99),
+        child: TextField(
+          controller: searchController,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: AppColors.white,
+            hoverColor: AppColors.greyLight.withOpacity(0.1),
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide.none,
+              borderRadius: BorderRadius.circular(99),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: AppColors.greyLight),
+              borderRadius: BorderRadius.circular(99),
+            ),
+            hintText: 'Enter full product name',
+            hintStyle: const TextStyle(color: Colors.grey),
+            suffixIcon: Stack(
+              // Use Stack to overlay prefixIcon and CircularProgressIndicator
+              alignment: Alignment.center,
+              children: [
+                if (_isLoading)
+                  const CircularProgressIndicator(
+                    strokeWidth: 7,
+                    color: AppColors.primaryShiny,
+                  ),
+                if (!_isLoading)
+                  // Icons.search_rounded.icon(color: Colors.blueAccent, size: 30)
+                  'Create'
+                      .toText(color: AppColors.primaryShiny, medium: true, fontSize: 14)
+                      .px(20)
+                      .py(15)
+                      .onTap(() async => _handleCreateButton(),
+                          tapColor: AppColors.primaryShiny.withOpacity(0.15)),
+              ],
+            ),
+            prefixIcon: Icons.tune
+                .icon(
+                    color: _categories.isEmpty
+                        ? AppColors.greyText.withOpacity(0.30)
+                        : AppColors.greyText,
+                    size: 25)
+                .px(20)
+                .py(12)
+                .onTap(_categories.isEmpty
+                    ? null
+                    : () {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return ThreeColumnDialog(_categories);
+                          },
+                        );
+                      }),
+          ),
+        ),
+      ).px(15),
+    );
+  }
+
+  void _handleCreateButton() async {
+    errorMessage = null;
+    _isLoading = true;
+    setState(() {});
+    List<ResultModel> results = [];
+    if (kDebugMode && appConfig_fastHomeScreen) {
+      results = const [
+        ResultModel(
+          title: longDescSample,
+          category: ResultCategory.longDesc,
+        ),
+        // ResultModel(
+        //     title: 'C A great google result title will appear here',
+        //     desc:
+        //         'C A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
+        //     category: ResultCategory.gResults),
+      ];
+    } else {
+      results = await Gpt.getResults(
+        type: ResultCategory.gResults,
+        input: searchController.text,
+        prompts: [
+          'Create a great google title for the product: ${searchController.text}',
+          'Create a great google title for the product: ${searchController.text}',
+          'Create a great google title for the product: ${searchController.text}',
+        ],
+        gDescPrompts: [
+          'Create a great google description about 2 lines for the product: ${searchController.text}',
+          'Create a great google description about 2 lines for the product: ${searchController.text}',
+          'Create a great google description about 2 lines for the product: ${searchController.text}',
+        ],
+      ).catchError((err) {
+        printRed('My ERROR: $err');
+        print('err.runtimeType ${err.runtimeType}');
+        errorMessage = err.toString();
+        setState(() {});
+      });
+    }
+    _navigateToSearchResults(context, searchController.text, results);
   }
 
   void _navigateToSearchResults(
