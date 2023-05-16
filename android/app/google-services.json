@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "1070132561841",
+    "project_id": "textstore-ai",
+    "storage_bucket": "textstore-ai.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1070132561841:android:a0e45f9f791e21ca499f90",
+        "android_client_info": {
+          "package_name": "com.biton.ai.biton_ai"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1070132561841-70mrtk2u2k5pj06s8mmuhqpmsq5uhdcj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB7SdzYohGLZXPczeebt3udSd2zoXIRGkg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1070132561841-70mrtk2u2k5pj06s8mmuhqpmsq5uhdcj.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1070132561841-ag78t9205talpf5b0d33s5oupbr0qn7a.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.biton.ai.bitonAi"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
