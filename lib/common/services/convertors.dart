@@ -12,14 +12,14 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 //~ ================
 // Because Wordpress API return ['title']['rendered']
 // Usage: @WooRenderedConv() required String title,
-class WooRenderedConv implements JsonConverter<String, Map<String, dynamic>> {
-  const WooRenderedConv();
-
-  @override // return String from Map
-  String fromJson(Map<String, dynamic> json) => json['rendered'];
-  @override
-  Map<String, dynamic> toJson(String object) => throw UnimplementedError();
-}
+// class WooRenderedConv implements JsonConverter<String, Map<String, dynamic>> {
+//   const WooRenderedConv();
+//
+//   @override // return String from Map
+//   String fromJson(Map<String, dynamic> json) => json['rendered'];
+//   @override
+//   Map<String, dynamic> toJson(String object) => throw UnimplementedError();
+// }
 
 //~ DateTime Convert:
 //~ ================

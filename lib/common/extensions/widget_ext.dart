@@ -1,3 +1,4 @@
+import 'package:biton_ai/common/themes/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:entry/entry.dart';
 
@@ -225,7 +226,7 @@ extension WidgetX on Widget {
 }
 
 Widget get verticalDivider => Container(
-      width: 1,
-      height: 150,
-      color: Colors.blueGrey,
-    ).px(4);
+      width: 1.5,
+      height: 1000,
+      color: AppColors.greyLight,
+    );

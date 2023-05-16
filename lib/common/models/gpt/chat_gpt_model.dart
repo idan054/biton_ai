@@ -18,6 +18,7 @@ class ChatGptModel with _$ChatGptModel {
       _$ChatGptModelFromJson(json);
 }
 
+//  @JsonKey(name: 'usage', fromJson: fetchUsageFromJson) required int tokenUsage,
 // ["usage"]["total_tokens"]
 dynamic fetchUsageFromJson(Map<String, dynamic> usage) => usage['total_tokens'];
 

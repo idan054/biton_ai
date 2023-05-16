@@ -7,11 +7,13 @@ class AppColors {
   static const Color white = Colors.white; // OLD
   static const Color whiteLight = Color(0xffEDEDF8);
   static const Color lightPrimaryBg = Color(0xfff7f5fa);
-  static const Color lightShinyPrimary = Color(0xfff7f1ff);
+  static const Color lightShinyPrimary = Color(0xfff0e9fa);
   static Color greyText = Colors.grey.shade800;
   static Color greyLight = Colors.grey.shade300;
   static const Color greyUnavailable = Color(0xff5C5C5C);
+  static Color greyUnavailable80 = const Color(0xff5C5C5C).withOpacity(0.80);
   static const Color primaryShiny = Color(0xff6c0cdf);
+  static const Color secondaryBlue = Color(0xff035afd);
 
   // static const Color darkOutline = Color(0xff211c2d);
   // static const Color primaryDark = Color(0xff1A1626);

@@ -4,11 +4,14 @@ import 'package:biton_ai/screens/wordpress/woo_posts_screen.dart';
 import 'package:biton_ai/widgets/resultsList.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-
 import 'common/constants.dart';
-import 'screens/homeScreen.dart';
 
-void main() {
+import 'firebase_options.dart';
+import 'screens/homeScreen.dart';
+import 'package:firebase_core/firebase_core.dart';
+
+void main() async {
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MyApp());
 }
 

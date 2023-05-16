@@ -24,9 +24,9 @@ mixin _$WooPostModel {
       throw _privateConstructorUsedError; // doesn't have while create
   int get author => throw _privateConstructorUsedError;
   List<int> get categories => throw _privateConstructorUsedError;
-  @WooRenderedConv()
+  @JsonKey(name: 'title', fromJson: fetchTitleFromJson)
   String get title => throw _privateConstructorUsedError;
-  @WooRenderedConv()
+  @JsonKey(name: 'content', fromJson: fetchContentFromJson)
   String get content => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -45,8 +45,10 @@ abstract class $WooPostModelCopyWith<$Res> {
       {int? id,
       int author,
       List<int> categories,
-      @WooRenderedConv() String title,
-      @WooRenderedConv() String content});
+      @JsonKey(name: 'title', fromJson: fetchTitleFromJson)
+          String title,
+      @JsonKey(name: 'content', fromJson: fetchContentFromJson)
+          String content});
 }
 
 /// @nodoc
@@ -105,8 +107,10 @@ abstract class _$$_WooPostModelCopyWith<$Res>
       {int? id,
       int author,
       List<int> categories,
-      @WooRenderedConv() String title,
-      @WooRenderedConv() String content});
+      @JsonKey(name: 'title', fromJson: fetchTitleFromJson)
+          String title,
+      @JsonKey(name: 'content', fromJson: fetchContentFromJson)
+          String content});
 }
 
 /// @nodoc
@@ -159,8 +163,10 @@ class _$_WooPostModel implements _WooPostModel {
       {this.id,
       required this.author,
       required final List<int> categories,
-      @WooRenderedConv() required this.title,
-      @WooRenderedConv() required this.content})
+      @JsonKey(name: 'title', fromJson: fetchTitleFromJson)
+          required this.title,
+      @JsonKey(name: 'content', fromJson: fetchContentFromJson)
+          required this.content})
       : _categories = categories;
 
   factory _$_WooPostModel.fromJson(Map<String, dynamic> json) =>
@@ -180,10 +186,10 @@ class _$_WooPostModel implements _WooPostModel {
   }
 
   @override
-  @WooRenderedConv()
+  @JsonKey(name: 'title', fromJson: fetchTitleFromJson)
   final String title;
   @override
-  @WooRenderedConv()
+  @JsonKey(name: 'content', fromJson: fetchContentFromJson)
   final String content;
 
   @override
@@ -228,8 +234,10 @@ abstract class _WooPostModel implements WooPostModel {
       {final int? id,
       required final int author,
       required final List<int> categories,
-      @WooRenderedConv() required final String title,
-      @WooRenderedConv() required final String content}) = _$_WooPostModel;
+      @JsonKey(name: 'title', fromJson: fetchTitleFromJson)
+          required final String title,
+      @JsonKey(name: 'content', fromJson: fetchContentFromJson)
+          required final String content}) = _$_WooPostModel;
 
   factory _WooPostModel.fromJson(Map<String, dynamic> json) =
       _$_WooPostModel.fromJson;
@@ -241,10 +249,10 @@ abstract class _WooPostModel implements WooPostModel {
   @override
   List<int> get categories;
   @override
-  @WooRenderedConv()
+  @JsonKey(name: 'title', fromJson: fetchTitleFromJson)
   String get title;
   @override
-  @WooRenderedConv()
+  @JsonKey(name: 'content', fromJson: fetchContentFromJson)
   String get content;
   @override
   @JsonKey(ignore: true)

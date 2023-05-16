@@ -4,6 +4,7 @@ import '../../services/convertors.dart';
 import '../prompt/result_model.dart' as click;
 
 part 'woo_post_model.freezed.dart';
+
 part 'woo_post_model.g.dart';
 
 /// Most clean model: [click.ResultModel]
@@ -16,9 +17,15 @@ class WooPostModel with _$WooPostModel {
     int? id, // doesn't have while create
     required int author,
     required List<int> categories,
-    @WooRenderedConv() required String title,
-    @WooRenderedConv() required String content,
+    @JsonKey(name: 'title', fromJson: fetchTitleFromJson) required String title,
+    @JsonKey(name: 'content', fromJson: fetchContentFromJson) required String content,
   }) = _WooPostModel;
 
-  factory WooPostModel.fromJson(Map<String, dynamic> json)=>_$WooPostModelFromJson(json);
+  factory WooPostModel.fromJson(Map<String, dynamic> json) =>
+      _$WooPostModelFromJson(json);
 }
+
+dynamic fetchTitleFromJson(Map<String, dynamic> title) => title['rendered'];
+
+dynamic fetchContentFromJson(Map<String, dynamic> content) =>
+    content['rendered'].toString().replaceAll('<p>', '').replaceAll('</p>', '').trim();

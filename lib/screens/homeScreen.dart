@@ -54,12 +54,12 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoading = false;
   bool _showLoadingText = false; // Only appear after 5 seconds
   // var loadingSeconds = 0;
-  int loadingIndex = 0;
 
   Timer? _timer; // 1 time run.
   String? loadingText;
   String? errorMessage;
 
+  int loadingIndex = 0;
   @override
   Widget build(BuildContext context) {
     _isLoading = _isLoading && errorMessage == null;
@@ -78,7 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (_isLoading && _timer == null) {
       _timer = Timer.periodic(const Duration(milliseconds: 3000), (timer) {
         //> Cycle loaderActivities list:
-        // loadingIndex = (loadingIndex + 1) % loaderActivities.length;
+        loadingIndex = (loadingIndex + 1) % loaderActivities.length;
         //> Stop at end loaderActivities list:
         if (loadingIndex < loaderActivities.length - 1) loadingIndex++;
 

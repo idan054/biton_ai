@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:biton_ai/common/constants.dart';
+import 'package:biton_ai/common/services/color_printer.dart';
 import '../../screens/wordpress/auth_screen.dart' as click;
 import 'package:biton_ai/common/models/post/woo_post_model.dart';
 import 'package:flutter/material.dart';
@@ -10,11 +11,11 @@ import '../models/user/woo_user_model.dart';
 
 class WooApi {
   static Future<List<WooCategoryModel>> getCategories() async {
-    print('START: WooApi.getCategories()');
+    printWhite('START: WooApi.getCategories()');
 
     const url = '$baseUrl/wp/v2/categories?parent=$appCategoryId';
     final response = await http.get(Uri.parse(url));
-    print('WooApi.getCategories() statusCode: ${response.statusCode}');
+    print('response.statusCode ${response.statusCode}');
     if (response.statusCode == 200) {
       final List<dynamic> jsonList = json.decode(response.body);
       var categories = jsonList.map((json) => WooCategoryModel.fromJson(json)).toList();
@@ -42,34 +43,55 @@ class WooApi {
     }
   }
 
-  static Future<WooPostModel> createPost(WooPostModel post, {int? updatePostById}) async {
+  static Future<WooPostModel> createPost(WooPostModel post, {int? postId}) async {
     print('START: WooApi.createPost()');
+    bool updateMode = postId != null;
     var url = '$baseUrl/wp/v2/posts';
-    if (updatePostById != null) url += '/$updatePostById';
+    if (updateMode) url += '/$postId';
 
-    final response = await http.post(
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $debugJwt',
+    };
+
+    final body = jsonEncode({
+      'title': post.title,
+      'content': post.content,
+      'author': post.author,
+      'categories': post.categories,
+      'status': 'publish',
+    });
+
+    final response = updateMode
+        ? await http.put(Uri.parse(url), headers: headers, body: body)
+        : await http.post(Uri.parse(url), headers: headers, body: body);
+
+    printGreen('WooApi.createPost() statusCode: ${response.statusCode}');
+    if (updateMode) print('UPDATE MODE For post ID: $postId');
+
+    if (response.statusCode == 201 || response.statusCode == 200) {
+      final json = jsonDecode(response.body);
+      return WooPostModel.fromJson(json);
+    } else {
+      throw Exception('Failed to create post');
+    }
+  }
+
+  static Future<void> deletePost(int postId) async {
+    print('START: WooApi.deletePost()');
+    var url = '$baseUrl/wp/v2/posts/$postId';
+
+    final response = await http.delete(
       Uri.parse(url),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $debugJwt',
       },
-      body: jsonEncode({
-        'title': post.title,
-        'content': post.content,
-        'author': post.author,
-        'categories': post.categories,
-        'status': 'publish',
-      }),
     );
 
-    print('WooApi.createPost() statusCode: ${response.statusCode}');
-    if (updatePostById != null) print('UPDATE MODE For post ID: $updatePostById');
-
-      if (response.statusCode == 201) {
-      final json = jsonDecode(response.body);
-      return WooPostModel.fromJson(json);
-    } else {
-      throw Exception('Failed to create post');
+    print('WooApi.deletePost() statusCode: ${response.statusCode}');
+    if (response.statusCode != 204) {
+      throw Exception('Failed to delete post');
     }
   }
 

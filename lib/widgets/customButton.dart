@@ -85,6 +85,7 @@ class CustomButton extends StatelessWidget {
                       ],
                       if (title != null)
                         title!.toText(
+                          // medium: true,
                           color: Colors.white,
                           fontSize: 15,
                         )
