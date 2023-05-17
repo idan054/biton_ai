@@ -12,8 +12,9 @@ _$_WooPostModel _$$_WooPostModelFromJson(Map<String, dynamic> json) =>
       author: json['author'] as int,
       categories:
           (json['categories'] as List<dynamic>).map((e) => e as int).toList(),
-      title: fetchTitleFromJson(json['title'] as Map<String, dynamic>),
-      content: fetchContentFromJson(json['content'] as Map<String, dynamic>),
+      title: json['title'] as String,
+      content: json['content'] as String,
+      subContent: json['subContent'] as String?,
     );
 
 Map<String, dynamic> _$$_WooPostModelToJson(_$_WooPostModel instance) =>
@@ -23,4 +24,5 @@ Map<String, dynamic> _$$_WooPostModelToJson(_$_WooPostModel instance) =>
       'categories': instance.categories,
       'title': instance.title,
       'content': instance.content,
+      'subContent': instance.subContent,
     };

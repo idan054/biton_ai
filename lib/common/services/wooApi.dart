@@ -15,7 +15,7 @@ class WooApi {
 
     const url = '$baseUrl/wp/v2/categories?parent=$appCategoryId';
     final response = await http.get(Uri.parse(url));
-    print('response.statusCode ${response.statusCode}');
+    print('WooApi.getCategories statusCode ${response.statusCode}');
     if (response.statusCode == 200) {
       final List<dynamic> jsonList = json.decode(response.body);
       var categories = jsonList.map((json) => WooCategoryModel.fromJson(json)).toList();
@@ -27,11 +27,19 @@ class WooApi {
 
   static Future<List<WooPostModel>> getPosts({
     String? userId,
+    List<WooCategoryModel>? categories,
   }) async {
     print('START: WooApi.getPosts()');
 
     var url = '$baseUrl/wp/v2/posts';
-    if (userId != null) url += '?author=$userId';
+    url += '?per_page=100';
+    if (userId != null) url += '&author=$userId';
+    if (categories != null) {
+      var catIds = categories.map((cat) => cat.id).toList(growable: true);
+      var catIdsEncoded =
+          catIds.toString().replaceAll(' ', '').replaceAll('[', '').replaceAll(']', '');
+      url += '&categories=$catIdsEncoded';
+    }
     final response = await http.get(Uri.parse(url));
     print('WooApi.getPosts() statusCode: ${response.statusCode}');
     if (response.statusCode == 200) {

@@ -17,15 +17,50 @@ class WooPostModel with _$WooPostModel {
     int? id, // doesn't have while create
     required int author,
     required List<int> categories,
-    @JsonKey(name: 'title', fromJson: fetchTitleFromJson) required String title,
-    @JsonKey(name: 'content', fromJson: fetchContentFromJson) required String content,
+    required String title,
+    required String content,
+    String? subContent,
   }) = _WooPostModel;
 
-  factory WooPostModel.fromJson(Map<String, dynamic> json) =>
-      _$WooPostModelFromJson(json);
+  factory WooPostModel.fromJson(Map<String, dynamic> json) {
+    var content = json['content']['rendered']
+        .toString()
+        .replaceAll('<p>', '')
+        .replaceAll('</p>', '')
+        .trim();
+    var mainContent = fetchContentFromJson(content, false);
+    var subContent = fetchContentFromJson(content, true);
+
+    var categoriesRaw = json['categories'] as List<dynamic>;
+    var categories = categoriesRaw.map((category) => category as int).toList();
+
+    var post = WooPostModel(
+      id: json['id'],
+      author: json['author'],
+      categories: categories,
+      title: json['title']['rendered'],
+      content: mainContent!,
+      subContent: subContent,
+    );
+    // return _$WooPostModelFromJson(json);
+    return post;
+  }
 }
 
-dynamic fetchTitleFromJson(Map<String, dynamic> title) => title['rendered'];
+// dynamic fetchTitleFromJson(Map<String, dynamic> title) => title['rendered'];
 
-dynamic fetchContentFromJson(Map<String, dynamic> content) =>
-    content['rendered'].toString().replaceAll('<p>', '').replaceAll('</p>', '').trim();
+// @JsonKey(name: 'content', fromJson: fetchSubContentFromJson) String? subContent,
+// dynamic fetchContentFromJson(Map<String, dynamic> content) =>
+//     content['rendered'].toString().replaceAll('<p>', '').replaceAll('</p>', '').trim();
+
+
+String? fetchContentFromJson(String content, bool subContent) {
+  var googleDesc = ' googleDesc=';
+  if (content.contains(googleDesc)) {
+    return subContent
+        ? content.split(googleDesc).last.replaceAll(googleDesc, '')
+        : content.split(googleDesc).first;
+  } else {
+    return subContent ? null : content;
+  }
+}

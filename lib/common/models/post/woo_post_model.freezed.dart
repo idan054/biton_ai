@@ -14,22 +14,16 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
 
-WooPostModel _$WooPostModelFromJson(Map<String, dynamic> json) {
-  return _WooPostModel.fromJson(json);
-}
-
 /// @nodoc
 mixin _$WooPostModel {
   int? get id =>
       throw _privateConstructorUsedError; // doesn't have while create
   int get author => throw _privateConstructorUsedError;
   List<int> get categories => throw _privateConstructorUsedError;
-  @JsonKey(name: 'title', fromJson: fetchTitleFromJson)
   String get title => throw _privateConstructorUsedError;
-  @JsonKey(name: 'content', fromJson: fetchContentFromJson)
   String get content => throw _privateConstructorUsedError;
+  String? get subContent => throw _privateConstructorUsedError;
 
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
   $WooPostModelCopyWith<WooPostModel> get copyWith =>
       throw _privateConstructorUsedError;
@@ -45,10 +39,9 @@ abstract class $WooPostModelCopyWith<$Res> {
       {int? id,
       int author,
       List<int> categories,
-      @JsonKey(name: 'title', fromJson: fetchTitleFromJson)
-          String title,
-      @JsonKey(name: 'content', fromJson: fetchContentFromJson)
-          String content});
+      String title,
+      String content,
+      String? subContent});
 }
 
 /// @nodoc
@@ -69,6 +62,7 @@ class _$WooPostModelCopyWithImpl<$Res, $Val extends WooPostModel>
     Object? categories = null,
     Object? title = null,
     Object? content = null,
+    Object? subContent = freezed,
   }) {
     return _then(_value.copyWith(
       id: freezed == id
@@ -91,6 +85,10 @@ class _$WooPostModelCopyWithImpl<$Res, $Val extends WooPostModel>
           ? _value.content
           : content // ignore: cast_nullable_to_non_nullable
               as String,
+      subContent: freezed == subContent
+          ? _value.subContent
+          : subContent // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -107,10 +105,9 @@ abstract class _$$_WooPostModelCopyWith<$Res>
       {int? id,
       int author,
       List<int> categories,
-      @JsonKey(name: 'title', fromJson: fetchTitleFromJson)
-          String title,
-      @JsonKey(name: 'content', fromJson: fetchContentFromJson)
-          String content});
+      String title,
+      String content,
+      String? subContent});
 }
 
 /// @nodoc
@@ -129,6 +126,7 @@ class __$$_WooPostModelCopyWithImpl<$Res>
     Object? categories = null,
     Object? title = null,
     Object? content = null,
+    Object? subContent = freezed,
   }) {
     return _then(_$_WooPostModel(
       id: freezed == id
@@ -151,6 +149,10 @@ class __$$_WooPostModelCopyWithImpl<$Res>
           ? _value.content
           : content // ignore: cast_nullable_to_non_nullable
               as String,
+      subContent: freezed == subContent
+          ? _value.subContent
+          : subContent // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -163,14 +165,10 @@ class _$_WooPostModel implements _WooPostModel {
       {this.id,
       required this.author,
       required final List<int> categories,
-      @JsonKey(name: 'title', fromJson: fetchTitleFromJson)
-          required this.title,
-      @JsonKey(name: 'content', fromJson: fetchContentFromJson)
-          required this.content})
+      required this.title,
+      required this.content,
+      this.subContent})
       : _categories = categories;
-
-  factory _$_WooPostModel.fromJson(Map<String, dynamic> json) =>
-      _$$_WooPostModelFromJson(json);
 
   @override
   final int? id;
@@ -186,15 +184,15 @@ class _$_WooPostModel implements _WooPostModel {
   }
 
   @override
-  @JsonKey(name: 'title', fromJson: fetchTitleFromJson)
   final String title;
   @override
-  @JsonKey(name: 'content', fromJson: fetchContentFromJson)
   final String content;
+  @override
+  final String? subContent;
 
   @override
   String toString() {
-    return 'WooPostModel(id: $id, author: $author, categories: $categories, title: $title, content: $content)';
+    return 'WooPostModel(id: $id, author: $author, categories: $categories, title: $title, content: $content, subContent: $subContent)';
   }
 
   @override
@@ -207,26 +205,26 @@ class _$_WooPostModel implements _WooPostModel {
             const DeepCollectionEquality()
                 .equals(other._categories, _categories) &&
             (identical(other.title, title) || other.title == title) &&
-            (identical(other.content, content) || other.content == content));
+            (identical(other.content, content) || other.content == content) &&
+            (identical(other.subContent, subContent) ||
+                other.subContent == subContent));
   }
 
-  @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(runtimeType, id, author,
-      const DeepCollectionEquality().hash(_categories), title, content);
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      author,
+      const DeepCollectionEquality().hash(_categories),
+      title,
+      content,
+      subContent);
 
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$_WooPostModelCopyWith<_$_WooPostModel> get copyWith =>
       __$$_WooPostModelCopyWithImpl<_$_WooPostModel>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$_WooPostModelToJson(
-      this,
-    );
-  }
 }
 
 abstract class _WooPostModel implements WooPostModel {
@@ -234,13 +232,9 @@ abstract class _WooPostModel implements WooPostModel {
       {final int? id,
       required final int author,
       required final List<int> categories,
-      @JsonKey(name: 'title', fromJson: fetchTitleFromJson)
-          required final String title,
-      @JsonKey(name: 'content', fromJson: fetchContentFromJson)
-          required final String content}) = _$_WooPostModel;
-
-  factory _WooPostModel.fromJson(Map<String, dynamic> json) =
-      _$_WooPostModel.fromJson;
+      required final String title,
+      required final String content,
+      final String? subContent}) = _$_WooPostModel;
 
   @override
   int? get id;
@@ -249,11 +243,11 @@ abstract class _WooPostModel implements WooPostModel {
   @override
   List<int> get categories;
   @override
-  @JsonKey(name: 'title', fromJson: fetchTitleFromJson)
   String get title;
   @override
-  @JsonKey(name: 'content', fromJson: fetchContentFromJson)
   String get content;
+  @override
+  String? get subContent;
   @override
   @JsonKey(ignore: true)
   _$$_WooPostModelCopyWith<_$_WooPostModel> get copyWith =>
