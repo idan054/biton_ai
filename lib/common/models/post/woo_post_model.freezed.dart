@@ -23,6 +23,8 @@ mixin _$WooPostModel {
   String get title => throw _privateConstructorUsedError;
   String get content => throw _privateConstructorUsedError;
   String? get subContent => throw _privateConstructorUsedError;
+  bool get isDefault => throw _privateConstructorUsedError;
+  bool get isSelected => throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
   $WooPostModelCopyWith<WooPostModel> get copyWith =>
@@ -41,7 +43,9 @@ abstract class $WooPostModelCopyWith<$Res> {
       List<int> categories,
       String title,
       String content,
-      String? subContent});
+      String? subContent,
+      bool isDefault,
+      bool isSelected});
 }
 
 /// @nodoc
@@ -63,6 +67,8 @@ class _$WooPostModelCopyWithImpl<$Res, $Val extends WooPostModel>
     Object? title = null,
     Object? content = null,
     Object? subContent = freezed,
+    Object? isDefault = null,
+    Object? isSelected = null,
   }) {
     return _then(_value.copyWith(
       id: freezed == id
@@ -89,6 +95,14 @@ class _$WooPostModelCopyWithImpl<$Res, $Val extends WooPostModel>
           ? _value.subContent
           : subContent // ignore: cast_nullable_to_non_nullable
               as String?,
+      isDefault: null == isDefault
+          ? _value.isDefault
+          : isDefault // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isSelected: null == isSelected
+          ? _value.isSelected
+          : isSelected // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
   }
 }
@@ -107,7 +121,9 @@ abstract class _$$_WooPostModelCopyWith<$Res>
       List<int> categories,
       String title,
       String content,
-      String? subContent});
+      String? subContent,
+      bool isDefault,
+      bool isSelected});
 }
 
 /// @nodoc
@@ -127,6 +143,8 @@ class __$$_WooPostModelCopyWithImpl<$Res>
     Object? title = null,
     Object? content = null,
     Object? subContent = freezed,
+    Object? isDefault = null,
+    Object? isSelected = null,
   }) {
     return _then(_$_WooPostModel(
       id: freezed == id
@@ -153,6 +171,14 @@ class __$$_WooPostModelCopyWithImpl<$Res>
           ? _value.subContent
           : subContent // ignore: cast_nullable_to_non_nullable
               as String?,
+      isDefault: null == isDefault
+          ? _value.isDefault
+          : isDefault // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isSelected: null == isSelected
+          ? _value.isSelected
+          : isSelected // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -167,7 +193,9 @@ class _$_WooPostModel implements _WooPostModel {
       required final List<int> categories,
       required this.title,
       required this.content,
-      this.subContent})
+      this.subContent,
+      this.isDefault = false,
+      this.isSelected = false})
       : _categories = categories;
 
   @override
@@ -189,10 +217,16 @@ class _$_WooPostModel implements _WooPostModel {
   final String content;
   @override
   final String? subContent;
+  @override
+  @JsonKey()
+  final bool isDefault;
+  @override
+  @JsonKey()
+  final bool isSelected;
 
   @override
   String toString() {
-    return 'WooPostModel(id: $id, author: $author, categories: $categories, title: $title, content: $content, subContent: $subContent)';
+    return 'WooPostModel(id: $id, author: $author, categories: $categories, title: $title, content: $content, subContent: $subContent, isDefault: $isDefault, isSelected: $isSelected)';
   }
 
   @override
@@ -207,7 +241,11 @@ class _$_WooPostModel implements _WooPostModel {
             (identical(other.title, title) || other.title == title) &&
             (identical(other.content, content) || other.content == content) &&
             (identical(other.subContent, subContent) ||
-                other.subContent == subContent));
+                other.subContent == subContent) &&
+            (identical(other.isDefault, isDefault) ||
+                other.isDefault == isDefault) &&
+            (identical(other.isSelected, isSelected) ||
+                other.isSelected == isSelected));
   }
 
   @override
@@ -218,7 +256,9 @@ class _$_WooPostModel implements _WooPostModel {
       const DeepCollectionEquality().hash(_categories),
       title,
       content,
-      subContent);
+      subContent,
+      isDefault,
+      isSelected);
 
   @JsonKey(ignore: true)
   @override
@@ -234,7 +274,9 @@ abstract class _WooPostModel implements WooPostModel {
       required final List<int> categories,
       required final String title,
       required final String content,
-      final String? subContent}) = _$_WooPostModel;
+      final String? subContent,
+      final bool isDefault,
+      final bool isSelected}) = _$_WooPostModel;
 
   @override
   int? get id;
@@ -248,6 +290,10 @@ abstract class _WooPostModel implements WooPostModel {
   String get content;
   @override
   String? get subContent;
+  @override
+  bool get isDefault;
+  @override
+  bool get isSelected;
   @override
   @JsonKey(ignore: true)
   _$$_WooPostModelCopyWith<_$_WooPostModel> get copyWith =>

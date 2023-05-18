@@ -12,7 +12,9 @@ const debugJwt =
     'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3d3dy50ZXh0c3RvcmUuYWkiLCJpYXQiOjE2ODQyMjk0NTksIm5iZiI6MTY4NDIyOTQ1OSwiZXhwIjoxNjg0ODM0MjU5LCJkYXRhIjp7InVzZXIiOnsiaWQiOiIxIn19fQ.qJln-UdYiO6GvdBXfCPB0K7CqUioaVM2Z3VyxNxu01w';
 
 
-const debugUid = 1;
+const textStoreUid = 1; // Admin user
+const debugUid = 7; // Idan test user
+
 // const betterSeller = 'Better \$eller';
 const textStoreAi = 'TextStore';
 

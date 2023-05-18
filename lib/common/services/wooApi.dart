@@ -33,7 +33,7 @@ class WooApi {
 
     var url = '$baseUrl/wp/v2/posts';
     url += '?per_page=100';
-    if (userId != null) url += '&author=$userId';
+    if (userId != null) url += '&author=$userId,$textStoreUid';
     if (categories != null) {
       var catIds = categories.map((cat) => cat.id).toList(growable: true);
       var catIdsEncoded =
@@ -51,7 +51,11 @@ class WooApi {
     }
   }
 
-  static Future<WooPostModel> createPost(WooPostModel post, {int? postId}) async {
+  static Future<WooPostModel> createPost(
+    WooPostModel post, {
+    int? postId,
+    bool isSelectedPrompt = false, // threeColumnDialog.dart
+  }) async {
     print('START: WooApi.createPost()');
     bool updateMode = postId != null;
     var url = '$baseUrl/wp/v2/posts';
@@ -68,6 +72,7 @@ class WooApi {
       'author': post.author,
       'categories': post.categories,
       'status': 'publish',
+      'meta': {'isSelected': isSelectedPrompt}
     });
 
     final response = updateMode

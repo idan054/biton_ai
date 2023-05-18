@@ -20,9 +20,12 @@ class WooPostModel with _$WooPostModel {
     required String title,
     required String content,
     String? subContent,
+    @Default(false) bool isDefault,
+    @Default(false) bool isSelected,
   }) = _WooPostModel;
 
   factory WooPostModel.fromJson(Map<String, dynamic> json) {
+    var title = json['title']['rendered'];
     var content = json['content']['rendered']
         .toString()
         .replaceAll('<p>', '')
@@ -33,15 +36,17 @@ class WooPostModel with _$WooPostModel {
 
     var categoriesRaw = json['categories'] as List<dynamic>;
     var categories = categoriesRaw.map((category) => category as int).toList();
+    print("json['meta'] ${json['meta']}");
 
     var post = WooPostModel(
-      id: json['id'],
-      author: json['author'],
-      categories: categories,
-      title: json['title']['rendered'],
-      content: mainContent!,
-      subContent: subContent,
-    );
+        id: json['id'],
+        author: json['author'],
+        categories: categories,
+        title: title,
+        content: mainContent!,
+        subContent: subContent,
+        isDefault: title.toString().contains('Default PROMPT'),
+        isSelected: false);
     // return _$WooPostModelFromJson(json);
     return post;
   }
@@ -52,7 +57,6 @@ class WooPostModel with _$WooPostModel {
 // @JsonKey(name: 'content', fromJson: fetchSubContentFromJson) String? subContent,
 // dynamic fetchContentFromJson(Map<String, dynamic> content) =>
 //     content['rendered'].toString().replaceAll('<p>', '').replaceAll('</p>', '').trim();
-
 
 String? fetchContentFromJson(String content, bool subContent) {
   var googleDesc = ' googleDesc=';

@@ -19,7 +19,7 @@ import '../common/constants.dart';
 import '../common/models/category/woo_category_model.dart';
 import '../common/models/prompt/result_model.dart';
 import '../common/services/gpt_service.dart';
-import '../widgets/threeColumnDialog.dart';
+import '../widgets/threeColumnDialog/threeColumnDialog.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);

@@ -15,6 +15,8 @@ _$_WooPostModel _$$_WooPostModelFromJson(Map<String, dynamic> json) =>
       title: json['title'] as String,
       content: json['content'] as String,
       subContent: json['subContent'] as String?,
+      isDefault: json['isDefault'] as bool? ?? false,
+      isSelected: json['isSelected'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$$_WooPostModelToJson(_$_WooPostModel instance) =>
@@ -25,4 +27,6 @@ Map<String, dynamic> _$$_WooPostModelToJson(_$_WooPostModel instance) =>
       'title': instance.title,
       'content': instance.content,
       'subContent': instance.subContent,
+      'isDefault': instance.isDefault,
+      'isSelected': instance.isSelected,
     };
