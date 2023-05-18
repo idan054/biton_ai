@@ -28,6 +28,7 @@ class ThreeColumnDialog extends StatefulWidget {
 
 class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
   bool _isLoading = false;
+  bool _createNewPromptMode = false;
   List<WooPostModel> _postList = [];
   WooCategoryModel? selectedCategory;
   WooPostModel? selectedEditPost;
@@ -105,6 +106,7 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
                     width: 160,
                     height: 45,
                     onPressed: () {
+                      _createNewPromptMode = true;
                       _googleDescEditingController.clear();
                       _contentEditingController.clear();
                       _titleEditingController.text =
@@ -314,7 +316,7 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
             ),
           ),
           // if (!isDefaultPrompt) ...[
-            if (true) ...[
+          if (true) ...[
             const SizedBox(height: 4.0),
             if (!isGoogleCategory) const Spacer(flex: 3),
             fieldTitle(isGoogleCategory
@@ -379,7 +381,7 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (post.content == sPost?.content) {
+      if (post.content == sPost?.content && !_createNewPromptMode) {
         _titleEditingController.text = sPost?.title ?? '';
         _contentEditingController.text = sPost?.content ?? '';
         _googleDescEditingController.text = sPost?.subContent ?? '';
@@ -454,6 +456,7 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
                   selectedPosts4Use.insert(0, newPost); // Start of  list
                   _postList.insert(0, newPost); // Start of  list
                   _isLoading = false;
+                  _createNewPromptMode = false;
 
                   setState(() {});
                 }
