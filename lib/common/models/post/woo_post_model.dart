@@ -21,7 +21,10 @@ class WooPostModel with _$WooPostModel {
     required String content,
     String? subContent,
     @Default(false) bool isDefault,
-    @Default(false) bool isSelected,
+
+    //todo use list Id's instead so multi user will be able to choose?
+    // name: on wordpress API
+    @JsonKey(name: 'sticky') @Default(false) bool isSelected,
   }) = _WooPostModel;
 
   factory WooPostModel.fromJson(Map<String, dynamic> json) {
@@ -36,7 +39,7 @@ class WooPostModel with _$WooPostModel {
 
     var categoriesRaw = json['categories'] as List<dynamic>;
     var categories = categoriesRaw.map((category) => category as int).toList();
-    print("json['meta'] ${json['meta']}");
+    print("json['sticky']: ${json['sticky']}");
 
     var post = WooPostModel(
         id: json['id'],

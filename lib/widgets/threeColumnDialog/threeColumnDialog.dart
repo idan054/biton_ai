@@ -19,8 +19,10 @@ import '../customButton.dart';
 
 class ThreeColumnDialog extends StatefulWidget {
   final List<WooCategoryModel> categories;
+  final List<WooPostModel> postList;
 
-  const ThreeColumnDialog(this.categories, {Key? key}) : super(key: key);
+  const ThreeColumnDialog({required this.categories, required this.postList, Key? key})
+      : super(key: key);
 
   @override
   _ThreeColumnDialogState createState() => _ThreeColumnDialogState();
@@ -29,14 +31,13 @@ class ThreeColumnDialog extends StatefulWidget {
 class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
   bool _isLoading = false;
   bool _createNewPromptMode = false;
-  List<WooPostModel> _postList = [];
   WooCategoryModel? selectedCategory;
   WooPostModel? selectedEditPost;
-  WooPostModel? sPost;
-  List<WooPostModel> selectedPosts4Use = [];
+  WooPostModel? sRadioPost;
+  List<WooPostModel> _postList = [];
+  List<WooPostModel> selectedRadioPosts = [];
 
   final _titleFocusNode = FocusNode();
-  final _promptFocusNode = FocusNode();
   final _titleEditingController = TextEditingController();
   final _contentEditingController = TextEditingController();
   final _googleDescEditingController = TextEditingController();
@@ -50,32 +51,13 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
     super.dispose();
   }
 
-  void getUserPosts() async {
-    print('START: getUserPosts()');
-    _isLoading = true;
-    setState(() {});
-    _postList =
-        await WooApi.getPosts(userId: debugUid.toString(), categories: categories);
-
-    // Set the Default prompt on Top
-    for (var post in [..._postList]) {
-      if (post.isDefault) {
-        _postList.remove(post);
-        _postList.insert(0, post);
-      }
-    }
-
-    _isLoading = false;
-    setState(() {});
-  }
-
   @override
   void initState() {
+    _postList = widget.postList;
     categories = sortCategories(widget.categories);
     selectedCategory ??= categories.first;
     _titleEditingController.text = 'My ${selectedCategory?.name} prompt';
 
-    getUserPosts();
     super.initState();
   }
 
@@ -125,12 +107,12 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
                     child: ListView.builder(
                       itemCount: _postList.length,
                       itemBuilder: (BuildContext context, int i) {
-                        final post = _postList[i];
-                        sPost = _handleDefaultPrompt(post);
-                        final isEditMode = sPost == post;
+                        final currPost = _postList[i];
+                        sRadioPost = _handleDefaultPrompt(currPost);
+                        final isEditMode = sRadioPost == currPost;
 
                         if (selectedCategory == null ||
-                            post.categories.contains(selectedCategory!.id) == false) {
+                            currPost.categories.contains(selectedCategory!.id) == false) {
                           return const Offstage();
                         }
                         return Column(
@@ -140,27 +122,29 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Radio(
-                                  value: post,
-                                  groupValue: sPost,
+                                  value: currPost,
+                                  groupValue: sRadioPost,
                                   onChanged: (_) {
-                                    if (sPost != null) selectedPosts4Use.remove(sPost);
-                                    selectedPosts4Use.add(post);
-                                    handleUpdateFields(post, editMode: false);
+                                    if (sRadioPost != null)
+                                      selectedRadioPosts.remove(sRadioPost);
+                                    selectedRadioPosts.add(currPost);
+                                    handleUpdateFields(currPost, editMode: false);
                                   },
                                   activeColor: AppColors.secondaryBlue,
                                 ),
                                 SizedBox(
                                   width: (promptListSize * 0.60),
-                                  child: post.title.toString().toText(
+                                  child: currPost.title.toString().toText(
                                       bold: true,
                                       color: isEditMode
                                           ? AppColors.secondaryBlue
                                           : AppColors.greyText,
                                       maxLines: 1),
                                 ).py(5).onTap(() {
-                                  if (sPost != null) selectedPosts4Use.remove(sPost);
-                                  selectedPosts4Use.add(post);
-                                  handleUpdateFields(post);
+                                  if (sRadioPost != null)
+                                    selectedRadioPosts.remove(sRadioPost);
+                                  selectedRadioPosts.add(currPost);
+                                  handleUpdateFields(currPost);
                                 }, radius: 5, tapColor: Colors.transparent),
                                 Icons.edit
                                     .icon(
@@ -170,15 +154,16 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
                                     .pad(5)
                                     .onTap(
                                   () {
-                                    if (sPost != null) selectedPosts4Use.remove(sPost);
-                                    selectedPosts4Use.add(post);
-                                    handleUpdateFields(post);
+                                    if (sRadioPost != null)
+                                      selectedRadioPosts.remove(sRadioPost);
+                                    selectedRadioPosts.add(currPost);
+                                    handleUpdateFields(currPost);
                                   },
                                 ),
                                 Icons.remove_circle_outline_outlined
                                     .icon(color: AppColors.errRed)
                                     .pad(5)
-                                    .onTap(() => handleOnDeletePrompt(post)),
+                                    .onTap(() => handleOnDeletePrompt(currPost)),
                               ],
                             ).py(3),
                             Container(
@@ -370,13 +355,13 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
   }
 
   WooPostModel? _handleDefaultPrompt(WooPostModel post) {
-    var sPost = selectedPosts4Use
+    var sPost = selectedRadioPosts
         .firstWhereOrNull((post) => post.categories.first == selectedCategory!.id);
 
     if (sPost == null) {
-      if (post.title.contains('Default PROMPT ') && !selectedPosts4Use.contains(post)) {
+      if (post.title.contains('Default PROMPT ') && !selectedRadioPosts.contains(post)) {
         sPost = post;
-        selectedPosts4Use.add(post);
+        selectedRadioPosts.add(post);
       }
     }
 
@@ -441,8 +426,6 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
                   if (updatePostMode) {
                     _postList
                         .removeWhere((post) => post.title == selectedEditPost?.title);
-                    selectedPosts4Use
-                        .removeWhere((post) => post.title == selectedEditPost?.title);
                   }
 
                   newPost = await WooApi.createPost(
@@ -451,10 +434,13 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
                     isSelectedPrompt: true,
                   );
 
-                  sPost = newPost;
+                  sRadioPost = newPost;
                   selectedEditPost = newPost;
-                  selectedPosts4Use.insert(0, newPost); // Start of  list
-                  _postList.insert(0, newPost); // Start of  list
+
+                  selectedRadioPosts.remove(sRadioPost);
+                  selectedRadioPosts.insert(0, newPost); // Start of  list
+
+                  _postList.insert(1, newPost); // Start of  list
                   _isLoading = false;
                   _createNewPromptMode = false;
 

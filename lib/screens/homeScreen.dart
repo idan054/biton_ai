@@ -17,6 +17,7 @@ import 'dart:convert';
 
 import '../common/constants.dart';
 import '../common/models/category/woo_category_model.dart';
+import '../common/models/post/woo_post_model.dart';
 import '../common/models/prompt/result_model.dart';
 import '../common/services/gpt_service.dart';
 import '../widgets/threeColumnDialog/threeColumnDialog.dart';
@@ -32,27 +33,32 @@ class _HomeScreenState extends State<HomeScreen> {
   var searchController =
       TextEditingController(text: kDebugMode ? 'Nike Air Max 90' : null);
   List<WooCategoryModel> _categories = [];
+  List<WooPostModel> _postList = [];
 
   @override
   void initState() {
+    getPrompts();
     getCategories();
     super.initState();
   }
 
-  void getCategories() async {
-    var categories = await WooApi.getCategories();
-    _categories = categories;
+  void getPrompts() async {
+    _postList = await getUserPrompts();
+    for (var post in _postList) {
+      if (post.isSelected) {
+        print('post.title ${post.title}');
+      }
+    }
     setState(() {});
   }
 
-  void getDefaultPrompts() async {
-    var categories = await WooApi.getCategories();
-    _categories = categories;
+  void getCategories() async {
+    _categories = await WooApi.getCategories();
     setState(() {});
   }
 
   bool _isLoading = false;
-  bool _showLoadingText = false; // Only appear after 5 seconds
+
   // var loadingSeconds = 0;
 
   Timer? _timer; // 1 time run.
@@ -60,6 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String? errorMessage;
 
   int loadingIndex = 0;
+
   @override
   Widget build(BuildContext context) {
     _isLoading = _isLoading && errorMessage == null;
@@ -166,25 +173,26 @@ class _HomeScreenState extends State<HomeScreen> {
                       .toText(color: AppColors.primaryShiny, medium: true, fontSize: 14)
                       .px(20)
                       .py(15)
-                      .onTap(() async => _handleCreateButton(),
+                      .onTap(() async => _handleCreateProductButton(),
                           tapColor: AppColors.primaryShiny.withOpacity(0.15)),
               ],
             ),
             prefixIcon: Icons.tune
                 .icon(
-                    color: _categories.isEmpty
+                    color: _categories.isEmpty || _postList.isEmpty
                         ? AppColors.greyText.withOpacity(0.30)
                         : AppColors.greyText,
                     size: 25)
                 .px(20)
                 .py(12)
-                .onTap(_categories.isEmpty
+                .onTap(_categories.isEmpty || _postList.isEmpty
                     ? null
                     : () {
                         showDialog(
                           context: context,
                           builder: (BuildContext context) {
-                            return ThreeColumnDialog(_categories);
+                            return ThreeColumnDialog(
+                                postList: _postList, categories: _categories);
                           },
                         );
                       }),
@@ -194,7 +202,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _handleCreateButton() async {
+  void _handleCreateProductButton() async {
     errorMessage = null;
     _isLoading = true;
     setState(() {});
@@ -258,4 +266,24 @@ List<ResultModel> setResultsFromGpt(Map<String, dynamic> resp, ResultCategory ca
     items.add(item);
   }
   return items;
+}
+
+Future<List<WooPostModel>> getUserPrompts() async {
+  // _isLoading = true;
+  // setState(() {});
+
+  var postList =
+      await WooApi.getPosts(userId: debugUid.toString(), catIds: promptsCategoryIds);
+
+  // Set the Default prompt on Top
+  for (var post in [...postList]) {
+    if (post.isDefault) {
+      postList.remove(post);
+      postList.insert(0, post);
+    }
+  }
+
+  // _isLoading = false;
+  // setState(() {});
+  return postList;
 }

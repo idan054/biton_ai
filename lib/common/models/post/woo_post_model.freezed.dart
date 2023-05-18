@@ -23,7 +23,9 @@ mixin _$WooPostModel {
   String get title => throw _privateConstructorUsedError;
   String get content => throw _privateConstructorUsedError;
   String? get subContent => throw _privateConstructorUsedError;
-  bool get isDefault => throw _privateConstructorUsedError;
+  bool get isDefault =>
+      throw _privateConstructorUsedError; // name: on wordpress API
+  @JsonKey(name: 'sticky')
   bool get isSelected => throw _privateConstructorUsedError;
 
   @JsonKey(ignore: true)
@@ -45,7 +47,7 @@ abstract class $WooPostModelCopyWith<$Res> {
       String content,
       String? subContent,
       bool isDefault,
-      bool isSelected});
+      @JsonKey(name: 'sticky') bool isSelected});
 }
 
 /// @nodoc
@@ -123,7 +125,7 @@ abstract class _$$_WooPostModelCopyWith<$Res>
       String content,
       String? subContent,
       bool isDefault,
-      bool isSelected});
+      @JsonKey(name: 'sticky') bool isSelected});
 }
 
 /// @nodoc
@@ -195,7 +197,7 @@ class _$_WooPostModel implements _WooPostModel {
       required this.content,
       this.subContent,
       this.isDefault = false,
-      this.isSelected = false})
+      @JsonKey(name: 'sticky') this.isSelected = false})
       : _categories = categories;
 
   @override
@@ -220,8 +222,9 @@ class _$_WooPostModel implements _WooPostModel {
   @override
   @JsonKey()
   final bool isDefault;
+// name: on wordpress API
   @override
-  @JsonKey()
+  @JsonKey(name: 'sticky')
   final bool isSelected;
 
   @override
@@ -276,7 +279,7 @@ abstract class _WooPostModel implements WooPostModel {
       required final String content,
       final String? subContent,
       final bool isDefault,
-      final bool isSelected}) = _$_WooPostModel;
+      @JsonKey(name: 'sticky') final bool isSelected}) = _$_WooPostModel;
 
   @override
   int? get id;
@@ -292,7 +295,8 @@ abstract class _WooPostModel implements WooPostModel {
   String? get subContent;
   @override
   bool get isDefault;
-  @override
+  @override // name: on wordpress API
+  @JsonKey(name: 'sticky')
   bool get isSelected;
   @override
   @JsonKey(ignore: true)

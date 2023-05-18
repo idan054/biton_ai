@@ -27,19 +27,20 @@ class WooApi {
 
   static Future<List<WooPostModel>> getPosts({
     String? userId,
-    List<WooCategoryModel>? categories,
+    required List<int> catIds,
+    // required List<WooCategoryModel> categories,
   }) async {
     print('START: WooApi.getPosts()');
 
     var url = '$baseUrl/wp/v2/posts';
     url += '?per_page=100';
     if (userId != null) url += '&author=$userId,$textStoreUid';
-    if (categories != null) {
-      var catIds = categories.map((cat) => cat.id).toList(growable: true);
-      var catIdsEncoded =
-          catIds.toString().replaceAll(' ', '').replaceAll('[', '').replaceAll(']', '');
-      url += '&categories=$catIdsEncoded';
-    }
+    // if (categories != null) {
+    //   var catIds = categories.map((cat) => cat.id).toList(growable: true);
+    var catIdsEncoded =
+        catIds.toString().replaceAll(' ', '').replaceAll('[', '').replaceAll(']', '');
+    url += '&categories=$catIdsEncoded';
+    // }
     final response = await http.get(Uri.parse(url));
     print('WooApi.getPosts() statusCode: ${response.statusCode}');
     if (response.statusCode == 200) {
@@ -72,7 +73,7 @@ class WooApi {
       'author': post.author,
       'categories': post.categories,
       'status': 'publish',
-      'meta': {'isSelected': isSelectedPrompt}
+      'sticky': isSelectedPrompt
     });
 
     final response = updateMode
@@ -81,10 +82,12 @@ class WooApi {
 
     printGreen('WooApi.createPost() statusCode: ${response.statusCode}');
     if (updateMode) print('UPDATE MODE For post ID: $postId');
+    print('response.body ${response.body}');
 
     if (response.statusCode == 201 || response.statusCode == 200) {
       final json = jsonDecode(response.body);
-      return WooPostModel.fromJson(json);
+      var post = WooPostModel.fromJson(json);
+      return post;
     } else {
       throw Exception('Failed to create post');
     }
