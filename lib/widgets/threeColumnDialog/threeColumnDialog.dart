@@ -1,4 +1,4 @@
-// ignore_for_file: curly_braces_in_flow_control_structures
+// ignore_for_file: curly_braces_in_flow_control_structures, non_constant_identifier_names, prefer_final_fields
 
 import 'dart:developer';
 
@@ -7,15 +7,19 @@ import 'package:biton_ai/common/extensions/string_ext.dart';
 import 'package:biton_ai/common/models/post/woo_post_model.dart';
 import 'package:biton_ai/common/services/wooApi.dart';
 import 'package:biton_ai/common/themes/app_colors.dart';
+import 'package:biton_ai/widgets/threeColumnDialog/widgets.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart';
 
 import '../../common/constants.dart';
 import '../../common/extensions/widget_ext.dart';
 import '../../common/models/category/woo_category_model.dart';
 import '../../common/models/prompt/result_model.dart';
+import '../../screens/homeScreen.dart';
 import '../customButton.dart';
+import 'design.dart';
 
 class ThreeColumnDialog extends StatefulWidget {
   final List<WooCategoryModel> categories;
@@ -29,19 +33,20 @@ class ThreeColumnDialog extends StatefulWidget {
 }
 
 class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
+  late List<WooCategoryModel> categories = [];
+
   bool _isLoading = false;
-  bool _createNewPromptMode = false;
+  bool _createMode = false;
   WooCategoryModel? selectedCategory;
-  WooPostModel? selectedEditPost;
+
   WooPostModel? sRadioPost;
-  List<WooPostModel> _postList = [];
-  List<WooPostModel> selectedRadioPosts = [];
+  List<WooPostModel> _fullPromptList = [];
+  List<WooPostModel> _selectedPromptList = [];
 
   final _titleFocusNode = FocusNode();
   final _titleEditingController = TextEditingController();
   final _contentEditingController = TextEditingController();
   final _googleDescEditingController = TextEditingController();
-  List<WooCategoryModel> categories = [];
 
   @override
   void dispose() {
@@ -53,12 +58,91 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
 
   @override
   void initState() {
-    _postList = widget.postList;
-    categories = sortCategories(widget.categories);
-    selectedCategory ??= categories.first;
+    categories = widget.categories;
+    selectedCategory = categories.first;
+
+    _fullPromptList = widget.postList;
+    _initWooSelection(); // SET _selectedPromptList & Default
+
+    // Set Radio by category
+    sRadioPost =
+        _selectedPromptList.firstWhere((p) => p.category == selectedCategory!.type);
+    super.initState();
+  }
+
+  //~ 1) Set the init list
+  void _initWooSelection() {
+    // Add user selected
+    for (var prompt in _fullPromptList) {
+      if (prompt.isSelected) _selectedPromptList.add(prompt);
+    }
+    // Add default ONLY if needed
+    for (var prompt in _fullPromptList) {
+      if (_selectedPromptList.any((p) => p.category == prompt.category)) {
+        // Do nothing, already set prompt.isSelected
+      } else {
+        if (prompt.isDefault) _selectedPromptList.add(prompt);
+      }
+    }
+
+    var initPrompt =
+        _selectedPromptList.firstWhere((p) => p.category == categories.first.type);
+    onRadioChanged(initPrompt);
+    print('DONE: setWooSelection() [${_selectedPromptList.length}]');
+  }
+
+  void onRadioChanged(WooPostModel newPost) {
+    print('START: onRadioChanged()');
+
+    _createMode = false;
+    sRadioPost = newPost;
+    _titleEditingController.text = newPost.title;
+    _contentEditingController.text = newPost.content;
+    _googleDescEditingController.text = newPost.subContent ?? '';
+    updateSelectedList(newPost);
+
+    setState(() {});
+  }
+
+  void updateSelectedList(WooPostModel newPrompt) {
+    // print('START: addSelectedPrompt()');
+    var oldPrompt =
+        _selectedPromptList.firstWhereOrNull((p) => p.category == newPrompt.category);
+    if (oldPrompt != null) _selectedPromptList.remove(oldPrompt);
+    _selectedPromptList.add(newPrompt);
+  }
+
+  void _onCategoryChanged(WooCategoryModel category) async {
+    _createMode = false;
+    selectedCategory = category;
+
+    // Set Radio by category
+    sRadioPost = _selectedPromptList.firstWhere((p) => p.category == category.type);
+    onRadioChanged(sRadioPost!);
+  }
+
+  void _handleOnDeletePrompt(WooPostModel post) {
+    WooApi.deletePost(post.id!);
+    _titleEditingController.clear();
+    _contentEditingController.clear();
+    _googleDescEditingController.clear();
+    _fullPromptList.remove(post);
+
+    var defaultPrompt =
+        _fullPromptList.firstWhere((p) => p.isDefault && p.category == post.category);
+    onRadioChanged(defaultPrompt);
+  }
+
+  void reset4NewPrompt() {
+    _createMode = true;
+
+    sRadioPost = null;
+    _googleDescEditingController.clear();
+    _contentEditingController.clear();
     _titleEditingController.text = 'My ${selectedCategory?.name} prompt';
 
-    super.initState();
+    _titleFocusNode.requestFocus();
+    setState(() {});
   }
 
   @override
@@ -76,7 +160,12 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            buildCategories(categorySize),
+            buildCategories(
+              categorySize,
+              categories,
+              selectedCategory,
+              onTap: (category) => _onCategoryChanged(category),
+            ),
             SizedBox(
               width: promptListSize,
               child: Column(
@@ -87,17 +176,8 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
                     title: 'Add new prompt',
                     width: 160,
                     height: 45,
-                    onPressed: () {
-                      _createNewPromptMode = true;
-                      _googleDescEditingController.clear();
-                      _contentEditingController.clear();
-                      _titleEditingController.text =
-                          'My ${selectedCategory?.name} prompt';
-                      selectedEditPost = null;
-                      _titleFocusNode.requestFocus();
-                      setState(() {});
-                    },
-                  ).centerLeft.pOnly(top: 25, bottom: 15, left: 30),
+                    onPressed: () => reset4NewPrompt(),
+                  ).centerLeft.pOnly(top: 25, bottom: 15, left: 15),
                   if (_isLoading)
                     const CircularProgressIndicator(
                             strokeWidth: 5, color: AppColors.secondaryBlue)
@@ -105,65 +185,52 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
                   Expanded(
                     flex: 2,
                     child: ListView.builder(
-                      itemCount: _postList.length,
+                      itemCount: _fullPromptList.length,
                       itemBuilder: (BuildContext context, int i) {
-                        final currPost = _postList[i];
-                        sRadioPost = _handleDefaultPrompt(currPost);
-                        final isEditMode = sRadioPost == currPost;
+                        final currPost = _fullPromptList[i];
+                        final isSelected = sRadioPost == currPost;
 
                         if (selectedCategory == null ||
                             currPost.categories.contains(selectedCategory!.id) == false) {
                           return const Offstage();
                         }
+
                         return Column(
                           children: [
                             Row(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.start,
                               children: [
                                 Radio(
                                   value: currPost,
                                   groupValue: sRadioPost,
-                                  onChanged: (_) {
-                                    if (sRadioPost != null)
-                                      selectedRadioPosts.remove(sRadioPost);
-                                    selectedRadioPosts.add(currPost);
-                                    handleUpdateFields(currPost, editMode: false);
-                                  },
+                                  onChanged: (_) => onRadioChanged(currPost),
                                   activeColor: AppColors.secondaryBlue,
                                 ),
                                 SizedBox(
                                   width: (promptListSize * 0.60),
                                   child: currPost.title.toString().toText(
                                       bold: true,
-                                      color: isEditMode
+                                      color: isSelected
                                           ? AppColors.secondaryBlue
                                           : AppColors.greyText,
                                       maxLines: 1),
-                                ).py(5).onTap(() {
-                                  if (sRadioPost != null)
-                                    selectedRadioPosts.remove(sRadioPost);
-                                  selectedRadioPosts.add(currPost);
-                                  handleUpdateFields(currPost);
-                                }, radius: 5, tapColor: Colors.transparent),
-                                Icons.edit
-                                    .icon(
-                                        color: isEditMode
-                                            ? AppColors.secondaryBlue
-                                            : AppColors.greyText)
-                                    .pad(5)
-                                    .onTap(
-                                  () {
-                                    if (sRadioPost != null)
-                                      selectedRadioPosts.remove(sRadioPost);
-                                    selectedRadioPosts.add(currPost);
-                                    handleUpdateFields(currPost);
-                                  },
-                                ),
-                                Icons.remove_circle_outline_outlined
-                                    .icon(color: AppColors.errRed)
-                                    .pad(5)
-                                    .onTap(() => handleOnDeletePrompt(currPost)),
+                                ).py(5).onTap(() => onRadioChanged(currPost),
+                                    radius: 5, tapColor: Colors.transparent),
+                                if (!currPost.isDefault) ...[
+                                  Icons.edit
+                                      .icon(
+                                          color: isSelected
+                                              ? AppColors.secondaryBlue
+                                              : AppColors.greyText)
+                                      .pad(5)
+                                      .onTap(
+                                        () => onRadioChanged(currPost),
+                                      ),
+                                  Icons.remove_circle_outline_outlined
+                                      .icon(color: AppColors.errRed)
+                                      .pad(5)
+                                      .onTap(() => _handleOnDeletePrompt(currPost)),
+                                ]
                               ],
                             ).py(3),
                             Container(
@@ -186,119 +253,23 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
     );
   }
 
-  Container buildCategories(double categorySize) {
-    return Container(
-      width: categorySize,
-      padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 30),
-      decoration: BoxDecoration(
-        color: AppColors.lightPrimaryBg,
-        borderRadius: BorderRadius.only(topLeft: 15.circular, bottomLeft: 15.circular),
-      ),
-      child: Column(
-        children: [
-          ListView.builder(
-            shrinkWrap: true,
-            // itemCount: CategoryType.values.length,
-            itemCount: categories.length,
-            itemBuilder: (BuildContext context, int i) {
-              // final categoryType = CategoryType.values[i];
-              final category = categories[i];
-              List<IconData> icons = [
-                Icons.search_rounded,
-                Icons.title_rounded,
-                Icons.notes_rounded,
-                Icons.description_rounded,
-                Icons.tag,
-              ];
-
-              final sIcon = icons[i];
-              final isSelected = category == selectedCategory;
-              final isGoogleCategory = categories.first == categories[i];
-              final color = isSelected ? AppColors.secondaryBlue : AppColors.greyText;
-
-              return Card(
-                color:
-                    isSelected ? AppColors.lightShinyPrimary : AppColors.lightPrimaryBg,
-                elevation: 0,
-                shape: 5.roundedShape,
-                child: ListTile(
-                  horizontalTitleGap: 0,
-                  leading: sIcon
-                      .icon(color: color, size: 22)
-                      .pOnly(top: isGoogleCategory ? 5 : 0),
-                  title: category.name.toString().toText(
-                        medium: true,
-                        color: color,
-                        fontSize: 15,
-                      ),
-                  // subtitle: kDebugMode ? 'ID: ${category.id}'
-                  subtitle: isGoogleCategory
-                      ? 'Title & Description'
-                          .toString()
-                          .toText(color: color, fontSize: 13)
-                      : null,
-                  onTap: () async {
-                    selectedCategory = category;
-                    selectedEditPost = null;
-                    setState(() {});
-                  },
-                ),
-              );
-            },
-          ).expanded(),
-        ],
-      ),
-    );
-  }
-
-  Builder buildPromptForm() {
-    bool isGoogleCategory = selectedCategory!.slug.contains('google');
-    // bool isDefaultPrompt = firstBuild || _titleEditingController.text.contains('PROMPT');
+  Widget buildPromptForm() {
+    bool isGoogleCategory = selectedCategory!.type == ResultCategory.gResults;
+    bool isDefault = (sRadioPost != null && sRadioPost!.isDefault);
 
     return Builder(builder: (context) {
-      var fieldTitleStyle = InputDecoration(
-          isDense: true,
-          contentPadding: const EdgeInsets.symmetric(vertical: 7),
-          border: InputBorder.none,
-          enabledBorder: InputBorder.none,
-          focusedBorder: UnderlineInputBorder(
-            borderRadius: BorderRadius.circular(4),
-            borderSide: const BorderSide(color: AppColors.secondaryBlue, width: 1.5),
-          ));
-      var fieldPromptStyle = InputDecoration(
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(5),
-            borderSide: const BorderSide(color: AppColors.secondaryBlue, width: 1.5),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(5),
-            borderSide: BorderSide(color: AppColors.greyLight, width: 1.5),
-          ));
-
-      Widget fieldTitle(String text) => text
-          .toText(
-              medium: true,
-              color: AppColors.greyUnavailable.withOpacity(0.80),
-              fontSize: 14)
-          .py(7)
-          .px(5)
-          .centerLeft;
-
       return Column(
         children: [
           const SizedBox(height: 25.0),
-          SizedBox(
-            child: TextField(
-              // enabled: !isDefaultPrompt,
-              focusNode: _titleFocusNode,
-              controller: _titleEditingController,
-              style: const TextStyle(
-                fontSize: 17,
-                color: AppColors.greyUnavailable,
-                fontWeight: FontWeight.bold,
-              ),
-              decoration: fieldTitleStyle,
+          TextField(
+            focusNode: _titleFocusNode,
+            controller: _titleEditingController,
+            style: const TextStyle(
+              fontSize: 17,
+              color: AppColors.greyUnavailable,
+              fontWeight: FontWeight.bold,
             ),
+            decoration: fieldTitleStyle,
           ),
           // if (!isDefaultPrompt) ...[
           if (true) ...[
@@ -310,10 +281,12 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
             SizedBox(
               height: isGoogleCategory ? 95 : 140,
               child: TextField(
+                enabled: !isDefault,
                 maxLines: null,
                 expands: true,
-                controller: _contentEditingController,
-                decoration: fieldPromptStyle,
+                controller:
+                    isDefault ? TextEditingController() : _contentEditingController,
+                decoration: fieldPromptStyle(isDefault),
               ),
             ),
             if (isGoogleCategory) ...[
@@ -322,10 +295,12 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
               SizedBox(
                 height: 95,
                 child: TextField(
+                  enabled: !isDefault,
                   maxLines: null,
                   expands: true,
-                  controller: _googleDescEditingController,
-                  decoration: fieldPromptStyle,
+                  controller:
+                      isDefault ? TextEditingController() : _googleDescEditingController,
+                  decoration: fieldPromptStyle(isDefault),
                 ),
               ),
             ],
@@ -333,9 +308,17 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                buildCancelButton(),
+                buildUpdateButton(_isLoading, createMode: _createMode,
+                    onPressed: () async {
+                  _isLoading = true;
+                  setState(() {});
+                  await handleSave();
+                  _createMode = false;
+                  _isLoading = false;
+                  setState(() {});
+                }),
                 const SizedBox(width: 15),
-                buildUpdateButton(),
+                buildCancelButton(context),
               ],
             ).bottom,
             const SizedBox(height: 30.0),
@@ -345,152 +328,49 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
     });
   }
 
-  void handleUpdateFields(WooPostModel post, {bool editMode = true}) {
-    selectedEditPost = post;
-    _titleEditingController.text = post.title;
-    _contentEditingController.text = post.content;
-    _googleDescEditingController.text = post.subContent ?? '';
+  Future handleSave() async {
+    final isGooglePrompt = selectedCategory!.type == ResultCategory.gResults;
+    final title = _titleEditingController.text.trim();
+    final googleDesc = _googleDescEditingController.text.trim();
+    final mainContent = _contentEditingController.text;
+    final content = isGooglePrompt ? '$mainContent googleDesc=$googleDesc' : mainContent;
+    if (title.isNotEmpty && mainContent.isNotEmpty && selectedCategory != null) {
+      // Remove old version
+      if (!_createMode) _fullPromptList.removeWhere((post) => post.id == sRadioPost?.id);
 
-    setState(() {});
+      var newPost = WooPostModel(
+        author: debugUid,
+        title: title,
+        content: content,
+        category: selectedCategory!.type,
+        categories: [selectedCategory!.id],
+        isSelected: true,
+      );
+      _deselectOtherPrompts(newPost);
+
+      newPost = await WooApi.updatePost(
+        newPost,
+        postId: _createMode ? null : sRadioPost!.id,
+        isSelected: true,
+      );
+
+      // sRadioPost = newPost;
+      // _selectedPromptList.remove(sRadioPost);
+      // _selectedPromptList.insert(0, newPost); // Start of  list
+      onRadioChanged(newPost);
+
+      _fullPromptList = setDefaultPromptFirst(_fullPromptList);
+      _fullPromptList.insert(1, newPost); // Start of  list
+
+    }
   }
 
-  WooPostModel? _handleDefaultPrompt(WooPostModel post) {
-    var sPost = selectedRadioPosts
-        .firstWhereOrNull((post) => post.categories.first == selectedCategory!.id);
-
-    if (sPost == null) {
-      if (post.title.contains('Default PROMPT ') && !selectedRadioPosts.contains(post)) {
-        sPost = post;
-        selectedRadioPosts.add(post);
+  void _deselectOtherPrompts(WooPostModel newPost) {
+    for (var post in _fullPromptList) {
+      // deselect any other prompts in this category
+      if (post.category == newPost.category && post.isSelected && post.id != newPost.id) {
+        WooApi.updatePost(post, postId: post.id, isSelected: false);
       }
     }
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (post.content == sPost?.content && !_createNewPromptMode) {
-        _titleEditingController.text = sPost?.title ?? '';
-        _contentEditingController.text = sPost?.content ?? '';
-        _googleDescEditingController.text = sPost?.subContent ?? '';
-      }
-    });
-    return sPost;
   }
-
-  void handleOnDeletePrompt(WooPostModel post) {
-    WooApi.deletePost(post.id!);
-    _titleEditingController.clear();
-    _contentEditingController.clear();
-    _googleDescEditingController.clear();
-    _postList.remove(post);
-    setState(() {});
-  }
-
-  Widget buildUpdateButton() {
-    final isGooglePrompt = selectedCategory?.slug.contains('google') ?? true;
-    bool updatePostMode = selectedEditPost != null;
-
-    return CustomButton(
-        width: 105,
-        height: 45,
-        shape: 6.roundedShape,
-        backgroundColor:
-            _isLoading ? AppColors.greyUnavailable80 : AppColors.secondaryBlue,
-        title: _isLoading
-            ? 'Loading...'
-            // : 'Save',
-            : updatePostMode
-                ? 'Update'
-                : 'Create',
-        onPressed: _isLoading
-            ? null
-            : () async {
-                _isLoading = true;
-                setState(() {});
-
-                final title = _titleEditingController.text.trim();
-                final googleDesc = _googleDescEditingController.text.trim();
-                final mainContent = _contentEditingController.text;
-                final content =
-                    isGooglePrompt ? '$mainContent googleDesc=$googleDesc' : mainContent;
-
-                if (title.isNotEmpty &&
-                    mainContent.isNotEmpty &&
-                    selectedCategory != null) {
-                  var newPost = WooPostModel(
-                    author: debugUid,
-                    title: title,
-                    content: content,
-                    category: selectedCategory!.type,
-                    categories: [selectedCategory!.id],
-                  );
-
-                  // Remove old version
-                  if (updatePostMode) {
-                    _postList
-                        .removeWhere((post) => post.title == selectedEditPost?.title);
-                  }
-
-                  newPost = await WooApi.createPost(
-                    newPost,
-                    postId: updatePostMode ? selectedEditPost!.id : null,
-                    isSelectedPrompt: true,
-                  );
-
-                  sRadioPost = newPost;
-                  selectedEditPost = newPost;
-
-                  selectedRadioPosts.remove(sRadioPost);
-                  selectedRadioPosts.insert(0, newPost); // Start of  list
-
-                  _postList.insert(1, newPost); // Start of  list
-                  _isLoading = false;
-                  _createNewPromptMode = false;
-
-                  setState(() {});
-                }
-              });
-  }
-
-  Widget buildCancelButton() {
-    return SizedBox(
-      width: 105,
-      height: 45,
-      child: TextButton(
-        style: ButtonStyle(
-          shape: MaterialStateProperty.all<OutlinedBorder>(
-            RoundedRectangleBorder(
-              borderRadius: 6.rounded,
-              side: BorderSide(color: AppColors.greyUnavailable80, width: 1.5),
-            ),
-          ),
-          backgroundColor: MaterialStateProperty.all<Color>(Colors.transparent),
-          foregroundColor: MaterialStateProperty.all<Color>(Colors.transparent),
-        ),
-        onPressed: () {
-          Navigator.pop(context);
-        },
-        child: 'Close'.toText(
-          color: AppColors.greyText,
-          fontSize: 15,
-        ),
-      ),
-    );
-  }
-}
-
-List<WooCategoryModel> sortCategories(List<WooCategoryModel> list) {
-  dynamic googleItem;
-  dynamic productName;
-  dynamic shortDesc;
-  dynamic longDesc;
-  dynamic tag;
-  for (var cat in list) {
-    if (cat.slug.contains('google')) googleItem = cat;
-    if (cat.slug.contains('product-name')) productName = cat;
-    if (cat.slug.contains('short')) shortDesc = cat;
-    if (cat.slug.contains('long')) longDesc = cat;
-    if (cat.slug.contains('tag')) tag = cat;
-  }
-  // Todo add "Tags" support
-  // return [googleItem, productName, shortDesc, longDesc, tag];
-  return [googleItem, productName, shortDesc, longDesc];
 }

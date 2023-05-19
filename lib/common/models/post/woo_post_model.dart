@@ -4,6 +4,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../services/convertors.dart';
 import '../prompt/result_model.dart' as click;
 import '../prompt/result_model.dart';
+import 'package:intl/intl.dart';
 
 part 'woo_post_model.freezed.dart';
 
@@ -24,8 +25,7 @@ class WooPostModel with _$WooPostModel {
     required String content,
     String? subContent,
     @Default(false) bool isDefault,
-    // name: on wordpress API
-    @JsonKey(name: 'sticky') @Default(false) bool isSelected,
+    @Default(false) bool isSelected,
   }) = _WooPostModel;
 
   factory WooPostModel.fromJson(Map<String, dynamic> json) {
@@ -49,8 +49,9 @@ class WooPostModel with _$WooPostModel {
         title: title,
         content: mainContent!,
         subContent: subContent,
-        isDefault: title.toString().contains('Default PROMPT'),
-        isSelected: json['isSelected'] ?? false);
+        isSelected: json['meta']['isSelected'] ?? false,
+        isDefault: json['meta']['isDefault'], // the TextStore UID
+    );
     // return _$WooPostModelFromJson(json);
     return post;
   }

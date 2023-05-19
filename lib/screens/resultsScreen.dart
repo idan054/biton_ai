@@ -70,7 +70,6 @@ import '../widgets/resultsList.dart';
 //       category: ResultCategory.longDesc),
 // ];
 
-
 // prompt = 'Create a great google title for the product: $input';
 // prompt = 'Create a great product title of max 15 words for: $input';
 // prompt = 'Create a short SEO description of max 45 words about: $input';
@@ -79,7 +78,12 @@ List<String> promptsByType(
     ResultCategory type, String input, List<WooPostModel> promptsBase) {
   var promptList = <String>[];
   int limit = 0;
-  String prompt = promptsBase.firstWhere((item) => item.category == type).content;
+  // useSelected if available
+  bool useSelected = promptsBase.any((item) => item.category == type && item.isSelected);
+  String prompt = promptsBase
+      .firstWhere((item) =>
+          item.category == type && (useSelected ? item.isSelected : item.isDefault))
+      .content;
   if (type == ResultCategory.gResults) limit = 3;
   if (type == ResultCategory.titles) limit = 3;
   if (type == ResultCategory.shortDesc) limit = 3;
@@ -93,7 +97,8 @@ class ResultsScreen extends StatefulWidget {
   final List<ResultModel> googleResults;
   final List<WooPostModel> promptsBase;
 
-  const ResultsScreen(this.input, this.googleResults,this.promptsBase, {Key? key}) : super(key: key);
+  const ResultsScreen(this.input, this.googleResults, this.promptsBase, {Key? key})
+      : super(key: key);
 
   @override
   State<ResultsScreen> createState() => _ResultsScreenState();

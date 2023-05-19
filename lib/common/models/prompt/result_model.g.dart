@@ -27,4 +27,5 @@ const _$ResultCategoryEnumMap = {
   ResultCategory.gResults: 'gResults',
   ResultCategory.shortDesc: 'shortDesc',
   ResultCategory.longDesc: 'longDesc',
+  ResultCategory.tags: 'tags',
 };

@@ -1,4 +1,4 @@
-// ignore_for_file: use_build_context_synchronously, curly_braces_in_flow_control_structures
+// ignore_for_file: use_build_context_synchronously, curly_braces_in_flow_control_structures, unused_local_variable, no_leading_underscores_for_local_identifiers
 
 import 'dart:async';
 
@@ -20,6 +20,7 @@ import '../common/models/category/woo_category_model.dart';
 import '../common/models/post/woo_post_model.dart';
 import '../common/models/prompt/result_model.dart';
 import '../common/services/gpt_service.dart';
+import '../widgets/threeColumnDialog/actions.dart';
 import '../widgets/threeColumnDialog/threeColumnDialog.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -33,8 +34,8 @@ class _HomeScreenState extends State<HomeScreen> {
   var searchController =
       TextEditingController(text: kDebugMode ? 'Nike Air Max 90' : null);
   List<WooCategoryModel> _categories = [];
-  List<WooPostModel> _postList = [];
-  List<WooPostModel> promptsBase = [];
+  List<WooPostModel> _promptsList = [];
+  List<WooPostModel> _inUsePrompts = [];
 
   @override
   void initState() {
@@ -44,14 +45,16 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void getPrompts() async {
-    _postList = await getUserPrompts();
-    // if (post.isSelected || post.isDefault) {
-    for (var post in _postList) if (post.isDefault) promptsBase.add(post);
+    _promptsList = await getUserPrompts();
+    for (var post in _promptsList) {
+      if (post.isDefault || post.isSelected) _inUsePrompts.add(post);
+    }
     setState(() {});
   }
 
   void getCategories() async {
     _categories = await WooApi.getCategories();
+    _categories = sortCategories(_categories);
     setState(() {});
   }
 
@@ -177,20 +180,20 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             prefixIcon: Icons.tune
                 .icon(
-                    color: _categories.isEmpty || _postList.isEmpty
+                    color: _categories.isEmpty || _promptsList.isEmpty
                         ? AppColors.greyText.withOpacity(0.30)
                         : AppColors.greyText,
                     size: 25)
                 .px(20)
                 .py(12)
-                .onTap(_categories.isEmpty || _postList.isEmpty
+                .onTap(_categories.isEmpty || _promptsList.isEmpty
                     ? null
                     : () {
                         showDialog(
                           context: context,
                           builder: (BuildContext context) {
                             return ThreeColumnDialog(
-                                postList: _postList, categories: _categories);
+                                postList: _promptsList, categories: _categories);
                           },
                         );
                       }),
@@ -247,14 +250,15 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {});
 
     // Update user input in the prompt
-    promptsBase = promptsBase
+    _inUsePrompts = _inUsePrompts
         .map((pBase) =>
             pBase.copyWith(content: pBase.content.replaceAll('[YOUR_INPUT]', input)))
         .toList();
 
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => ResultsScreen(input, results, promptsBase)),
+      MaterialPageRoute(
+          builder: (context) => ResultsScreen(input, results, _inUsePrompts)),
     );
   }
 }
@@ -274,21 +278,20 @@ List<ResultModel> setResultsFromGpt(Map<String, dynamic> resp, ResultCategory ca
 }
 
 Future<List<WooPostModel>> getUserPrompts() async {
-  // _isLoading = true;
-  // setState(() {});
-
   var postList =
       await WooApi.getPosts(userId: debugUid.toString(), catIds: promptsCategoryIds);
+  postList = setDefaultPromptFirst(postList);
+  return postList;
+}
 
+List<WooPostModel> setDefaultPromptFirst(List<WooPostModel> postList) {
+  var _postList = postList;
   // Set the Default prompt on Top
-  for (var post in [...postList]) {
+  for (var post in [..._postList]) {
     if (post.isDefault) {
-      postList.remove(post);
-      postList.insert(0, post);
+      _postList.remove(post);
+      _postList.insert(0, post);
     }
   }
-
-  // _isLoading = false;
-  // setState(() {});
-  return postList;
+  return _postList;
 }

@@ -35,27 +35,27 @@ class WooApi {
     var url = '$baseUrl/wp/v2/posts';
     url += '?per_page=100';
     if (userId != null) url += '&author=$userId,$textStoreUid';
-    // if (categories != null) {
-    //   var catIds = categories.map((cat) => cat.id).toList(growable: true);
+
     var catIdsEncoded =
         catIds.toString().replaceAll(' ', '').replaceAll('[', '').replaceAll(']', '');
     url += '&categories=$catIdsEncoded';
-    // }
+
     final response = await http.get(Uri.parse(url));
     print('WooApi.getPosts() statusCode: ${response.statusCode}');
     if (response.statusCode == 200) {
       final List<dynamic> jsonList = json.decode(response.body);
       var posts = jsonList.map((json) => WooPostModel.fromJson(json)).toList();
+      // for (var p in posts) print('${p.id} ${p.title} ${p.isDefault}');
       return posts;
     } else {
       throw Exception('Failed to create post');
     }
   }
 
-  static Future<WooPostModel> createPost(
+  static Future<WooPostModel> updatePost(
     WooPostModel post, {
     int? postId,
-    bool isSelectedPrompt = false, // threeColumnDialog.dart
+    bool isSelected = false, // threeColumnDialog.dart
   }) async {
     print('START: WooApi.createPost()');
     bool updateMode = postId != null;
@@ -67,13 +67,15 @@ class WooApi {
       'Authorization': 'Bearer $debugJwt',
     };
 
+    print('updatePost() updateMode ${updateMode}');
+
     final body = jsonEncode({
       'title': post.title,
       'content': post.content,
-      'author': post.author,
+      'author': post.isDefault ? textStoreUid : post.author,
       'categories': post.categories,
       'status': 'publish',
-      'sticky': isSelectedPrompt
+      'meta': {'isSelected': isSelected},
     });
 
     final response = updateMode
@@ -81,12 +83,12 @@ class WooApi {
         : await http.post(Uri.parse(url), headers: headers, body: body);
 
     printGreen('WooApi.createPost() statusCode: ${response.statusCode}');
-    if (updateMode) print('UPDATE MODE For post ID: $postId');
-    print('response.body ${response.body}');
-
     if (response.statusCode == 201 || response.statusCode == 200) {
       final json = jsonDecode(response.body);
       var post = WooPostModel.fromJson(json);
+      post.isSelected
+          ? printLightBlue('[SELECT ${post.id}] ${post.title}')
+          : printRed('[REMOVE ${post.id}] ${post.title}');
       return post;
     } else {
       throw Exception('Failed to create post');
