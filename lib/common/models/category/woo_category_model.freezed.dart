@@ -14,17 +14,13 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
 
-WooCategoryModel _$WooCategoryModelFromJson(Map<String, dynamic> json) {
-  return _WooCategoryModel.fromJson(json);
-}
-
 /// @nodoc
 mixin _$WooCategoryModel {
+  ResultCategory get type => throw _privateConstructorUsedError;
   int get id => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
   String get slug => throw _privateConstructorUsedError;
 
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
   $WooCategoryModelCopyWith<WooCategoryModel> get copyWith =>
       throw _privateConstructorUsedError;
@@ -36,7 +32,7 @@ abstract class $WooCategoryModelCopyWith<$Res> {
           WooCategoryModel value, $Res Function(WooCategoryModel) then) =
       _$WooCategoryModelCopyWithImpl<$Res, WooCategoryModel>;
   @useResult
-  $Res call({int id, String name, String slug});
+  $Res call({ResultCategory type, int id, String name, String slug});
 }
 
 /// @nodoc
@@ -52,11 +48,16 @@ class _$WooCategoryModelCopyWithImpl<$Res, $Val extends WooCategoryModel>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? type = null,
     Object? id = null,
     Object? name = null,
     Object? slug = null,
   }) {
     return _then(_value.copyWith(
+      type: null == type
+          ? _value.type
+          : type // ignore: cast_nullable_to_non_nullable
+              as ResultCategory,
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
@@ -81,7 +82,7 @@ abstract class _$$_WooCategoryModelCopyWith<$Res>
       __$$_WooCategoryModelCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({int id, String name, String slug});
+  $Res call({ResultCategory type, int id, String name, String slug});
 }
 
 /// @nodoc
@@ -95,11 +96,16 @@ class __$$_WooCategoryModelCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? type = null,
     Object? id = null,
     Object? name = null,
     Object? slug = null,
   }) {
     return _then(_$_WooCategoryModel(
+      type: null == type
+          ? _value.type
+          : type // ignore: cast_nullable_to_non_nullable
+              as ResultCategory,
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
@@ -117,14 +123,16 @@ class __$$_WooCategoryModelCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$_WooCategoryModel implements _WooCategoryModel {
   const _$_WooCategoryModel(
-      {required this.id, required this.name, required this.slug});
+      {required this.type,
+      required this.id,
+      required this.name,
+      required this.slug});
 
-  factory _$_WooCategoryModel.fromJson(Map<String, dynamic> json) =>
-      _$$_WooCategoryModelFromJson(json);
-
+  @override
+  final ResultCategory type;
   @override
   final int id;
   @override
@@ -134,7 +142,7 @@ class _$_WooCategoryModel implements _WooCategoryModel {
 
   @override
   String toString() {
-    return 'WooCategoryModel(id: $id, name: $name, slug: $slug)';
+    return 'WooCategoryModel(type: $type, id: $id, name: $name, slug: $slug)';
   }
 
   @override
@@ -142,38 +150,31 @@ class _$_WooCategoryModel implements _WooCategoryModel {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$_WooCategoryModel &&
+            (identical(other.type, type) || other.type == type) &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.name, name) || other.name == name) &&
             (identical(other.slug, slug) || other.slug == slug));
   }
 
-  @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(runtimeType, id, name, slug);
+  int get hashCode => Object.hash(runtimeType, type, id, name, slug);
 
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$_WooCategoryModelCopyWith<_$_WooCategoryModel> get copyWith =>
       __$$_WooCategoryModelCopyWithImpl<_$_WooCategoryModel>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$_WooCategoryModelToJson(
-      this,
-    );
-  }
 }
 
 abstract class _WooCategoryModel implements WooCategoryModel {
   const factory _WooCategoryModel(
-      {required final int id,
+      {required final ResultCategory type,
+      required final int id,
       required final String name,
       required final String slug}) = _$_WooCategoryModel;
 
-  factory _WooCategoryModel.fromJson(Map<String, dynamic> json) =
-      _$_WooCategoryModel.fromJson;
-
+  @override
+  ResultCategory get type;
   @override
   int get id;
   @override

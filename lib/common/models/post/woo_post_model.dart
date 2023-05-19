@@ -1,7 +1,9 @@
 // ignore_for_file: invalid_annotation_target, depend_on_referenced_packages
+import 'package:biton_ai/common/models/category/woo_category_model.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../services/convertors.dart';
 import '../prompt/result_model.dart' as click;
+import '../prompt/result_model.dart';
 
 part 'woo_post_model.freezed.dart';
 
@@ -17,12 +19,11 @@ class WooPostModel with _$WooPostModel {
     int? id, // doesn't have while create
     required int author,
     required List<int> categories,
+    required click.ResultCategory category,
     required String title,
     required String content,
     String? subContent,
     @Default(false) bool isDefault,
-
-    //todo use list Id's instead so multi user will be able to choose?
     // name: on wordpress API
     @JsonKey(name: 'sticky') @Default(false) bool isSelected,
   }) = _WooPostModel;
@@ -39,17 +40,17 @@ class WooPostModel with _$WooPostModel {
 
     var categoriesRaw = json['categories'] as List<dynamic>;
     var categories = categoriesRaw.map((category) => category as int).toList();
-    print("json['sticky']: ${json['sticky']}");
 
     var post = WooPostModel(
         id: json['id'],
         author: json['author'],
         categories: categories,
+        category: getCategory(categories),
         title: title,
         content: mainContent!,
         subContent: subContent,
         isDefault: title.toString().contains('Default PROMPT'),
-        isSelected: false);
+        isSelected: json['isSelected'] ?? false);
     // return _$WooPostModelFromJson(json);
     return post;
   }
@@ -60,6 +61,17 @@ class WooPostModel with _$WooPostModel {
 // @JsonKey(name: 'content', fromJson: fetchSubContentFromJson) String? subContent,
 // dynamic fetchContentFromJson(Map<String, dynamic> content) =>
 //     content['rendered'].toString().replaceAll('<p>', '').replaceAll('</p>', '').trim();
+
+ResultCategory getCategory(List<int> catIds) {
+  var catId = catIds.first;
+  ResultCategory? type;
+  if (catId == 28) type = ResultCategory.gResults;
+  if (catId == 29) type = ResultCategory.titles;
+  if (catId == 30) type = ResultCategory.shortDesc;
+  if (catId == 31) type = ResultCategory.longDesc;
+  if (catId == 32) type = ResultCategory.tags;
+  return type!;
+}
 
 String? fetchContentFromJson(String content, bool subContent) {
   var googleDesc = ' googleDesc=';

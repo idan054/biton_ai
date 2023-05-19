@@ -1,4 +1,4 @@
-// ignore_for_file: use_build_context_synchronously
+// ignore_for_file: use_build_context_synchronously, curly_braces_in_flow_control_structures
 
 import 'dart:async';
 
@@ -34,6 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
       TextEditingController(text: kDebugMode ? 'Nike Air Max 90' : null);
   List<WooCategoryModel> _categories = [];
   List<WooPostModel> _postList = [];
+  List<WooPostModel> promptsBase = [];
 
   @override
   void initState() {
@@ -44,11 +45,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void getPrompts() async {
     _postList = await getUserPrompts();
-    for (var post in _postList) {
-      if (post.isSelected) {
-        print('post.title ${post.title}');
-      }
-    }
+    // if (post.isSelected || post.isDefault) {
+    for (var post in _postList) if (post.isDefault) promptsBase.add(post);
     setState(() {});
   }
 
@@ -84,8 +82,8 @@ class _HomeScreenState extends State<HomeScreen> {
     loadingText ??= loaderActivities.first;
     if (_isLoading && _timer == null) {
       _timer = Timer.periodic(const Duration(milliseconds: 3000), (timer) {
-        //> Cycle loaderActivities list:
-        loadingIndex = (loadingIndex + 1) % loaderActivities.length;
+        // > Cycle loaderActivities list:
+        // loadingIndex = (loadingIndex + 1) % loaderActivities.length;
         //> Stop at end loaderActivities list:
         if (loadingIndex < loaderActivities.length - 1) loadingIndex++;
 
@@ -247,9 +245,16 @@ class _HomeScreenState extends State<HomeScreen> {
       BuildContext context, String input, List<ResultModel> results) {
     _isLoading = false;
     setState(() {});
+
+    // Update user input in the prompt
+    promptsBase = promptsBase
+        .map((pBase) =>
+            pBase.copyWith(content: pBase.content.replaceAll('[YOUR_INPUT]', input)))
+        .toList();
+
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => ResultsScreen(input, results)),
+      MaterialPageRoute(builder: (context) => ResultsScreen(input, results, promptsBase)),
     );
   }
 }

@@ -12,6 +12,7 @@ _$_WooPostModel _$$_WooPostModelFromJson(Map<String, dynamic> json) =>
       author: json['author'] as int,
       categories:
           (json['categories'] as List<dynamic>).map((e) => e as int).toList(),
+      category: $enumDecode(_$ResultCategoryEnumMap, json['category']),
       title: json['title'] as String,
       content: json['content'] as String,
       subContent: json['subContent'] as String?,
@@ -24,9 +25,17 @@ Map<String, dynamic> _$$_WooPostModelToJson(_$_WooPostModel instance) =>
       'id': instance.id,
       'author': instance.author,
       'categories': instance.categories,
+      'category': _$ResultCategoryEnumMap[instance.category]!,
       'title': instance.title,
       'content': instance.content,
       'subContent': instance.subContent,
       'isDefault': instance.isDefault,
       'sticky': instance.isSelected,
     };
+
+const _$ResultCategoryEnumMap = {
+  ResultCategory.titles: 'titles',
+  ResultCategory.gResults: 'gResults',
+  ResultCategory.shortDesc: 'shortDesc',
+  ResultCategory.longDesc: 'longDesc',
+};

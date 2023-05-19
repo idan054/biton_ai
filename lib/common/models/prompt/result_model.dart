@@ -4,7 +4,7 @@ import '../post/woo_post_model.dart' as click;
 part 'result_model.freezed.dart';
 part 'result_model.g.dart';
 
-enum ResultCategory { titles, gResults, shortDesc, longDesc }
+enum ResultCategory { titles, gResults, shortDesc, longDesc, tags }
 
 /// Full docs in [click.WooPostModel]
 @freezed

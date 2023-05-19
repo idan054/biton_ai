@@ -17,12 +17,12 @@ class Gpt {
     assert(type != ResultCategory.gResults || gDescPrompts != null,
         'gDescPrompts is required when type is ResultCategory.gResults');
 
-    print('START: getResults: ${type.name}');
+    printWhite('START: getResults: ${type.name}');
+    print('${prompts.length} prompts: $prompts');
 
     List<ResultModel> results = [];
     ChatGptModel? titles;
     ChatGptModel? descriptions;
-
     titles = await _multiCallChatGPT(
         reqType: type.name.toUpperCase(),
         prompts: prompts,
@@ -55,14 +55,14 @@ class Gpt {
     required int model, // 3 & 4 available
     required List<String> prompts,
   }) async {
-    printWhite('START: _multiCallChatGPT()');
+    // printWhite('START: _multiCallChatGPT()');
 
     try {
       var gptResponses = <ChatGptModel>[];
       var i = 0;
       for (var prompt in [...prompts]) {
         i++;
-        print('($reqType) prompt: $prompt');
+        // print('($reqType) prompt: $prompt');
         var url = '$baseUrl/ai-engine/v1/call-chat-gpt-$model';
         final headers = {'Content-Type': 'application/json'};
         final body = json.encode({'prompt': prompt, 'n': 1});

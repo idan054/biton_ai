@@ -1,7 +1,8 @@
-// ignore_for_file: no_leading_underscores_for_local_identifiers
+// ignore_for_file: no_leading_underscores_for_local_identifiers, curly_braces_in_flow_control_structures
 
 import 'package:biton_ai/common/extensions/string_ext.dart';
 import 'package:biton_ai/common/extensions/widget_ext.dart';
+import 'package:biton_ai/common/models/post/woo_post_model.dart';
 import 'package:biton_ai/widgets/htmlEditorViewerWidget.dart';
 import 'package:biton_ai/widgets/resultsCategoriesList.dart';
 import 'package:collection/collection.dart';
@@ -69,44 +70,30 @@ import '../widgets/resultsList.dart';
 //       category: ResultCategory.longDesc),
 // ];
 
-List<String> promptsByType(ResultCategory type, String input) {
-  var prompts = <String>[];
-  if (type == ResultCategory.gResults) {
-    prompts = [
-      // 1st already from homeScreen.dart
-      // 'Create a great google title for the product: $input',
-      'Create a great google title for the product: $input',
-      'Create a great google title for the product: $input',
-    ];
-  }
-  if (type == ResultCategory.titles) {
-    prompts = [
-      'Create a great product title of max 15 words for: $input',
-      'Create a great product title of max 15 words for: $input',
-      'Create a great product title of max 15 words for: $input',
-    ];
-  }
-  if (type == ResultCategory.shortDesc) {
-    prompts = [
-      'Create a short SEO description of max 45 words about: $input',
-      'Create a short SEO description of max 45 words about: $input',
-      'Create a short SEO description of max 45 words about: $input',
-    ];
-  }
-  if (type == ResultCategory.longDesc) {
-    prompts = [
-      // 'Create a long SEO description of at least 600 words about: $input',
-      'Create html example file of an article about $input, add titles and sub titles',
-    ];
-  }
-  return prompts;
+
+// prompt = 'Create a great google title for the product: $input';
+// prompt = 'Create a great product title of max 15 words for: $input';
+// prompt = 'Create a short SEO description of max 45 words about: $input';
+// prompt = 'Create html example file of an article about $input, add titles and sub titles';
+List<String> promptsByType(
+    ResultCategory type, String input, List<WooPostModel> promptsBase) {
+  var promptList = <String>[];
+  int limit = 0;
+  String prompt = promptsBase.firstWhere((item) => item.category == type).content;
+  if (type == ResultCategory.gResults) limit = 3;
+  if (type == ResultCategory.titles) limit = 3;
+  if (type == ResultCategory.shortDesc) limit = 3;
+  if (type == ResultCategory.longDesc) limit = 1;
+  for (int i = 0; i < limit; i++) promptList.add(prompt);
+  return promptList;
 }
 
 class ResultsScreen extends StatefulWidget {
   final String input;
   final List<ResultModel> googleResults;
+  final List<WooPostModel> promptsBase;
 
-  const ResultsScreen(this.input, this.googleResults, {Key? key}) : super(key: key);
+  const ResultsScreen(this.input, this.googleResults,this.promptsBase, {Key? key}) : super(key: key);
 
   @override
   State<ResultsScreen> createState() => _ResultsScreenState();
@@ -127,11 +114,10 @@ class _ResultsScreenState extends State<ResultsScreen> {
   void initState() {
     googleResults = [...widget.googleResults];
     // currentResults = googleResults;
-
     // autoFetchResults(ResultCategory.gResults);
+    autoFetchResults(ResultCategory.longDesc);
     autoFetchResults(ResultCategory.titles);
     autoFetchResults(ResultCategory.shortDesc);
-    autoFetchResults(ResultCategory.longDesc);
 
     exampleUrl = _getUrl(widget.input);
     super.initState();
@@ -141,36 +127,14 @@ class _ResultsScreenState extends State<ResultsScreen> {
     // var n = type == ResultCategory.longDesc ? 1 : 3;
     print('START: autoFetchResults() ${type.name}');
 
-    var prompts = promptsByType(type, widget.input);
+    var _promptList = promptsByType(type, widget.input, widget.promptsBase);
     final results = await Gpt.getResults(
-        type: type, input: widget.input, prompts: prompts, gDescPrompts: prompts);
+        type: type, input: widget.input, prompts: _promptList, gDescPrompts: _promptList);
 
     // if (type == ResultCategory.gResults) googleResults = [...googleResults, ...results];
     if (type == ResultCategory.titles) titlesResults = results;
     if (type == ResultCategory.shortDesc) shortDescResults = results;
     if (type == ResultCategory.longDesc) longDescResults = results;
-
-    //> Auto deploy on [currentResults] if needed:
-    //  auto add 2 missing results after homeScreen.dart
-    // if (currentResults.length == 1) currentResults = googleResults;
-
-    // if (currentResults.isEmpty) {
-    //   print('START: currentResults.isEmpty()');
-    //
-    //   //  only if user chose gResults
-    //   if (selectedResults.any((result) => result.category == ResultCategory.gResults)) {
-    //     currentResults = titlesResults;
-    //   }
-    //   //  only if user chose titles
-    //   if (selectedResults.any((result) => result.category == ResultCategory.titles)) {
-    //     currentResults = shortDescResults;
-    //   }
-    //   //  only if user chose shortDesc
-    //   if (selectedResults.any((result) => result.category == ResultCategory.shortDesc)) {
-    //     currentResults = longDescResults;
-    //   }
-    // }
-
     setState(() {});
   }
 

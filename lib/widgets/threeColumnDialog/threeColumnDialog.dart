@@ -419,6 +419,7 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
                     author: debugUid,
                     title: title,
                     content: content,
+                    category: selectedCategory!.type,
                     categories: [selectedCategory!.id],
                   );
 

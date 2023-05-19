@@ -20,6 +20,7 @@ mixin _$WooPostModel {
       throw _privateConstructorUsedError; // doesn't have while create
   int get author => throw _privateConstructorUsedError;
   List<int> get categories => throw _privateConstructorUsedError;
+  click.ResultCategory get category => throw _privateConstructorUsedError;
   String get title => throw _privateConstructorUsedError;
   String get content => throw _privateConstructorUsedError;
   String? get subContent => throw _privateConstructorUsedError;
@@ -43,6 +44,7 @@ abstract class $WooPostModelCopyWith<$Res> {
       {int? id,
       int author,
       List<int> categories,
+      click.ResultCategory category,
       String title,
       String content,
       String? subContent,
@@ -66,6 +68,7 @@ class _$WooPostModelCopyWithImpl<$Res, $Val extends WooPostModel>
     Object? id = freezed,
     Object? author = null,
     Object? categories = null,
+    Object? category = null,
     Object? title = null,
     Object? content = null,
     Object? subContent = freezed,
@@ -85,6 +88,10 @@ class _$WooPostModelCopyWithImpl<$Res, $Val extends WooPostModel>
           ? _value.categories
           : categories // ignore: cast_nullable_to_non_nullable
               as List<int>,
+      category: null == category
+          ? _value.category
+          : category // ignore: cast_nullable_to_non_nullable
+              as click.ResultCategory,
       title: null == title
           ? _value.title
           : title // ignore: cast_nullable_to_non_nullable
@@ -121,6 +128,7 @@ abstract class _$$_WooPostModelCopyWith<$Res>
       {int? id,
       int author,
       List<int> categories,
+      click.ResultCategory category,
       String title,
       String content,
       String? subContent,
@@ -142,6 +150,7 @@ class __$$_WooPostModelCopyWithImpl<$Res>
     Object? id = freezed,
     Object? author = null,
     Object? categories = null,
+    Object? category = null,
     Object? title = null,
     Object? content = null,
     Object? subContent = freezed,
@@ -161,6 +170,10 @@ class __$$_WooPostModelCopyWithImpl<$Res>
           ? _value._categories
           : categories // ignore: cast_nullable_to_non_nullable
               as List<int>,
+      category: null == category
+          ? _value.category
+          : category // ignore: cast_nullable_to_non_nullable
+              as click.ResultCategory,
       title: null == title
           ? _value.title
           : title // ignore: cast_nullable_to_non_nullable
@@ -193,6 +206,7 @@ class _$_WooPostModel implements _WooPostModel {
       {this.id,
       required this.author,
       required final List<int> categories,
+      required this.category,
       required this.title,
       required this.content,
       this.subContent,
@@ -214,6 +228,8 @@ class _$_WooPostModel implements _WooPostModel {
   }
 
   @override
+  final click.ResultCategory category;
+  @override
   final String title;
   @override
   final String content;
@@ -229,7 +245,7 @@ class _$_WooPostModel implements _WooPostModel {
 
   @override
   String toString() {
-    return 'WooPostModel(id: $id, author: $author, categories: $categories, title: $title, content: $content, subContent: $subContent, isDefault: $isDefault, isSelected: $isSelected)';
+    return 'WooPostModel(id: $id, author: $author, categories: $categories, category: $category, title: $title, content: $content, subContent: $subContent, isDefault: $isDefault, isSelected: $isSelected)';
   }
 
   @override
@@ -241,6 +257,8 @@ class _$_WooPostModel implements _WooPostModel {
             (identical(other.author, author) || other.author == author) &&
             const DeepCollectionEquality()
                 .equals(other._categories, _categories) &&
+            (identical(other.category, category) ||
+                other.category == category) &&
             (identical(other.title, title) || other.title == title) &&
             (identical(other.content, content) || other.content == content) &&
             (identical(other.subContent, subContent) ||
@@ -257,6 +275,7 @@ class _$_WooPostModel implements _WooPostModel {
       id,
       author,
       const DeepCollectionEquality().hash(_categories),
+      category,
       title,
       content,
       subContent,
@@ -275,6 +294,7 @@ abstract class _WooPostModel implements WooPostModel {
       {final int? id,
       required final int author,
       required final List<int> categories,
+      required final click.ResultCategory category,
       required final String title,
       required final String content,
       final String? subContent,
@@ -287,6 +307,8 @@ abstract class _WooPostModel implements WooPostModel {
   int get author;
   @override
   List<int> get categories;
+  @override
+  click.ResultCategory get category;
   @override
   String get title;
   @override
