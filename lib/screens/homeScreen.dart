@@ -44,6 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void initState() {
+    print('START: initState()');
     getUser();
     getPrompts();
     getCategories();
@@ -58,6 +59,8 @@ class _HomeScreenState extends State<HomeScreen> {
   void getPrompts() async {
     _promptsList = [];
     _inUsePrompts = [];
+    setState(() {});
+
     _promptsList = await getAllUserPrompts();
     _inUsePrompts = setSelectedList(_promptsList);
     setState(() {});
@@ -65,6 +68,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void getCategories() async {
     _categories = [];
+    setState(() {});
+
     _categories = await WooApi.getCategories();
     _categories = sortCategories(_categories);
     setState(() {});
@@ -146,19 +151,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      CircleAvatar(
-                        radius: 22,
-                        backgroundColor: AppColors.white,
-                        child: CircleAvatar(
-                          radius: 21,
-                          backgroundColor: AppColors.white,
-                          child: Icons.insights.icon(
-                              size: 30,
-                              color: _inUsePrompts.isEmpty
-                                  ? AppColors.primaryShiny.withOpacity(0.40)
-                                  : AppColors.primaryShiny),
-                        ),
-                      ),
+                      Icons.insights.icon(
+                          size: 30,
+                          color: _inUsePrompts.isEmpty
+                              ? AppColors.primaryShiny.withOpacity(0.40)
+                              : AppColors.primaryShiny),
 
                       // 'Create'.toText(
                       //     color: _inUsePrompts.isEmpty
@@ -169,12 +166,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   )
                       .px(10)
+                      .py(10)
                       // .py(15)
                       .onTap(
                           _inUsePrompts.isEmpty
                               ? null
                               : () async => _handleCreateProductButton(),
-                          tapColor: AppColors.primaryShiny.withOpacity(0.15)),
+                          tapColor: AppColors.primaryShiny.withOpacity(0.1)),
               ],
             ),
             prefixIcon: Icons.tune
@@ -185,7 +183,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     size: 25)
                 .px(20)
                 .py(12)
-                .onTap(_categories.isEmpty || _promptsList.isEmpty
+                .onTap((_categories.isEmpty || _promptsList.isEmpty)
                     ? null
                     : () async {
                         await showDialog(
@@ -261,19 +259,32 @@ class _HomeScreenState extends State<HomeScreen> {
       titlePrompts.add(content);
       gDescPrompts.add(subContent);
     }
-
-    results = await Gpt.getResults(
-      type: ResultCategory.gResults,
-      input: searchController.text,
-      prompts: titlePrompts,
-      gDescPrompts: gDescPrompts,
-    ).catchError((err) {
-      printRed('My ERROR: $err');
-      print('err.runtimeType ${err.runtimeType}');
-      // errorMessage = err.toString();
-      errorMessage = 'Something went wrong. Please try again';
-      setState(() {});
-    });
+    if (kDebugMode && appConfig_fastHomeScreen) {
+      results = const [
+        ResultModel(
+          title: longDescSample,
+          category: ResultCategory.longDesc,
+        ),
+        ResultModel(
+            title: 'C A great google result title will appear here',
+            desc:
+                'C A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
+            category: ResultCategory.gResults),
+      ];
+    } else {
+      results = await Gpt.getResults(
+        type: ResultCategory.gResults,
+        input: searchController.text,
+        prompts: titlePrompts,
+        gDescPrompts: gDescPrompts,
+      ).catchError((err) {
+        printRed('My ERROR: $err');
+        print('err.runtimeType ${err.runtimeType}');
+        // errorMessage = err.toString();
+        errorMessage = 'Something went wrong. Please try again';
+        setState(() {});
+      });
+    }
     _navigateToSearchResults(context, input, results);
   }
 
@@ -359,11 +370,13 @@ Widget buildUserButton(WooUserModel? currUser) {
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        Icons.account_circle.icon(color: color),
-        const SizedBox(width: 2),
+        Icons.account_circle.icon(color: color, size: 24),
         (currUser?.name ?? 'Your profile')
             .toText(fontSize: 15, medium: true, color: color)
-            .pad(10),
+            .pOnly(right: 10, left: 10),
+        ('| ').toText(fontSize: 15, medium: true, color: color).pOnly(right: 10),
+        Icons.offline_bolt.icon(color: color, size: 24).pOnly(right: 10),
+        ('10 Tokens').toText(fontSize: 15, medium: true, color: color).pOnly(right: 10),
       ],
     ).px(10).onTap(
         currUser == null
