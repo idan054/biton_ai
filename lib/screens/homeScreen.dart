@@ -131,7 +131,7 @@ class _HomeScreenState extends State<HomeScreen> {
           'Best Ai text maker for your store.'.toText(fontSize: 20).px(25),
           const SizedBox(height: 20),
           //~ Search TextField
-          buildMainBar(
+          textStoreBar(
             context,
             isLoading: _isLoading,
             searchController: searchController,
@@ -261,15 +261,13 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     if (kDebugMode && appConfig_fastHomeScreen) {
       results = const [
-        ResultModel(
-          title: longDescSample,
-          category: ResultCategory.longDesc,
-        ),
-        ResultModel(
-            title: 'C A great google result title will appear here',
-            desc:
-                'C A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
-            category: ResultCategory.gResults),
+        // ResultModel(
+        //   title: longDescSample,
+        //   category: ResultCategory.longDesc,
+        // ),
+        ResultModel(title: 'C A great google result title will appear here', desc: 'C A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.', category: ResultCategory.gResults),
+        ResultModel(title: 'C A great google result title will appear here', desc: 'C A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.', category: ResultCategory.gResults),
+        ResultModel(title: 'C A great google result title will appear here', desc: 'C A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.', category: ResultCategory.gResults),
       ];
     } else {
       results = await Gpt.getResults(
@@ -388,7 +386,7 @@ Widget buildUserButton(WooUserModel? currUser) {
   ).appearOpacity.centerLeft;
 }
 
-Widget buildMainBar(
+Widget textStoreBar(
   BuildContext context, {
   required bool isLoading,
   required TextEditingController searchController,

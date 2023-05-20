@@ -20,23 +20,21 @@ import '../screens/resultsScreen.dart';
 
 String titleByCategory(ResultCategory resultsCategory) {
   var title = '';
-  // if(resultsCategory == null) return '';
   switch (resultsCategory) {
     case ResultCategory.gResults:
-      title += // '1/4 '
-          'Select Google Result';
+      title += 'Select Google Result';
       break;
     case ResultCategory.titles:
-      title += // '2/4 '
-          'Select product name';
+      title += 'Select product name';
       break;
     case ResultCategory.shortDesc:
-      title += // '3/4 '
-          'Select short description';
+      title += 'Select short description';
       break;
     case ResultCategory.longDesc:
-      title += // '4/4 '
-          'Long Description';
+      title += 'Long Description';
+      break;
+    case ResultCategory.tags:
+      title += 'Tags';
       break;
   }
   return title;
@@ -77,6 +75,7 @@ class _ResultsListState extends State<ResultsList> {
     // print('------');
 
     double width = MediaQuery.of(context).size.width;
+    bool desktopMode = width > 850;
 
     String resultsTitle = '';
     if (results.isNotEmpty) resultsTitle = titleByCategory(results.first.category!);
@@ -88,14 +87,17 @@ class _ResultsListState extends State<ResultsList> {
               .toText(color: AppColors.greyText, fontSize: 18, medium: true)
               .px(15)
               .topLeft,
+        SizedBox(height: desktopMode ? 10 : 5),
         SizedBox(
             width: width,
-            child: Row(children: cardList(width)).singleChildScrollViewHoriz),
+            child: Row(
+              children: cardList(),
+            ).singleChildHorizScrollView),
       ],
     );
   }
 
-  List<Widget> cardList(double width) {
+  List<Widget> cardList() {
     List<Widget> list = [];
     // for (int i = 0; i < 3; i++) {
     for (var result in results) {
@@ -106,16 +108,19 @@ class _ResultsListState extends State<ResultsList> {
   }
 
   Widget buildChoiceChip(bool isSelected, ResultModel result) {
+    double width = MediaQuery.of(context).size.width;
+    bool desktopMode = width > 850;
+
     // This rebuild when user select choiceship()
     var mainTitleController = TextEditingController(text: result.title.toString());
     var gDescController = TextEditingController(text: result.desc.toString());
-    var wDrawer = 250;
+    // var wDrawer = 250;
+    var wDrawer = desktopMode ? 250 : 0;
     bool isHovered = false;
 
-    double width = MediaQuery.of(context).size.width;
     var cardWidth = result.category == ResultCategory.longDesc
         ? (width - wDrawer) * 0.9
-        : (width - wDrawer) * 0.3;
+        : (width - wDrawer) * 0.3 * (desktopMode ? 1 : 1.4);
 
     dynamic cardHeight = 0.0;
     if (results.isNotEmpty) {
@@ -154,7 +159,10 @@ class _ResultsListState extends State<ResultsList> {
       height: cardHeight,
       child: ChoiceChip(
         backgroundColor: AppColors.lightPrimaryBg,
+        // backgroundColor: AppColors.lightShinyPrimary,
         selectedColor: AppColors.lightPrimaryBg,
+        padding: EdgeInsets.zero,
+        labelPadding: EdgeInsets.zero,
         pressElevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.5)),
         selected: isSelected,
@@ -171,7 +179,7 @@ class _ResultsListState extends State<ResultsList> {
           width: cardWidth,
           child:
               buildCardResult(isSelected, result, mainTitleController, gDescController),
-        ),
+        ).px(desktopMode ? 8 : 4),
       ),
     );
   }

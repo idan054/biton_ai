@@ -139,30 +139,40 @@ class _ResultsScreenState extends State<ResultsScreen> {
   Widget build(BuildContext context) {
     var sCategoryItems =
         selectedResults.map((item) => item.category).toList(growable: true);
+    double width = MediaQuery.of(context).size.width;
+    print('widthhh ${width}');
+    print('width > 600 ${width > 600}');
+
+    bool desktopMode = width > 850;
 
     return Scaffold(
       backgroundColor: AppColors.lightPrimaryBg,
+      appBar: desktopMode
+          ? null
+          : AppBar(
+              elevation: 0,
+              backgroundColor: Colors.transparent,
+              toolbarHeight: 70,
+              titleSpacing: 0,
+              title: buildTextStoreBar(context).pOnly(top: 10).appearAll,
+              leading: Builder(
+                  builder: (context) => Icons.menu
+                      .icon(color: AppColors.greyText, size: 24)
+                      .pOnly(top: 10, left: 10)
+                      .onTap(() => Scaffold.of(context).openDrawer(), radius: 10)),
+            ),
+      drawer: buildDrawer(),
       body: Row(
         children: [
-          buildDrawer().appearAll,
+          if (desktopMode) buildDrawer().appearAll,
           Column(
             children: [
               // buildUserInput().pOnly(top: 20),
               // Divider(color: AppColors.greyLight, thickness: 1, height: 0),
 
-              buildMainBar(context,
-                      isLoading: false,
-                      searchController: inputController,
-                      suffixIcon: 'Create'
-                          .toText(
-                              color: AppColors.primaryShiny.withOpacity(0.40),
-                              medium: true,
-                              fontSize: 14)
-                          .px(20)
-                          .py(15),
-                      prefixIcon:
-                          Icons.tune.icon(color: AppColors.greyText.withOpacity(0.30)))
-                  .appearAll,
+              // Todo make it works
+              if (desktopMode) buildTextStoreBar(context).appearAll,
+              const SizedBox(height: 10),
 
               buildCardsRow(googleResults),
               if (sCategoryItems.contains(ResultCategory.gResults))
@@ -173,10 +183,29 @@ class _ResultsScreenState extends State<ResultsScreen> {
                 buildCardsRow(longDescResults),
               const SizedBox(height: 20)
             ],
-          ).px(30).singleChildScrollView.top.pOnly(top: 80).expanded(),
+          )
+              .px(desktopMode ? 30 : 5)
+              .singleChildScrollView
+              .top
+              .pOnly(top: desktopMode ? 30 : 10)
+              .expanded(),
         ],
       ),
     );
+  }
+
+  Widget buildTextStoreBar(BuildContext context) {
+    return textStoreBar(context,
+        isLoading: false,
+        searchController: inputController,
+        suffixIcon: 'Create'
+            .toText(
+                color: AppColors.primaryShiny.withOpacity(0.40),
+                medium: true,
+                fontSize: 14)
+            .px(20)
+            .py(15),
+        prefixIcon: Icons.tune.icon(color: AppColors.greyText.withOpacity(0.30)));
   }
 
   // void _removeIfAlreadySelected(ResultModel result) {
@@ -311,42 +340,6 @@ class _ResultsScreenState extends State<ResultsScreen> {
               },
             ),
             const Spacer(),
-
-            //? todo UI Ready But not works yet!
-            // Builder(builder: (context) {
-            //   var color = isAdvancedSwitchOn
-            //       ? AppColors.secondaryBlue
-            //       : AppColors.greyUnavailable80;
-            //   return Card(
-            //     color: Colors.grey[100],
-            //     elevation: 0,
-            //     shape: 10.roundedShape,
-            //     child: ListTile(
-            //         onTap: () {},
-            //         horizontalTitleGap: 0,
-            //         trailing: Switch(
-            //           value: isAdvancedSwitchOn,
-            //           activeColor: AppColors.secondaryBlue,
-            //           onChanged: (bool value) {
-            //             isAdvancedSwitchOn = value;
-            //             setState(() {});
-            //           },
-            //         ),
-            //         leading:
-            //             Icons.settings_suggest.icon(color: color, size: 22).pOnly(top: 5),
-            //         // 'Advanced mode'
-            //         title: (isAdvancedSwitchOn ? 'Custom mode' : 'Default mode')
-            //             .toString()
-            //             .toText(medium: true, color: color, fontSize: 15),
-            //         subtitle: 'Try for better results'
-            //             // subtitle: 'Your prompts for better results'
-            //             .toString()
-            //             .toText(color: color, fontSize: 13)
-            //         // onTap: () => onTap(category),
-            //         ),
-            //   ).px(10);
-            // }),
-
             20.verticalSpace,
           ],
         ));

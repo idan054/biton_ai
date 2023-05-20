@@ -217,7 +217,7 @@ extension WidgetX on Widget {
   Padding get customRowPadding =>
       Padding(padding: const EdgeInsets.only(top: 15, bottom: 12), child: this);
 
-  SingleChildScrollView get singleChildScrollViewHoriz => SingleChildScrollView(
+  SingleChildScrollView get singleChildHorizScrollView => SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: this,
       );
