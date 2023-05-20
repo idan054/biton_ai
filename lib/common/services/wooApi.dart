@@ -64,7 +64,7 @@ class WooApi {
 
     final headers = {
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer $debugJwt',
+      'Authorization': 'Bearer $userJwt',
     };
 
     print('updatePost() updateMode ${updateMode}');
@@ -103,7 +103,7 @@ class WooApi {
       Uri.parse(url),
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer $debugJwt',
+        'Authorization': 'Bearer $userJwt',
       },
     );
 

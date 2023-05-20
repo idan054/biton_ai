@@ -317,7 +317,9 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
                 bulbHintState = stfState;
                 bool isYourInputIncluded =
                     (_contentEditingController.text.contains('[YOUR_INPUT]') &&
-                        _googleDescEditingController.text.contains('[YOUR_INPUT]'));
+                        (isGoogleCategory
+                            ? _googleDescEditingController.text.contains('[YOUR_INPUT]')
+                            : true));
 
                 var color =
                     isYourInputIncluded ? AppColors.greyUnavailable80 : AppColors.errRed;
@@ -342,8 +344,13 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
                     onPressed: () async {
                   bool isYourInputIncluded =
                       (_contentEditingController.text.contains('[YOUR_INPUT]') &&
-                          _googleDescEditingController.text.contains('[YOUR_INPUT]'));
-                  print('isYourInputIncluded ${isYourInputIncluded}');
+                          (isGoogleCategory
+                              ? _googleDescEditingController.text.contains('[YOUR_INPUT]')
+                              : true));
+
+                  print('isYourInputIncluded ${isYourInputIncluded} '
+                      '\n ${_contentEditingController.text}'
+                      '\n ${_googleDescEditingController.text}');
 
                   if ((sRadioPost?.isDefault ?? false) || isYourInputIncluded) {
                     _isLoading = true;
@@ -417,12 +424,12 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
     // prompt = 'Create a short SEO description of max 45 words about[YOUR_INPUT]';
     // prompt = 'Create html example file of an article [YOUR_INPUT], add titles and sub titles';
     if (_createMode) {
-      _googleDescEditingController.text =
-          'Create a great google description for the product: [YOUR_INPUT]';
       switch (selectedCategory?.type) {
         case ResultCategory.gResults:
           _contentEditingController.text =
               'Create a great google title for the product: [YOUR_INPUT]';
+          _googleDescEditingController.text =
+              'Create a great google description for the product: [YOUR_INPUT]';
           break;
         case ResultCategory.titles:
           _contentEditingController.text =

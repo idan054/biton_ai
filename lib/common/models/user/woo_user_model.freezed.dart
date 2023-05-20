@@ -20,7 +20,7 @@ WooUserModel _$WooUserModelFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$WooUserModel {
-  String? get id => throw _privateConstructorUsedError;
+  int? get id => throw _privateConstructorUsedError;
   String? get name => throw _privateConstructorUsedError;
   String? get email => throw _privateConstructorUsedError;
   String? get token => throw _privateConstructorUsedError;
@@ -37,7 +37,7 @@ abstract class $WooUserModelCopyWith<$Res> {
           WooUserModel value, $Res Function(WooUserModel) then) =
       _$WooUserModelCopyWithImpl<$Res, WooUserModel>;
   @useResult
-  $Res call({String? id, String? name, String? email, String? token});
+  $Res call({int? id, String? name, String? email, String? token});
 }
 
 /// @nodoc
@@ -62,7 +62,7 @@ class _$WooUserModelCopyWithImpl<$Res, $Val extends WooUserModel>
       id: freezed == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
-              as String?,
+              as int?,
       name: freezed == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
@@ -87,7 +87,7 @@ abstract class _$$_WooUserModelCopyWith<$Res>
       __$$_WooUserModelCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String? id, String? name, String? email, String? token});
+  $Res call({int? id, String? name, String? email, String? token});
 }
 
 /// @nodoc
@@ -110,7 +110,7 @@ class __$$_WooUserModelCopyWithImpl<$Res>
       id: freezed == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
-              as String?,
+              as int?,
       name: freezed == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
@@ -137,7 +137,7 @@ class _$_WooUserModel implements _WooUserModel {
       _$$_WooUserModelFromJson(json);
 
   @override
-  final String? id;
+  final int? id;
   @override
   final String? name;
   @override
@@ -181,7 +181,7 @@ class _$_WooUserModel implements _WooUserModel {
 
 abstract class _WooUserModel implements WooUserModel {
   const factory _WooUserModel(
-      {final String? id,
+      {final int? id,
       final String? name,
       final String? email,
       final String? token}) = _$_WooUserModel;
@@ -190,7 +190,7 @@ abstract class _WooUserModel implements WooUserModel {
       _$_WooUserModel.fromJson;
 
   @override
-  String? get id;
+  int? get id;
   @override
   String? get name;
   @override

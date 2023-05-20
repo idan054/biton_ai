@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously, curly_braces_in_flow_control_structures, unused_local_variable, no_leading_underscores_for_local_identifiers
 
 import 'dart:async';
+import 'dart:html';
 
 import 'package:biton_ai/common/extensions/string_ext.dart';
 import 'package:biton_ai/common/extensions/widget_ext.dart';
@@ -20,6 +21,7 @@ import '../common/constants.dart';
 import '../common/models/category/woo_category_model.dart';
 import '../common/models/post/woo_post_model.dart';
 import '../common/models/prompt/result_model.dart';
+import '../common/models/user/woo_user_model.dart';
 import '../common/services/gpt_service.dart';
 import '../widgets/threeColumnDialog/actions.dart';
 import '../widgets/threeColumnDialog/threeColumnDialog.dart';
@@ -37,13 +39,20 @@ class _HomeScreenState extends State<HomeScreen> {
   List<WooCategoryModel> _categories = [];
   List<WooPostModel> _promptsList = [];
   List<WooPostModel> _inUsePrompts = [];
+  WooUserModel? currUser;
   String input = '';
 
   @override
   void initState() {
+    getUser();
     getPrompts();
     getCategories();
     super.initState();
+  }
+
+  void getUser() async {
+    currUser = await WooApi.getUserByToken(userJwt);
+    setState(() {});
   }
 
   void getPrompts() async {
@@ -107,7 +116,8 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Column(
         // mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const SizedBox(height: 300),
+          buildUserButton(currUser),
+          SizedBox(height: 230),
 
           textStoreAi.toText(fontSize: 50, bold: true),
           const SizedBox(height: 10),
@@ -133,15 +143,33 @@ class _HomeScreenState extends State<HomeScreen> {
                   ).sizedBox(30, 30).px(10).py(5),
                 if (!_isLoading)
                   // Icons.search_rounded.icon(color: Colors.blueAccent, size: 30)
-                  'Create'
-                      .toText(
-                          color: _inUsePrompts.isEmpty
-                              ? AppColors.primaryShiny.withOpacity(0.40)
-                              : AppColors.primaryShiny,
-                          medium: true,
-                          fontSize: 14)
-                      .px(20)
-                      .py(15)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircleAvatar(
+                        radius: 22,
+                        backgroundColor: AppColors.white,
+                        child: CircleAvatar(
+                          radius: 21,
+                          backgroundColor: AppColors.white,
+                          child: Icons.insights.icon(
+                              size: 30,
+                              color: _inUsePrompts.isEmpty
+                                  ? AppColors.primaryShiny.withOpacity(0.40)
+                                  : AppColors.primaryShiny),
+                        ),
+                      ),
+
+                      // 'Create'.toText(
+                      //     color: _inUsePrompts.isEmpty
+                      //         ? AppColors.primaryShiny.withOpacity(0.40)
+                      //         : AppColors.primaryShiny,
+                      //     medium: true,
+                      //     fontSize: 14)
+                    ],
+                  )
+                      .px(10)
+                      // .py(15)
                       .onTap(
                           _inUsePrompts.isEmpty
                               ? null
@@ -182,7 +210,7 @@ class _HomeScreenState extends State<HomeScreen> {
               width: 800,
               child: errorMessage
                   .toString()
-                  .toText(color: AppColors.errRed, fontSize: 18)
+                  .toText(color: AppColors.greyText, fontSize: 16, maxLines: 5)
                   .py(10)
                   .px(30)
                   .appearAll,
@@ -207,8 +235,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _handleCreateProductButton() async {
     var wordsCounter = searchController.text.trim().split(' ').length;
-    if (wordsCounter <= 2) {
-      errorMessage = 'Please use more detailed Product Name';
+    if (wordsCounter <= 3) {
+      errorMessage = '''For great results, we need details like:
+- iPhone 14 Pro 128GB Black
+- Men's Solid Polo blue Shirt Short with Collar Zipper
+      ''';
       setState(() {});
       return;
     }
@@ -318,6 +349,30 @@ List<WooPostModel> setDefaultPromptFirst(List<WooPostModel> postList) {
     }
   }
   return _postList;
+}
+
+Widget buildUserButton(WooUserModel? currUser) {
+  var color = AppColors.greyText.withOpacity(currUser == null ? 0.5 : 1);
+  return SizedBox(
+    height: 50,
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        Icons.account_circle.icon(color: color),
+        const SizedBox(width: 2),
+        (currUser?.name ?? 'Your profile')
+            .toText(fontSize: 15, medium: true, color: color)
+            .pad(10),
+      ],
+    ).px(10).onTap(
+        currUser == null
+            ? null
+            : () {
+                window.open('https://www.textstore.ai/my-account/', '_blank');
+              },
+        radius: 5),
+  ).appearOpacity.centerLeft;
 }
 
 Widget buildMainBar(

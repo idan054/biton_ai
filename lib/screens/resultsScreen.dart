@@ -142,54 +142,38 @@ class _ResultsScreenState extends State<ResultsScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.lightPrimaryBg,
-      body: Stack(
+      body: Row(
         children: [
-          Row(
+          buildDrawer().appearAll,
+          Column(
             children: [
-              buildDrawer().appearAll,
+              // buildUserInput().pOnly(top: 20),
+              // Divider(color: AppColors.greyLight, thickness: 1, height: 0),
 
-              Column(
-                children: [
-                  // buildUserInput().pOnly(top: 20),
-                  // Divider(color: AppColors.greyLight, thickness: 1, height: 0),
+              buildMainBar(context,
+                      isLoading: false,
+                      searchController: inputController,
+                      suffixIcon: 'Create'
+                          .toText(
+                              color: AppColors.primaryShiny.withOpacity(0.40),
+                              medium: true,
+                              fontSize: 14)
+                          .px(20)
+                          .py(15),
+                      prefixIcon:
+                          Icons.tune.icon(color: AppColors.greyText.withOpacity(0.30)))
+                  .appearAll,
 
-                  buildCardsRow(googleResults),
-                  if (sCategoryItems.contains(ResultCategory.gResults))
-                    buildCardsRow(titlesResults),
-                  if (sCategoryItems.contains(ResultCategory.titles))
-                    buildCardsRow(shortDescResults),
-                  if (sCategoryItems.contains(ResultCategory.shortDesc))
-                    buildCardsRow(longDescResults),
-                  const SizedBox(height: 20)
-                ],
-              ).px(30).singleChildScrollView.top.pOnly(top: 80).expanded(),
+              buildCardsRow(googleResults),
+              if (sCategoryItems.contains(ResultCategory.gResults))
+                buildCardsRow(titlesResults),
+              if (sCategoryItems.contains(ResultCategory.titles))
+                buildCardsRow(shortDescResults),
+              if (sCategoryItems.contains(ResultCategory.shortDesc))
+                buildCardsRow(longDescResults),
+              const SizedBox(height: 20)
             ],
-          ),
-
-          //~ DEMO BAR - BETA
-          TweenAnimationBuilder(
-              duration: const Duration(milliseconds: 850),
-              tween:
-                  // Tween(begin: const Offset(00.0, 420.0), end: const Offset(0.0, 420.0)),
-                  Tween(begin: const Offset(00.0, 420.0), end: const Offset(110.0, 20.0)),
-              builder: (BuildContext context, Offset value, Widget? child) {
-                return Transform.translate(
-                  offset: value,
-                  child: buildMainBar(context,
-                          isLoading: false,
-                          searchController: inputController,
-                          suffixIcon: 'Create'
-                              .toText(
-                                  color: AppColors.primaryShiny.withOpacity(0.40),
-                                  medium: true,
-                                  fontSize: 14)
-                              .px(20)
-                              .py(15),
-                          prefixIcon: Icons.tune
-                              .icon(color: AppColors.greyText.withOpacity(0.30)))
-                      .top,
-                );
-              }),
+          ).px(30).singleChildScrollView.top.pOnly(top: 80).expanded(),
         ],
       ),
     );

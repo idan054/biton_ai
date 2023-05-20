@@ -10,7 +10,7 @@ part 'woo_user_model.g.dart';
 class WooUserModel with _$WooUserModel {
   @JsonSerializable(explicitToJson: true)
   const factory WooUserModel({
-    String? id,
+    int? id,
     String? name,
     String? email,
     String? token, // JWT
