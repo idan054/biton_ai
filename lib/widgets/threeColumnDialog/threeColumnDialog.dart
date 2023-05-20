@@ -52,6 +52,7 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
   final _titleEditingController = TextEditingController();
   final _contentEditingController = TextEditingController();
   final _googleDescEditingController = TextEditingController();
+  final _pageController = PageController(initialPage: 0); // Initialize the PageController
 
   @override
   void dispose() {
@@ -106,6 +107,8 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
   }
 
   void _onCategoryChanged(WooCategoryModel category) async {
+    if (_pageController.hasClients) _pageController.jumpToPage(1);
+
     _createMode = false;
     selectedCategory = category;
 
@@ -127,6 +130,7 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
   }
 
   void reset4NewPrompt() {
+    if (_pageController.hasClients) _pageController.jumpToPage(2);
     _createMode = true;
     _isLoading = false;
     sRadioPost = null;
@@ -142,109 +146,161 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
   Widget build(BuildContext context) {
     var categorySize = 275.0;
     var promptListSize = 330.0;
+    double width = MediaQuery.of(context).size.width;
+    bool desktopMode = width > 900;
 
-    return Dialog(
-      backgroundColor: AppColors.white,
-      shape: 15.roundedShape,
-      child: SizedBox(
-        width: 1100,
-        height: 420,
-        // padding: const EdgeInsets.all(8.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            buildDialogCategories(
-              categorySize,
-              categories,
-              selectedCategory,
-              onTap: (category) => _onCategoryChanged(category),
-            ),
-            SizedBox(
-              width: promptListSize,
-              child: Column(
-                children: [
-                  CustomButton(
-                    shape: 4.roundedShape,
-                    backgroundColor: AppColors.secondaryBlue,
-                    title: 'Add new prompt',
-                    // icon: Icons.add_circle_outline.icon(),
-                    width: 160,
-                    height: 45,
-                    onPressed: () => reset4NewPrompt(),
-                  ).centerLeft.pOnly(top: 25, bottom: 15, left: 15),
-                  if (_isLoading)
-                    const CircularProgressIndicator(
-                            strokeWidth: 5, color: AppColors.secondaryBlue)
-                        .pOnly(top: 20),
-                  Expanded(
-                    flex: 2,
-                    child: ListView.builder(
-                      itemCount: _fullPromptList.length,
-                      itemBuilder: (BuildContext context, int i) {
-                        final currPost = _fullPromptList[i];
-                        final isSelected = sRadioPost == currPost;
-
-                        if (selectedCategory == null ||
-                            currPost.categories.contains(selectedCategory!.id) == false) {
-                          return const Offstage();
-                        }
-
-                        return Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                Radio(
-                                  value: currPost,
-                                  groupValue: sRadioPost,
-                                  onChanged: (_) => onRadioChanged(currPost),
-                                  activeColor: AppColors.secondaryBlue,
-                                ),
-                                SizedBox(
-                                  width: (promptListSize * 0.60),
-                                  child: currPost.title.toString().toText(
-                                      bold: true,
-                                      color: isSelected
-                                          ? AppColors.secondaryBlue
-                                          : AppColors.greyText,
-                                      maxLines: 1),
-                                ).py(5).onTap(() => onRadioChanged(currPost),
-                                    radius: 5, tapColor: Colors.transparent),
-                                if (!currPost.isDefault) ...[
-                                  Icons.edit
-                                      .icon(
-                                          color: isSelected
-                                              ? AppColors.secondaryBlue
-                                              : AppColors.greyText)
-                                      .pad(5)
-                                      .onTap(
-                                        () => onRadioChanged(currPost),
-                                      ),
-                                  Icons.remove_circle_outline_outlined
-                                      .icon(color: AppColors.errRed)
-                                      .pad(5)
-                                      .onTap(() => _handleOnDeletePrompt(currPost)),
-                                ]
-                              ],
-                            ).py(3),
-                            Container(
-                              height: 1.5,
-                              color: AppColors.greyLight,
-                            )
-                          ],
-                        ).px(10);
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            verticalDivider,
-            buildPromptForm().expanded(),
-          ],
-        ),
+    List<Widget> children = [
+      buildDialogCategories(
+        categorySize,
+        categories,
+        selectedCategory,
+        onTap: (category) => _onCategoryChanged(category),
       ),
+      buildEditPromptsList(promptListSize),
+      if (desktopMode) verticalDivider,
+      desktopMode ? buildPromptForm().expanded() : buildPromptForm(),
+    ];
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (!desktopMode && _pageController.hasClients && _pageController.page != 0)
+          const CircleAvatar(
+            backgroundColor: Colors.white,
+            child: Icon(Icons.arrow_back, color: AppColors.secondaryBlue),
+          )
+              .onTap(
+                  () => _pageController.jumpToPage((_pageController.page! - 1).toInt()),
+                  tapColor: Colors.blue)
+              .pOnly(left: 15, bottom: 10),
+        //
+        Dialog(
+          backgroundColor: AppColors.white,
+          shape: 15.roundedShape,
+          insetPadding: EdgeInsets.symmetric(horizontal: desktopMode ? 40 : 15),
+          child: SizedBox(
+            width: 1100,
+            height: 420,
+            child: desktopMode
+                ? Row(crossAxisAlignment: CrossAxisAlignment.start, children: children)
+                : PageView(
+                    physics: const NeverScrollableScrollPhysics(),
+                    controller: _pageController,
+                    children: children),
+          ),
+        ),
+      ],
     );
+  }
+
+  Widget buildEditPromptsList(double promptListSize) {
+    double width = MediaQuery.of(context).size.width;
+    bool desktopMode = width > 900;
+
+    return SizedBox(
+      width: promptListSize,
+      child: Column(
+        children: [
+          if (!desktopMode)
+            '${selectedCategory!.name} prompts:'
+                .toString()
+                .toText(
+                  bold: true,
+                  color: AppColors.greyText,
+                  fontSize: 16,
+                )
+                .centerLeft
+                .pOnly(top: 20),
+          CustomButton(
+            shape: 4.roundedShape,
+            backgroundColor: AppColors.secondaryBlue,
+            title: 'Add new prompt',
+            // icon: Icons.add_circle_outline.icon(),
+            width: 160,
+            height: 45,
+            onPressed: () => reset4NewPrompt(),
+          )
+              .centerLeft
+              .pOnly(top: desktopMode ? 25 : 15, bottom: 15, left: desktopMode ? 15 : 5),
+          if (_isLoading)
+            const CircularProgressIndicator(
+                    strokeWidth: 5, color: AppColors.secondaryBlue)
+                .pOnly(top: 20),
+          Expanded(
+            flex: 2,
+            child: ListView.builder(
+              itemCount: _fullPromptList.length,
+              itemBuilder: (BuildContext context, int i) {
+                final currPost = _fullPromptList[i];
+                final isSelected = sRadioPost == currPost;
+
+                if (selectedCategory == null ||
+                    currPost.categories.contains(selectedCategory!.id) == false) {
+                  return const Offstage();
+                }
+
+                return Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Radio(
+                          value: currPost,
+                          groupValue: sRadioPost,
+                          onChanged: (_) {
+                            if (_pageController.hasClients) _pageController.jumpToPage(2);
+                            onRadioChanged(currPost);
+                          },
+                          activeColor: AppColors.secondaryBlue,
+                        ),
+                        SizedBox(
+                          width: (promptListSize * 0.60),
+                          child: currPost.title.toString().toText(
+                              bold: true,
+                              color: isSelected
+                                  ? AppColors.secondaryBlue
+                                  : AppColors.greyText,
+                              maxLines: 1),
+                        ).py(5).onTap(() {
+                          if (_pageController.hasClients) _pageController.jumpToPage(2);
+                          onRadioChanged(currPost);
+                        }, radius: 5, tapColor: Colors.transparent),
+                        const Spacer(),
+                        if (!currPost.isDefault) ...[
+                          Icons.edit
+                              .icon(
+                                  color: isSelected
+                                      ? AppColors.secondaryBlue
+                                      : AppColors.greyText)
+                              .pad(5)
+                              .onTap(
+                            () {
+                              if (_pageController.hasClients)
+                                _pageController.jumpToPage(2);
+                              onRadioChanged(currPost);
+                            },
+                          ),
+                          Icons.remove_circle_outline_outlined
+                              .icon(color: AppColors.errRed)
+                              .pad(5)
+                              .onTap(() => _handleOnDeletePrompt(currPost))
+                        ]
+                      ],
+                    ).py(3),
+                    Container(
+                      height: 1.5,
+                      color: AppColors.greyLight,
+                    )
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    ).px(desktopMode ? 10 : 40);
   }
 
   Widget buildPromptForm() {
@@ -328,10 +384,13 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
                 if (isYourInputIncluded && !_createMode) return const Offstage();
 
                 return Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Icons.tips_and_updates.icon(color: color).pOnly(right: 5),
                     // style: TextStyle(color: color, fontSize: 14),
-                    'Use [YOUR_INPUT]  to make the prompt flexible'.toText(color: color)
+                    'Use [YOUR_INPUT]  to make the prompt flexible'
+                        .toText(color: color)
+                        .expanded()
                   ],
                 ).pOnly(bottom: 10, top: 10);
               }),

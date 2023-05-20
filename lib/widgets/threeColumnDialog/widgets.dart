@@ -18,8 +18,7 @@ import '../../common/models/category/woo_category_model.dart';
 import '../../common/models/prompt/result_model.dart';
 import '../customButton.dart';
 
-Widget buildCloseButton(
-    BuildContext context) {
+Widget buildCloseButton(BuildContext context) {
   return SizedBox(
     width: 105,
     height: 45,
