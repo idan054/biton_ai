@@ -166,13 +166,18 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (!desktopMode && _pageController.hasClients && _pageController.page != 0)
+        if (!desktopMode)
           const CircleAvatar(
             backgroundColor: Colors.white,
             child: Icon(Icons.arrow_back, color: AppColors.secondaryBlue),
           )
               .onTap(
-                  () => _pageController.jumpToPage((_pageController.page! - 1).toInt()),
+                  () => _pageController.page == 0
+                      ? Navigator.pop(context)
+                      : _pageController.hasClients
+                          ? _pageController
+                              .jumpToPage((_pageController.page! - 1).toInt())
+                          : null,
                   tapColor: Colors.blue)
               .pOnly(left: 15, bottom: 10),
         //
