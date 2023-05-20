@@ -37,6 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<WooCategoryModel> _categories = [];
   List<WooPostModel> _promptsList = [];
   List<WooPostModel> _inUsePrompts = [];
+  String input = '';
 
   @override
   void initState() {
@@ -70,13 +71,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   int loadingIndex = 0;
 
-  @override
-  Widget build(BuildContext context) {
-    _isLoading = _isLoading && errorMessage == null;
-
+  void startLoader(String input) {
     List loaderActivities = [
-      'Get info about ${searchController.text}...',
-      'Summery info about ${searchController.text}...',
+      // '',
+      'Get info about $input...',
+      'Summery info about $input...',
       'Create 3 Google Titles...',
       'Create 3 Google Descriptions...',
       'Improve Google Titles & Descriptions SEO...',
@@ -86,9 +85,10 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
     loadingText ??= loaderActivities.first;
     if (_isLoading && _timer == null) {
-      _timer = Timer.periodic(const Duration(milliseconds: 3000), (timer) {
+      _timer = Timer.periodic(3000.milliseconds, (timer) {
         // > Cycle loaderActivities list:
         // loadingIndex = (loadingIndex + 1) % loaderActivities.length;
+
         //> Stop at end loaderActivities list:
         if (loadingIndex < loaderActivities.length - 1) loadingIndex++;
 
@@ -96,6 +96,12 @@ class _HomeScreenState extends State<HomeScreen> {
         setState(() {});
       });
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    _isLoading = _isLoading && errorMessage == null;
+
     var textFieldWidth = 800.0;
     return Scaffold(
       backgroundColor: AppColors.lightPrimaryBg,
@@ -117,7 +123,8 @@ class _HomeScreenState extends State<HomeScreen> {
             // 'This can take up to 15 seconds...'
             SizedBox(
               width: textFieldWidth,
-              child: 'Something went wrong. Please try again'
+              child: errorMessage
+                  .toString()
                   .toText(color: AppColors.errRed, fontSize: 18)
                   .py(10)
                   .px(30)
@@ -141,92 +148,118 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  SizedBox buildSearchBar(double textFieldWidth, BuildContext context) {
-    return SizedBox(
-      width: textFieldWidth,
-      child: Material(
-        elevation: 3,
-        borderRadius: BorderRadius.circular(99),
-        child: TextField(
-          controller: searchController,
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: AppColors.white,
-            hoverColor: AppColors.greyLight.withOpacity(0.1),
-            enabledBorder: OutlineInputBorder(
-              borderSide: BorderSide.none,
-              borderRadius: BorderRadius.circular(99),
+  Widget buildSearchBar(double textFieldWidth, BuildContext context) {
+    var h = 1.2;
+    return Stack(
+      children: [
+        if (_isLoading)
+          SizedBox(
+            width: textFieldWidth - 14,
+            height: 50 + (10 * h),
+            child: const LinearProgressIndicator(
+              color: AppColors.lightShinyPrimary,
+              // color: AppColors.primaryShiny.withOpacity(0.20),
+              backgroundColor: Colors.transparent,
             ),
-            focusedBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: AppColors.greyLight),
-              borderRadius: BorderRadius.circular(99),
-            ),
-            hintText: 'Enter full product name',
-            hintStyle: const TextStyle(color: Colors.grey),
-            suffixIcon: Stack(
-              // Use Stack to overlay prefixIcon and CircularProgressIndicator
-              alignment: Alignment.center,
-              children: [
-                if (_isLoading)
-                  CurvedCircularProgressIndicator(
-                    strokeWidth: 4,
-                    color: AppColors.primaryShiny,
-                    backgroundColor: AppColors.greyLight,
-                    animationDuration: 1500.milliseconds,
-                  ).sizedBox(30, 30).px(10).py(5),
-                if (!_isLoading)
-                  // Icons.search_rounded.icon(color: Colors.blueAccent, size: 30)
-                  'Create'
-                      .toText(
-                          color: _inUsePrompts.isEmpty
-                              ? AppColors.primaryShiny.withOpacity(0.40)
-                              : AppColors.primaryShiny,
-                          medium: true,
-                          fontSize: 14)
-                      .px(20)
-                      .py(15)
-                      .onTap(
-                          _inUsePrompts.isEmpty
-                              ? null
-                              : () async => _handleCreateProductButton(),
-                          tapColor: AppColors.primaryShiny.withOpacity(0.15)),
-              ],
-            ),
-            prefixIcon: Icons.tune
-                .icon(
-                    color: _categories.isEmpty || _promptsList.isEmpty
-                        ? AppColors.greyText.withOpacity(0.30)
-                        : AppColors.greyText,
-                    size: 25)
-                .px(20)
-                .py(12)
-                .onTap(_categories.isEmpty || _promptsList.isEmpty
-                    ? null
-                    : () async {
-                        await showDialog(
-                          context: context,
-                          barrierDismissible: false,
-                          builder: (BuildContext context) {
-                            return ThreeColumnDialog(
-                              promptsList: _promptsList,
-                              selectedPrompts: _inUsePrompts,
-                              categories: _categories,
+          ).roundedFull.offset(7, -5 * h),
+
+        SizedBox(
+          width: textFieldWidth,
+          child: Material(
+            elevation: 3,
+            borderRadius: BorderRadius.circular(99),
+            child: TextField(
+              controller: searchController,
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: AppColors.white,
+                hoverColor: AppColors.greyLight.withOpacity(0.1),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide.none,
+                  borderRadius: BorderRadius.circular(99),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: AppColors.greyLight),
+                  borderRadius: BorderRadius.circular(99),
+                ),
+                hintText: 'Enter full product name',
+                hintStyle: const TextStyle(color: Colors.grey),
+                suffixIcon: Stack(
+                  // Use Stack to overlay prefixIcon and CircularProgressIndicator
+                  alignment: Alignment.center,
+                  children: [
+
+                    if (_isLoading)
+                      CurvedCircularProgressIndicator(
+                        strokeWidth: 4,
+                        color: AppColors.primaryShiny,
+                        backgroundColor: AppColors.greyLight,
+                        animationDuration: 1500.milliseconds,
+                      ).sizedBox(30, 30).px(10).py(5),
+
+                    if (!_isLoading)
+                      // Icons.search_rounded.icon(color: Colors.blueAccent, size: 30)
+                      'Create'
+                          .toText(
+                              color: _inUsePrompts.isEmpty
+                                  ? AppColors.primaryShiny.withOpacity(0.40)
+                                  : AppColors.primaryShiny,
+                              medium: true,
+                              fontSize: 14)
+                          .px(20)
+                          .py(15)
+                          .onTap(
+                              _inUsePrompts.isEmpty
+                                  ? null
+                                  : () async => _handleCreateProductButton(),
+                              tapColor: AppColors.primaryShiny.withOpacity(0.15)),
+                  ],
+                ),
+                prefixIcon: Icons.tune
+                    .icon(
+                        color: _categories.isEmpty || _promptsList.isEmpty
+                            ? AppColors.greyText.withOpacity(0.30)
+                            : AppColors.greyText,
+                        size: 25)
+                    .px(20)
+                    .py(12)
+                    .onTap(_categories.isEmpty || _promptsList.isEmpty
+                        ? null
+                        : () async {
+                            await showDialog(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (BuildContext context) {
+                                return ThreeColumnDialog(
+                                  promptsList: _promptsList,
+                                  selectedPrompts: _inUsePrompts,
+                                  categories: _categories,
+                                );
+                              },
                             );
-                          },
-                        );
-                        // To update lists from server
-                        initState();
-                      }),
-          ),
+                            // To update lists from server
+                            initState();
+                          }),
+              ),
+            ),
+          ).px(15),
         ),
-      ).px(15),
+      ],
     );
   }
 
   void _handleCreateProductButton() async {
-    final String input = searchController.text;
+    var wordsCounter = searchController.text.trim().split(' ').length;
+    if (wordsCounter <= 2) {
+      errorMessage = 'Please use more detailed Product Name';
+      setState(() {});
+      return;
+    }
+
+    input = searchController.text;
     errorMessage = null;
     _isLoading = true;
+    startLoader(input);
     setState(() {});
     List<ResultModel> results = [];
 
@@ -249,7 +282,8 @@ class _HomeScreenState extends State<HomeScreen> {
     ).catchError((err) {
       printRed('My ERROR: $err');
       print('err.runtimeType ${err.runtimeType}');
-      errorMessage = err.toString();
+      // errorMessage = err.toString();
+      errorMessage = 'Something went wrong. Please try again';
       setState(() {});
     });
     _navigateToSearchResults(context, input, results);

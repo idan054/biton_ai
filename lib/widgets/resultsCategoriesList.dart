@@ -71,7 +71,9 @@ class _ResultsCategoriesListState extends State<ResultsCategoriesList> {
                           .toString()
                           .toText(color: categoryColor, fontSize: 14)
                       : null,
-                  leading: widget.icons[i].icon(color: categoryColor, size: 22),
+                  leading: widget.icons[i]
+                      .icon(color: categoryColor, size: 22)
+                      .pOnly(top: selectedCategory == ResultCategory.gResults ? 5 : 0),
                 ),
               ),
               selected: isSelected,

@@ -50,7 +50,9 @@ class ResultsScreen extends StatefulWidget {
 }
 
 class _ResultsScreenState extends State<ResultsScreen> {
-  var inputController = TextEditingController(text: 'Nike Air Max 90');
+  bool isAdvancedSwitchOn = false;
+
+  var inputController = TextEditingController();
   String exampleUrl = '';
   List<ResultModel> titlesResults = [];
   List<ResultModel> googleResults = [];
@@ -70,6 +72,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
     autoFetchResults(ResultCategory.shortDesc);
 
     exampleUrl = _getUrl(widget.input);
+    inputController.text = widget.input;
     super.initState();
   }
 
@@ -292,30 +295,46 @@ class _ResultsScreenState extends State<ResultsScreen> {
                 // _changeListByCategory(category);
               },
             ),
-            // const Spacer(),
-            Card(
-              // color: isSelected ? AppColors.lightShinyPrimary : AppColors.lightPrimaryBg,
-              color: AppColors.greyLight,
-              elevation: 0,
-              shape: 5.roundedShape,
-              child: ListTile(
-                  horizontalTitleGap: 0,
-                  leading: Icons.settings_suggest
-                      .icon(color: AppColors.secondaryBlue, size: 22),
-                  title: 'Advanced mode'.toString().toText(
-                        medium: true,
-                        color: AppColors.primaryShiny,
-                        fontSize: 15,
-                      ),
-                  subtitle: 'Try change settings for better results'
-                      .toString()
-                      .toText(color: AppColors.secondaryBlue, fontSize: 13)
-                  // onTap: () => onTap(category),
-                  ),
-            ),
+            const Spacer(),
+
+            //? todo UI Ready But not works yet!
+            Builder(builder: (context) {
+              var color = isAdvancedSwitchOn
+                  ? AppColors.secondaryBlue
+                  : AppColors.greyUnavailable80;
+              return Card(
+                color: Colors.grey[100],
+                elevation: 0,
+                shape: 10.roundedShape,
+                child: ListTile(
+                    onTap: () {},
+                    horizontalTitleGap: 0,
+                    trailing: Switch(
+                      value: isAdvancedSwitchOn,
+                      activeColor: AppColors.secondaryBlue,
+                      onChanged: (bool value) {
+                        isAdvancedSwitchOn = value;
+                        setState(() {});
+                      },
+                    ),
+                    leading:
+                        Icons.settings_suggest.icon(color: color, size: 22).pOnly(top: 5),
+                    // 'Advanced mode'
+                    title: (isAdvancedSwitchOn ? 'Custom mode' : 'Default mode')
+                        .toString()
+                        .toText(medium: true, color: color, fontSize: 15),
+                    subtitle: 'Try for better results'
+                        // subtitle: 'Your prompts for better results'
+                        .toString()
+                        .toText(color: color, fontSize: 13)
+                    // onTap: () => onTap(category),
+                    ),
+              ).px(10);
+            }),
+
             20.verticalSpace,
           ],
-        ).singleChildScrollView);
+        ));
   }
 
   TextField buildUserInput() {
