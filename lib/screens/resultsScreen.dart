@@ -142,23 +142,54 @@ class _ResultsScreenState extends State<ResultsScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.lightPrimaryBg,
-      body: Row(
+      body: Stack(
         children: [
-          buildDrawer(),
-          Column(
+          Row(
             children: [
-              buildUserInput().pOnly(top: 20),
-              Divider(color: AppColors.greyLight, thickness: 1, height: 0),
-              buildCardsRow(googleResults),
-              if (sCategoryItems.contains(ResultCategory.gResults))
-                buildCardsRow(titlesResults),
-              if (sCategoryItems.contains(ResultCategory.titles))
-                buildCardsRow(shortDescResults),
-              if (sCategoryItems.contains(ResultCategory.shortDesc))
-                buildCardsRow(longDescResults),
-              const SizedBox(height: 20)
+              buildDrawer().appearAll,
+
+              Column(
+                children: [
+                  // buildUserInput().pOnly(top: 20),
+                  // Divider(color: AppColors.greyLight, thickness: 1, height: 0),
+
+                  buildCardsRow(googleResults),
+                  if (sCategoryItems.contains(ResultCategory.gResults))
+                    buildCardsRow(titlesResults),
+                  if (sCategoryItems.contains(ResultCategory.titles))
+                    buildCardsRow(shortDescResults),
+                  if (sCategoryItems.contains(ResultCategory.shortDesc))
+                    buildCardsRow(longDescResults),
+                  const SizedBox(height: 20)
+                ],
+              ).px(30).singleChildScrollView.top.pOnly(top: 80).expanded(),
             ],
-          ).px(30).singleChildScrollView.top.expanded(),
+          ),
+
+          //~ DEMO BAR - BETA
+          TweenAnimationBuilder(
+              duration: const Duration(milliseconds: 850),
+              tween:
+                  // Tween(begin: const Offset(00.0, 420.0), end: const Offset(0.0, 420.0)),
+                  Tween(begin: const Offset(00.0, 420.0), end: const Offset(110.0, 20.0)),
+              builder: (BuildContext context, Offset value, Widget? child) {
+                return Transform.translate(
+                  offset: value,
+                  child: buildMainBar(context,
+                          isLoading: false,
+                          searchController: inputController,
+                          suffixIcon: 'Create'
+                              .toText(
+                                  color: AppColors.primaryShiny.withOpacity(0.40),
+                                  medium: true,
+                                  fontSize: 14)
+                              .px(20)
+                              .py(15),
+                          prefixIcon: Icons.tune
+                              .icon(color: AppColors.greyText.withOpacity(0.30)))
+                      .top,
+                );
+              }),
         ],
       ),
     );
@@ -298,39 +329,39 @@ class _ResultsScreenState extends State<ResultsScreen> {
             const Spacer(),
 
             //? todo UI Ready But not works yet!
-            Builder(builder: (context) {
-              var color = isAdvancedSwitchOn
-                  ? AppColors.secondaryBlue
-                  : AppColors.greyUnavailable80;
-              return Card(
-                color: Colors.grey[100],
-                elevation: 0,
-                shape: 10.roundedShape,
-                child: ListTile(
-                    onTap: () {},
-                    horizontalTitleGap: 0,
-                    trailing: Switch(
-                      value: isAdvancedSwitchOn,
-                      activeColor: AppColors.secondaryBlue,
-                      onChanged: (bool value) {
-                        isAdvancedSwitchOn = value;
-                        setState(() {});
-                      },
-                    ),
-                    leading:
-                        Icons.settings_suggest.icon(color: color, size: 22).pOnly(top: 5),
-                    // 'Advanced mode'
-                    title: (isAdvancedSwitchOn ? 'Custom mode' : 'Default mode')
-                        .toString()
-                        .toText(medium: true, color: color, fontSize: 15),
-                    subtitle: 'Try for better results'
-                        // subtitle: 'Your prompts for better results'
-                        .toString()
-                        .toText(color: color, fontSize: 13)
-                    // onTap: () => onTap(category),
-                    ),
-              ).px(10);
-            }),
+            // Builder(builder: (context) {
+            //   var color = isAdvancedSwitchOn
+            //       ? AppColors.secondaryBlue
+            //       : AppColors.greyUnavailable80;
+            //   return Card(
+            //     color: Colors.grey[100],
+            //     elevation: 0,
+            //     shape: 10.roundedShape,
+            //     child: ListTile(
+            //         onTap: () {},
+            //         horizontalTitleGap: 0,
+            //         trailing: Switch(
+            //           value: isAdvancedSwitchOn,
+            //           activeColor: AppColors.secondaryBlue,
+            //           onChanged: (bool value) {
+            //             isAdvancedSwitchOn = value;
+            //             setState(() {});
+            //           },
+            //         ),
+            //         leading:
+            //             Icons.settings_suggest.icon(color: color, size: 22).pOnly(top: 5),
+            //         // 'Advanced mode'
+            //         title: (isAdvancedSwitchOn ? 'Custom mode' : 'Default mode')
+            //             .toString()
+            //             .toText(medium: true, color: color, fontSize: 15),
+            //         subtitle: 'Try for better results'
+            //             // subtitle: 'Your prompts for better results'
+            //             .toString()
+            //             .toText(color: color, fontSize: 13)
+            //         // onTap: () => onTap(category),
+            //         ),
+            //   ).px(10);
+            // }),
 
             20.verticalSpace,
           ],
