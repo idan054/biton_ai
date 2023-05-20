@@ -40,8 +40,10 @@ class WooApi {
         catIds.toString().replaceAll(' ', '').replaceAll('[', '').replaceAll(']', '');
     url += '&categories=$catIdsEncoded';
 
+
     final response = await http.get(Uri.parse(url));
     print('WooApi.getPosts() statusCode: ${response.statusCode}');
+
     if (response.statusCode == 200) {
       final List<dynamic> jsonList = json.decode(response.body);
       var posts = jsonList.map((json) => WooPostModel.fromJson(json)).toList();
@@ -125,7 +127,9 @@ class WooApi {
     // print('response.body ${response.body}');
     if (response.statusCode == 200) {
       final json = jsonDecode(response.body);
-      return WooUserModel.fromJson(json);
+      var user = WooUserModel.fromJson(json);
+
+      return user;
       // setState(() {});
     } else {
       throw Exception('Failed to get user');

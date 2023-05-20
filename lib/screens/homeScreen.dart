@@ -265,9 +265,21 @@ class _HomeScreenState extends State<HomeScreen> {
         //   title: longDescSample,
         //   category: ResultCategory.longDesc,
         // ),
-        ResultModel(title: 'C A great google result title will appear here', desc: 'C A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.', category: ResultCategory.gResults),
-        ResultModel(title: 'C A great google result title will appear here', desc: 'C A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.', category: ResultCategory.gResults),
-        ResultModel(title: 'C A great google result title will appear here', desc: 'C A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.', category: ResultCategory.gResults),
+        ResultModel(
+            title: 'C A great google result title will appear here',
+            desc:
+                'C A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
+            category: ResultCategory.gResults),
+        ResultModel(
+            title: 'C A great google result title will appear here',
+            desc:
+                'C A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
+            category: ResultCategory.gResults),
+        ResultModel(
+            title: 'C A great google result title will appear here',
+            desc:
+                'C A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
+            category: ResultCategory.gResults),
       ];
     } else {
       results = await Gpt.getResults(

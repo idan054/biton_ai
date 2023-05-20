@@ -84,6 +84,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
     final results = await Gpt.getResults(
         type: type, input: widget.input, prompts: _promptList, gDescPrompts: _promptList);
 
+
     // if (type == ResultCategory.gResults) googleResults = [...googleResults, ...results];
     if (type == ResultCategory.titles) titlesResults = results;
     if (type == ResultCategory.shortDesc) shortDescResults = results;

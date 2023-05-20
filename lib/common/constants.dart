@@ -24,8 +24,8 @@ const textStoreAi = 'TextStore';
 const appConfig_highlightSelection = true;
 const appConfig_horizontalSummery = true;
 
-const appConfig_fastHomeScreen = true;
-// const appConfig_fastHomeScreen = false;
+// const appConfig_fastHomeScreen = true;
+const appConfig_fastHomeScreen = false;
 
 const longDescSample =
     '''Nike Air Max 90 is a classic sneaker that has been around since the early 90s. It is one of the most iconic sneakers in the history of sportswear and is loved by people all over the world. The Nike Air Max 90 is a shoe that was created by Tinker Hatfield, who was inspired by the idea of visible air. The sneaker has a unique design and is known for its comfort and style. 
