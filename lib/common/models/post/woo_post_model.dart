@@ -13,7 +13,8 @@ part 'woo_post_model.g.dart';
 /// Most clean model: [click.ResultModel]
 
 // flutter pub run build_runner build --delete-conflicting-outputs
-@freezed
+// @freezed
+@Freezed(toJson: true)
 class WooPostModel with _$WooPostModel {
   @JsonSerializable(explicitToJson: true, nullable: true) // needed sub classes
   factory WooPostModel({
@@ -28,6 +29,7 @@ class WooPostModel with _$WooPostModel {
     @Default(false) bool isSelected,
   }) = _WooPostModel;
 
+  // factory WooPostModel.fromJson(Map<String, dynamic> json) => _$WooPostModelFromJson(json);
   factory WooPostModel.fromJson(Map<String, dynamic> json) {
     var title = json['title']['rendered'];
     var content = json['content']['rendered']
@@ -42,17 +44,16 @@ class WooPostModel with _$WooPostModel {
     var categories = categoriesRaw.map((category) => category as int).toList();
 
     var post = WooPostModel(
-        id: json['id'],
-        author: json['author'],
-        categories: categories,
-        category: getCategory(categories),
-        title: title,
-        content: mainContent!,
-        subContent: subContent,
-        isSelected: json['meta']['isSelected'] ?? false,
-        isDefault: json['meta']['isDefault'], // the TextStore UID
+      id: json['id'],
+      author: json['author'],
+      categories: categories,
+      category: getCategory(categories),
+      title: title,
+      content: mainContent!,
+      subContent: subContent,
+      isSelected: json['meta']['isSelected'] ?? false,
+      isDefault: json['meta']['isDefault'], // the TextStore UID
     );
-    // return _$WooPostModelFromJson(json);
     return post;
   }
 }

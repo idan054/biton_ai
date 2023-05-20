@@ -23,9 +23,14 @@ import 'design.dart';
 
 class ThreeColumnDialog extends StatefulWidget {
   final List<WooCategoryModel> categories;
-  final List<WooPostModel> postList;
+  final List<WooPostModel> promptsList;
+  final List<WooPostModel> selectedPrompts;
 
-  const ThreeColumnDialog({required this.categories, required this.postList, Key? key})
+  const ThreeColumnDialog(
+      {required this.categories,
+      required this.promptsList,
+      required this.selectedPrompts,
+      Key? key})
       : super(key: key);
 
   @override
@@ -61,7 +66,7 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
     categories = widget.categories;
     selectedCategory = categories.first;
 
-    _fullPromptList = widget.postList;
+    _fullPromptList = widget.promptsList;
     _initWooSelection(); // SET _selectedPromptList & Default
 
     // Set Radio by category
@@ -70,25 +75,13 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
     super.initState();
   }
 
-  //~ 1) Set the init list
   void _initWooSelection() {
-    // Add user selected
-    for (var prompt in _fullPromptList) {
-      if (prompt.isSelected) _selectedPromptList.add(prompt);
-    }
-    // Add default ONLY if needed
-    for (var prompt in _fullPromptList) {
-      if (_selectedPromptList.any((p) => p.category == prompt.category)) {
-        // Do nothing, already set prompt.isSelected
-      } else {
-        if (prompt.isDefault) _selectedPromptList.add(prompt);
-      }
-    }
+    _selectedPromptList = widget.selectedPrompts;
 
     var initPrompt =
         _selectedPromptList.firstWhere((p) => p.category == categories.first.type);
     onRadioChanged(initPrompt);
-    print('DONE: setWooSelection() [${_selectedPromptList.length}]');
+    print('DONE: _initWooSelection() [${_selectedPromptList.length} SELECTED!]');
   }
 
   void onRadioChanged(WooPostModel newPost) {
@@ -135,7 +128,7 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
 
   void reset4NewPrompt() {
     _createMode = true;
-
+    _isLoading = false;
     sRadioPost = null;
     _googleDescEditingController.clear();
     _contentEditingController.clear();
@@ -160,7 +153,7 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            buildCategories(
+            buildDialogCategories(
               categorySize,
               categories,
               selectedCategory,
@@ -174,6 +167,7 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
                     shape: 4.roundedShape,
                     backgroundColor: AppColors.secondaryBlue,
                     title: 'Add new prompt',
+                    // icon: Icons.add_circle_outline.icon(),
                     width: 160,
                     height: 45,
                     onPressed: () => reset4NewPrompt(),
@@ -255,12 +249,18 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
 
   Widget buildPromptForm() {
     bool isGoogleCategory = selectedCategory!.type == ResultCategory.gResults;
-    bool isDefault = (sRadioPost != null && sRadioPost!.isDefault);
+    bool isDefault =
+        (sRadioPost != null && sRadioPost!.isDefault) && appConfig_hideDefault;
+
+    // "TextStore team prompt: Great for most sellers, can't be edited"
+    String defaultHint = "Great for most sellers, can't be edited";
+    _setTemplatePromptsIfNeeded();
+    StateSetter? bulbHintState;
 
     return Builder(builder: (context) {
       return Column(
         children: [
-          const SizedBox(height: 25.0),
+          const SizedBox(height: 20.0),
           TextField(
             focusNode: _titleFocusNode,
             controller: _titleEditingController,
@@ -284,13 +284,16 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
                 enabled: !isDefault,
                 maxLines: null,
                 expands: true,
-                controller:
-                    isDefault ? TextEditingController() : _contentEditingController,
+                style: TextStyle(
+                    color: isDefault ? AppColors.greyUnavailable80 : Colors.black),
+                controller: isDefault
+                    ? TextEditingController(text: defaultHint)
+                    : _contentEditingController,
                 decoration: fieldPromptStyle(isDefault),
               ),
             ),
             if (isGoogleCategory) ...[
-              const SizedBox(height: 10.0),
+              const SizedBox(height: 5.0),
               fieldTitle('Google Description prompt'),
               SizedBox(
                 height: 95,
@@ -298,33 +301,69 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
                   enabled: !isDefault,
                   maxLines: null,
                   expands: true,
-                  controller:
-                      isDefault ? TextEditingController() : _googleDescEditingController,
+                  style: TextStyle(
+                      color: isDefault ? AppColors.greyUnavailable80 : Colors.black),
+                  controller: isDefault
+                      ? TextEditingController(text: defaultHint)
+                      : _googleDescEditingController,
                   decoration: fieldPromptStyle(isDefault),
                 ),
               ),
+            ],
+            if (sRadioPost != null && sRadioPost!.isDefault) ...[
+              // Hide info Red bulb on default prompts
+            ] else ...[
+              StatefulBuilder(builder: (context, stfState) {
+                bulbHintState = stfState;
+                bool isYourInputIncluded =
+                    (_contentEditingController.text.contains('[YOUR_INPUT]') &&
+                        _googleDescEditingController.text.contains('[YOUR_INPUT]'));
+
+                var color =
+                    isYourInputIncluded ? AppColors.greyUnavailable80 : AppColors.errRed;
+
+                // Hide when edit prompts if no .errRed
+                if (isYourInputIncluded && !_createMode) return const Offstage();
+
+                return Row(
+                  children: [
+                    Icons.tips_and_updates.icon(color: color).pOnly(right: 5),
+                    // style: TextStyle(color: color, fontSize: 14),
+                    'Use [YOUR_INPUT]  to make the prompt flexible'.toText(color: color)
+                  ],
+                ).pOnly(bottom: 10, top: 10);
+              }),
             ],
             const Spacer(flex: 7),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                buildUpdateButton(_isLoading, createMode: _createMode,
+                buildCreateButton(_isLoading, createMode: _createMode,
                     onPressed: () async {
-                  _isLoading = true;
-                  setState(() {});
-                  await handleSave();
-                  _createMode = false;
-                  _isLoading = false;
-                  setState(() {});
+                  bool isYourInputIncluded =
+                      (_contentEditingController.text.contains('[YOUR_INPUT]') &&
+                          _googleDescEditingController.text.contains('[YOUR_INPUT]'));
+                  print('isYourInputIncluded ${isYourInputIncluded}');
+
+                  if ((sRadioPost?.isDefault ?? false) || isYourInputIncluded) {
+                    _isLoading = true;
+                    setState(() {});
+                    await handleSave();
+                    _createMode = false;
+                    _isLoading = false;
+                    setState(() {});
+                  } else {
+                    _createMode ? bulbHintState!(() {}) : setState(() {});
+                  }
                 }),
                 const SizedBox(width: 15),
-                buildCancelButton(context),
+                buildCloseButton(context),
               ],
             ).bottom,
-            const SizedBox(height: 30.0),
+            const SizedBox(height: 20.0),
           ]
         ],
-      ).pOnly(right: 30, left: 50);
+      ).pOnly(right: 20, left: 50);
     });
   }
 
@@ -334,6 +373,7 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
     final googleDesc = _googleDescEditingController.text.trim();
     final mainContent = _contentEditingController.text;
     final content = isGooglePrompt ? '$mainContent googleDesc=$googleDesc' : mainContent;
+
     if (title.isNotEmpty && mainContent.isNotEmpty && selectedCategory != null) {
       // Remove old version
       if (!_createMode) _fullPromptList.removeWhere((post) => post.id == sRadioPost?.id);
@@ -354,11 +394,7 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
         isSelected: true,
       );
 
-      // sRadioPost = newPost;
-      // _selectedPromptList.remove(sRadioPost);
-      // _selectedPromptList.insert(0, newPost); // Start of  list
       onRadioChanged(newPost);
-
       _fullPromptList = setDefaultPromptFirst(_fullPromptList);
       _fullPromptList.insert(1, newPost); // Start of  list
 
@@ -370,6 +406,39 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
       // deselect any other prompts in this category
       if (post.category == newPost.category && post.isSelected && post.id != newPost.id) {
         WooApi.updatePost(post, postId: post.id, isSelected: false);
+      }
+    }
+  }
+
+  void _setTemplatePromptsIfNeeded() {
+    // prompt = 'Create a great google title for the product: [YOUR_INPUT]';
+    // prompt = 'Create a great google description for the product: [YOUR_INPUT]';
+    // prompt = 'Create a great product title of max 15 words for: [YOUR_INPUT]';
+    // prompt = 'Create a short SEO description of max 45 words about[YOUR_INPUT]';
+    // prompt = 'Create html example file of an article [YOUR_INPUT], add titles and sub titles';
+    if (_createMode) {
+      _googleDescEditingController.text =
+          'Create a great google description for the product: [YOUR_INPUT]';
+      switch (selectedCategory?.type) {
+        case ResultCategory.gResults:
+          _contentEditingController.text =
+              'Create a great google title for the product: [YOUR_INPUT]';
+          break;
+        case ResultCategory.titles:
+          _contentEditingController.text =
+              'Create a great product title of max 15 words for: [YOUR_INPUT]';
+          break;
+        case ResultCategory.shortDesc:
+          _contentEditingController.text =
+              'Create a short SEO description of max 45 words about [YOUR_INPUT]';
+          break;
+        case ResultCategory.longDesc:
+          _contentEditingController.text =
+              'Create HTML file of a selling article about [YOUR_INPUT], add titles and sub titles';
+          break;
+        case ResultCategory.tags:
+        default:
+          break;
       }
     }
   }

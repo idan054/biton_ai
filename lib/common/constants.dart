@@ -3,17 +3,20 @@
 //~ Server Config:
 // POST https://textstore.ai/wp-json/jwt-auth/v1/token
 // BODY { "username": "",  "password": "" }
+import 'package:flutter/foundation.dart';
+
 const debugJwt =
     'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3d3dy50ZXh0c3RvcmUuYWkiLCJpYXQiOjE2ODQyMjk0NTksIm5iZiI6MTY4NDIyOTQ1OSwiZXhwIjoxNjg0ODM0MjU5LCJkYXRhIjp7InVzZXIiOnsiaWQiOiIxIn19fQ.qJln-UdYiO6GvdBXfCPB0K7CqUioaVM2Z3VyxNxu01w';
 // My Working Wordpress php request:  https://gist.github.com/idan054/a02143ad92cf65ce090f8dfe697c6419
 const appCategoryId = 27; // only subCategories of it will appear
 const baseUrl = 'https://textstore.ai/wp-json';
 
-const promptsCategoryIds = [28,29,30,31];
+const promptsCategoryIds = [28, 29, 30, 31];
 const textStoreUid = 1; // Admin user
 const debugUid = 7; // Idan test user
 
 //~ App config:
+const appConfig_hideDefault = true || !kDebugMode;
 const textStoreAi = 'TextStore';
 const appConfig_highlightSelection = true;
 const appConfig_horizontalSummery = true;
@@ -30,3 +33,5 @@ The Nike Air Max 90 has been worn by several prominent athletes, including Micha
 The Nike Air Max 90 is not just a stylish sneaker; it is also a durable and reliable shoe. The materials used in its construction are of high quality, ensuring that the sneaker can withstand regular wear and tear. The sneaker also features excellent traction, making it suitable for a range of surfaces and activities.
 In conclusion, the Nike Air Max 90 is a classic sneaker that has stood the test of time. It is a comfortable and stylish shoe that can be worn for a range of activities. Its iconic design and visible Air Sole unit have made it a favorite among sneaker enthusiasts and athletes alike. Whether you are looking for a casual sneaker or a shoe to wear during athletic activities, the Nike Air Max 90 is an excellent choice. With its durability, versatility, and timeless design, this sneaker is sure to remain a favorite for years to come.
 null ''';
+
+const appVersion = 'Version 1.1';

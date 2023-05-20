@@ -18,7 +18,8 @@ import '../../common/models/category/woo_category_model.dart';
 import '../../common/models/prompt/result_model.dart';
 import '../customButton.dart';
 
-Widget buildCancelButton(BuildContext context) {
+Widget buildCloseButton(
+    BuildContext context) {
   return SizedBox(
     width: 105,
     height: 45,
@@ -33,9 +34,7 @@ Widget buildCancelButton(BuildContext context) {
         backgroundColor: MaterialStateProperty.all<Color>(Colors.transparent),
         foregroundColor: MaterialStateProperty.all<Color>(Colors.transparent),
       ),
-      onPressed: () {
-        Navigator.pop(context);
-      },
+      onPressed: () => Navigator.pop(context),
       child: 'Close'.toText(
         color: AppColors.greyText,
         fontSize: 15,
@@ -44,7 +43,7 @@ Widget buildCancelButton(BuildContext context) {
   );
 }
 
-Widget buildUpdateButton(
+Widget buildCreateButton(
   bool isLoading, {
   required bool createMode,
   VoidCallback? onPressed,
@@ -66,7 +65,7 @@ Widget buildUpdateButton(
   );
 }
 
-Container buildCategories(
+Container buildDialogCategories(
   double categorySize,
   List<WooCategoryModel> categories,
   WooCategoryModel? selectedCategory, {

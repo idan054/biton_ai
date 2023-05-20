@@ -10,6 +10,7 @@ import 'package:biton_ai/common/services/wooApi.dart';
 import 'package:biton_ai/common/themes/app_colors.dart';
 import 'package:biton_ai/screens/resultsScreen.dart';
 import 'package:biton_ai/widgets/resultsList.dart';
+import 'package:curved_progress_bar/curved_progress_bar.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -45,14 +46,15 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void getPrompts() async {
-    _promptsList = await getUserPrompts();
-    for (var post in _promptsList) {
-      if (post.isDefault || post.isSelected) _inUsePrompts.add(post);
-    }
+    _promptsList = [];
+    _inUsePrompts = [];
+    _promptsList = await getAllUserPrompts();
+    _inUsePrompts = setSelectedList(_promptsList);
     setState(() {});
   }
 
   void getCategories() async {
+    _categories = [];
     _categories = await WooApi.getCategories();
     _categories = sortCategories(_categories);
     setState(() {});
@@ -132,6 +134,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   .px(30)
                   .appearAll,
             ),
+          const Spacer(),
+          appVersion.toText(fontSize: 12).pad(10).centerLeft,
         ],
       ).center,
     );
@@ -164,17 +168,27 @@ class _HomeScreenState extends State<HomeScreen> {
               alignment: Alignment.center,
               children: [
                 if (_isLoading)
-                  const CircularProgressIndicator(
-                    strokeWidth: 7,
+                  CurvedCircularProgressIndicator(
+                    strokeWidth: 4,
                     color: AppColors.primaryShiny,
-                  ),
+                    backgroundColor: AppColors.greyLight,
+                    animationDuration: 1500.milliseconds,
+                  ).sizedBox(30, 30).px(10).py(5),
                 if (!_isLoading)
                   // Icons.search_rounded.icon(color: Colors.blueAccent, size: 30)
                   'Create'
-                      .toText(color: AppColors.primaryShiny, medium: true, fontSize: 14)
+                      .toText(
+                          color: _inUsePrompts.isEmpty
+                              ? AppColors.primaryShiny.withOpacity(0.40)
+                              : AppColors.primaryShiny,
+                          medium: true,
+                          fontSize: 14)
                       .px(20)
                       .py(15)
-                      .onTap(() async => _handleCreateProductButton(),
+                      .onTap(
+                          _inUsePrompts.isEmpty
+                              ? null
+                              : () async => _handleCreateProductButton(),
                           tapColor: AppColors.primaryShiny.withOpacity(0.15)),
               ],
             ),
@@ -188,14 +202,20 @@ class _HomeScreenState extends State<HomeScreen> {
                 .py(12)
                 .onTap(_categories.isEmpty || _promptsList.isEmpty
                     ? null
-                    : () {
-                        showDialog(
+                    : () async {
+                        await showDialog(
                           context: context,
+                          barrierDismissible: false,
                           builder: (BuildContext context) {
                             return ThreeColumnDialog(
-                                postList: _promptsList, categories: _categories);
+                              promptsList: _promptsList,
+                              selectedPrompts: _inUsePrompts,
+                              categories: _categories,
+                            );
                           },
                         );
+                        // To update lists from server
+                        initState();
                       }),
           ),
         ),
@@ -204,48 +224,42 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _handleCreateProductButton() async {
+    final String input = searchController.text;
     errorMessage = null;
     _isLoading = true;
     setState(() {});
     List<ResultModel> results = [];
-    if (kDebugMode && appConfig_fastHomeScreen) {
-      results = const [
-        ResultModel(
-          title: longDescSample,
-          category: ResultCategory.longDesc,
-        ),
-        // ResultModel(
-        //     title: 'C A great google result title will appear here',
-        //     desc:
-        //         'C A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
-        //     category: ResultCategory.gResults),
-      ];
-    } else {
-      results = await Gpt.getResults(
-        type: ResultCategory.gResults,
-        input: searchController.text,
-        prompts: [
-          'Create a great google title for the product: ${searchController.text}',
-          'Create a great google title for the product: ${searchController.text}',
-          'Create a great google title for the product: ${searchController.text}',
-        ],
-        gDescPrompts: [
-          'Create a great google description about 2 lines for the product: ${searchController.text}',
-          'Create a great google description about 2 lines for the product: ${searchController.text}',
-          'Create a great google description about 2 lines for the product: ${searchController.text}',
-        ],
-      ).catchError((err) {
-        printRed('My ERROR: $err');
-        print('err.runtimeType ${err.runtimeType}');
-        errorMessage = err.toString();
-        setState(() {});
-      });
+
+    // Set prompt X3
+    var gPrompt = _inUsePrompts.firstWhere((p) => p.category == ResultCategory.gResults);
+    var content = gPrompt.content.replaceAll('[YOUR_INPUT]', input);
+    var subContent = (gPrompt.subContent ?? '').replaceAll('[YOUR_INPUT]', input);
+    var titlePrompts = <String>[];
+    var gDescPrompts = <String>[];
+    for (int i = 0; i < 3; i++) {
+      titlePrompts.add(content);
+      gDescPrompts.add(subContent);
     }
-    _navigateToSearchResults(context, searchController.text, results);
+
+    results = await Gpt.getResults(
+      type: ResultCategory.gResults,
+      input: searchController.text,
+      prompts: titlePrompts,
+      gDescPrompts: gDescPrompts,
+    ).catchError((err) {
+      printRed('My ERROR: $err');
+      print('err.runtimeType ${err.runtimeType}');
+      errorMessage = err.toString();
+      setState(() {});
+    });
+    _navigateToSearchResults(context, input, results);
   }
 
   void _navigateToSearchResults(
-      BuildContext context, String input, List<ResultModel> results) {
+    BuildContext context,
+    String input,
+    List<ResultModel> results,
+  ) {
     _isLoading = false;
     setState(() {});
 
@@ -277,11 +291,30 @@ List<ResultModel> setResultsFromGpt(Map<String, dynamic> resp, ResultCategory ca
   return items;
 }
 
-Future<List<WooPostModel>> getUserPrompts() async {
+Future<List<WooPostModel>> getAllUserPrompts() async {
   var postList =
       await WooApi.getPosts(userId: debugUid.toString(), catIds: promptsCategoryIds);
   postList = setDefaultPromptFirst(postList);
   return postList;
+}
+
+List<WooPostModel> setSelectedList(List<WooPostModel> _fullPromptList) {
+  List<WooPostModel> _selectedPromptList = [];
+
+  //1) Add user selected prompts
+  for (var prompt in _fullPromptList) {
+    if (prompt.isSelected) _selectedPromptList.add(prompt);
+  }
+
+  //2) Add default ONLY where needed
+  for (var prompt in _fullPromptList) {
+    if (_selectedPromptList.any((p) => p.category == prompt.category)) {
+      // Do nothing, prompt.isSelected added for this category
+    } else {
+      if (prompt.isDefault) _selectedPromptList.add(prompt);
+    }
+  }
+  return _selectedPromptList;
 }
 
 List<WooPostModel> setDefaultPromptFirst(List<WooPostModel> postList) {

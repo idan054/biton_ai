@@ -41,6 +41,7 @@ class _ResultsCategoriesListState extends State<ResultsCategoriesList> {
     var selectedCategory = widget.selectedCategory;
 
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         const SizedBox(height: 15),
         ListView.builder(

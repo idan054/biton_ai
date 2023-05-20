@@ -81,7 +81,7 @@ class CustomButton extends StatelessWidget {
                     children: [
                       if (icon != null) ...[
                         icon!,
-                        if (title != null) gap.horizontalSpace,
+                        if (title != null) 3.horizontalSpace,
                       ],
                       if (title != null)
                         title!.toText(

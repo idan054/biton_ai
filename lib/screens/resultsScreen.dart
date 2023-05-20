@@ -1,8 +1,10 @@
 // ignore_for_file: no_leading_underscores_for_local_identifiers, curly_braces_in_flow_control_structures
 
+import 'package:biton_ai/common/extensions/num_ext.dart';
 import 'package:biton_ai/common/extensions/string_ext.dart';
 import 'package:biton_ai/common/extensions/widget_ext.dart';
 import 'package:biton_ai/common/models/post/woo_post_model.dart';
+import 'package:biton_ai/screens/homeScreen.dart';
 import 'package:biton_ai/widgets/htmlEditorViewerWidget.dart';
 import 'package:biton_ai/widgets/resultsCategoriesList.dart';
 import 'package:collection/collection.dart';
@@ -17,63 +19,6 @@ import '../common/themes/app_colors.dart';
 import '../widgets/customButton.dart';
 import '../widgets/resultsList.dart';
 
-// List<ResultItem> googleResults = [
-//   ResultItem(
-//       title: 'A A great google result title will appear here',
-//       desc:
-//       'A A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
-//       category: ResultCategory.googleResults),
-//   ResultItem(
-//       title: 'B A great google result title will appear here',
-//       desc:
-//       'B A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
-//       category: ResultCategory.googleResults),
-//   ResultItem(
-//       title: 'C A great google result title will appear here',
-//       desc:
-//       'C A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
-//       category: ResultCategory.googleResults),
-// ];
-
-// List<ResultModel> titlesResults = [
-// ResultModel(
-//     title: 'A This is just a product title example for Nike Air Max 90',
-//     category: ResultCategory.titles),
-// ResultModel(
-//     title: 'B This is just a product title example for Nike Air Max 90',
-//     category: ResultCategory.titles),
-// ResultModel(
-//     title: 'C This is just a product title example for Nike Air Max 90',
-//     category: ResultCategory.titles)
-// ];
-
-// List<ResultModel> shortDescResults = [
-//   ResultModel(
-//       title:
-//           'A This is just a product desc example for Nike Air Max 90, A great desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
-//       category: ResultCategory.shortDesc),
-//   ResultModel(
-//       title:
-//           'B This is just a product desc example for Nike Air Max 90, A great desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
-//       category: ResultCategory.shortDesc),
-//   ResultModel(
-//       title:
-//           'C This is just a product desc example for Nike Air Max 90, A great desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
-//       category: ResultCategory.shortDesc),
-// ];
-
-// List<ResultModel> longDescResults = [
-//   ResultModel(
-//       title:
-//           'This is a very long product desc example for Nike Air Max 90, A great desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. This is a very long product desc example for Nike Air Max 90, A great desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. This is a very long product desc example for Nike Air Max 90, A great desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. This is a very long product desc example for Nike Air Max 90, A great desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. This is a very long product desc example for Nike Air Max 90, A great desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. '
-//           'This is a very long product desc example for Nike Air Max 90, A great desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. This is a very long product desc example for Nike Air Max 90, A great desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. This is a very long product desc example for Nike Air Max 90, A great desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. This is a very long product desc example for Nike Air Max 90, A great desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. This is a very long product desc example for Nike Air Max 90, A great desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. ',
-//       category: ResultCategory.longDesc),
-// ];
-
-// prompt = 'Create a great google title for the product: $input';
-// prompt = 'Create a great product title of max 15 words for: $input';
-// prompt = 'Create a short SEO description of max 45 words about: $input';
-// prompt = 'Create html example file of an article about $input, add titles and sub titles';
 List<String> promptsByType(
     ResultCategory type, String input, List<WooPostModel> promptsBase) {
   var promptList = <String>[];
@@ -311,9 +256,17 @@ class _ResultsScreenState extends State<ResultsScreen> {
         elevation: 0,
         child: Column(
           children: [
-            20.verticalSpace,
-            textStoreAi.toText(fontSize: 25, bold: true).px(25).centerLeft,
-            20.verticalSpace,
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                20.verticalSpace,
+                textStoreAi.toText(fontSize: 25, bold: true).px(25).centerLeft,
+                20.verticalSpace,
+              ],
+            ).onTap(
+                () => Navigator.push(
+                    context, MaterialPageRoute(builder: (context) => const HomeScreen())),
+                radius: 5),
             ResultsCategoriesList(
               categories: const [
                 ResultCategory.gResults,
@@ -338,6 +291,27 @@ class _ResultsScreenState extends State<ResultsScreen> {
                 // Clickable category:
                 // _changeListByCategory(category);
               },
+            ),
+            // const Spacer(),
+            Card(
+              // color: isSelected ? AppColors.lightShinyPrimary : AppColors.lightPrimaryBg,
+              color: AppColors.greyLight,
+              elevation: 0,
+              shape: 5.roundedShape,
+              child: ListTile(
+                  horizontalTitleGap: 0,
+                  leading: Icons.settings_suggest
+                      .icon(color: AppColors.secondaryBlue, size: 22),
+                  title: 'Advanced mode'.toString().toText(
+                        medium: true,
+                        color: AppColors.primaryShiny,
+                        fontSize: 15,
+                      ),
+                  subtitle: 'Try change settings for better results'
+                      .toString()
+                      .toText(color: AppColors.secondaryBlue, fontSize: 13)
+                  // onTap: () => onTap(category),
+                  ),
             ),
             20.verticalSpace,
           ],

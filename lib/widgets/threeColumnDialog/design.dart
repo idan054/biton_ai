@@ -30,7 +30,7 @@ var fieldTitleStyle = InputDecoration(
 
 InputDecoration fieldPromptStyle(bool isDefault) => InputDecoration(
     filled: isDefault,
-    fillColor: AppColors.greyLight,
+    fillColor: AppColors.greyLight.withOpacity(0.40),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(5),
       borderSide: const BorderSide(color: AppColors.secondaryBlue, width: 1.5),
@@ -46,7 +46,7 @@ InputDecoration fieldPromptStyle(bool isDefault) => InputDecoration(
 
 Widget fieldTitle(String text) => text
     .toText(
-        medium: true, color: AppColors.greyUnavailable.withOpacity(0.80), fontSize: 14)
+        medium: true, color: AppColors.greyUnavailable80, fontSize: 14)
     .py(7)
     .px(5)
     .centerLeft;
