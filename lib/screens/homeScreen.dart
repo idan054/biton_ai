@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'dart:html';
 
+import 'package:biton_ai/common/extensions/context_ext.dart';
 import 'package:biton_ai/common/extensions/string_ext.dart';
 import 'package:biton_ai/common/extensions/widget_ext.dart';
 import 'package:biton_ai/common/extensions/num_ext.dart';
@@ -52,8 +53,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void getUser() async {
-    currUser = await WooApi.getUserByToken(userJwt);
-    setState(() {});
+    if (currUser == null) {
+      currUser = await WooApi.getUserByToken(userJwt);
+      setState(() {});
+    }
   }
 
   void getPrompts() async {
@@ -63,16 +66,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
     _promptsList = await getAllUserPrompts();
     _inUsePrompts = setSelectedList(_promptsList);
+
+    context.uniProvider.updateFullPromptList(_promptsList);
+    context.uniProvider.updateInUsePromptList(_inUsePrompts);
     setState(() {});
   }
 
   void getCategories() async {
-    _categories = [];
-    setState(() {});
-
-    _categories = await WooApi.getCategories();
-    _categories = sortCategories(_categories);
-    setState(() {});
+    if (_categories.isEmpty) {
+      _categories = await WooApi.getCategories();
+      _categories = sortCategories(_categories);
+      context.uniProvider.updateCategories(_categories);
+      setState(() {});
+    }
   }
 
   bool _isLoading = false;
@@ -99,7 +105,7 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
     loadingText ??= loaderActivities.first;
     if (_isLoading && _timer == null) {
-      _timer = Timer.periodic(3000.milliseconds, (timer) {
+      _timer = Timer.periodic(4000.milliseconds, (timer) {
         // > Cycle loaderActivities list:
         // loadingIndex = (loadingIndex + 1) % loaderActivities.length;
 
@@ -114,6 +120,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // var loader = context.listenUniProvider.textstoreBarLoader;
     _isLoading = _isLoading && errorMessage == null;
 
     return Scaffold(
@@ -122,7 +129,7 @@ class _HomeScreenState extends State<HomeScreen> {
         // mainAxisAlignment: MainAxisAlignment.center,
         children: [
           buildUserButton(currUser),
-          SizedBox(height: 230),
+          const SizedBox(height: 230),
 
           textStoreAi.toText(fontSize: 50, bold: true),
           const SizedBox(height: 10),
@@ -141,6 +148,7 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 if (_isLoading)
                   CurvedCircularProgressIndicator(
+                    value: context.listenUniProvider.textstoreBarLoader,
                     strokeWidth: 4,
                     color: AppColors.primaryShiny,
                     backgroundColor: AppColors.greyLight,
@@ -197,8 +205,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             );
                           },
                         );
-                        // To update lists from server
-                        initState();
+                        setState(() {}); // Update uniModel values
                       }),
           ),
 
@@ -220,7 +227,7 @@ class _HomeScreenState extends State<HomeScreen> {
               width: 800,
               child: '$loadingText'
                   .toText(color: AppColors.greyText, fontSize: 18)
-                  .py(10)
+                  .py(5)
                   .px(30)
                   .appearAll,
             ),
@@ -283,6 +290,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ];
     } else {
       results = await Gpt.getResults(
+        context,
         type: ResultCategory.gResults,
         input: searchController.text,
         prompts: titlePrompts,

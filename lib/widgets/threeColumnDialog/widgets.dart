@@ -18,7 +18,7 @@ import '../../common/models/category/woo_category_model.dart';
 import '../../common/models/prompt/result_model.dart';
 import '../customButton.dart';
 
-Widget buildCloseButton(BuildContext context) {
+Widget buildCloseButton(BuildContext context, {required VoidCallback onPressed}) {
   return SizedBox(
     width: 105,
     height: 45,
@@ -33,7 +33,7 @@ Widget buildCloseButton(BuildContext context) {
         backgroundColor: MaterialStateProperty.all<Color>(Colors.transparent),
         foregroundColor: MaterialStateProperty.all<Color>(Colors.transparent),
       ),
-      onPressed: () => Navigator.pop(context),
+      onPressed: onPressed,
       child: 'Close'.toText(
         color: AppColors.greyText,
         fontSize: 15,
@@ -45,6 +45,7 @@ Widget buildCloseButton(BuildContext context) {
 Widget buildCreateButton(
   bool isLoading, {
   required bool createMode,
+  required bool isDisable,
   VoidCallback? onPressed,
 }) {
   // bool defaultSelected = sRadioPost != null && sRadioPost!.isDefault && !_createMode;
@@ -54,8 +55,10 @@ Widget buildCreateButton(
     width: 105,
     height: 45,
     shape: 6.roundedShape,
-    backgroundColor: isLoading ? AppColors.greyUnavailable80 : AppColors.secondaryBlue,
-    onPressed: isLoading ? null : onPressed,
+    backgroundColor: isLoading
+        ? AppColors.greyUnavailable80
+        : (AppColors.secondaryBlue.withOpacity(isDisable ? 0.3 : 1.0)),
+    onPressed: isLoading || isDisable ? null : onPressed,
     title: isLoading
         ? 'Loading...'
         : createMode

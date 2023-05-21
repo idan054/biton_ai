@@ -1,5 +1,6 @@
 // ignore_for_file: no_leading_underscores_for_local_identifiers, curly_braces_in_flow_control_structures
 
+import 'package:biton_ai/common/extensions/context_ext.dart';
 import 'package:biton_ai/common/extensions/num_ext.dart';
 import 'package:biton_ai/common/extensions/string_ext.dart';
 import 'package:biton_ai/common/extensions/widget_ext.dart';
@@ -18,6 +19,7 @@ import '../common/services/gpt_service.dart';
 import '../common/themes/app_colors.dart';
 import '../widgets/customButton.dart';
 import '../widgets/resultsList.dart';
+import '../widgets/threeColumnDialog/threeColumnDialog.dart';
 
 List<String> promptsByType(
     ResultCategory type, String input, List<WooPostModel> promptsBase) {
@@ -82,8 +84,12 @@ class _ResultsScreenState extends State<ResultsScreen> {
 
     var _promptList = promptsByType(type, widget.input, widget.promptsBase);
     final results = await Gpt.getResults(
-        type: type, input: widget.input, prompts: _promptList, gDescPrompts: _promptList);
-
+      context,
+      type: type,
+      input: widget.input,
+      prompts: _promptList,
+      gDescPrompts: _promptList,
+    );
 
     // if (type == ResultCategory.gResults) googleResults = [...googleResults, ...results];
     if (type == ResultCategory.titles) titlesResults = results;
@@ -172,7 +178,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
               // Divider(color: AppColors.greyLight, thickness: 1, height: 0),
 
               // Todo make it works
-              if (desktopMode) buildTextStoreBar(context).appearAll,
+              if (desktopMode) buildTextStoreBar(context).centerLeft.appearAll,
               const SizedBox(height: 10),
 
               buildCardsRow(googleResults),
@@ -315,7 +321,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
                 () => Navigator.push(
                     context, MaterialPageRoute(builder: (context) => const HomeScreen())),
                 radius: 5),
-            ResultsCategoriesList(
+            CategoryDrawerList(
               categories: const [
                 ResultCategory.gResults,
                 ResultCategory.titles,
@@ -341,6 +347,52 @@ class _ResultsScreenState extends State<ResultsScreen> {
               },
             ),
             const Spacer(),
+            //? todo UI Ready But not works yet!
+            Builder(builder: (context) {
+              var color =
+                  isAdvancedSwitchOn ? AppColors.secondaryBlue : AppColors.greyText;
+              return Card(
+                color: Colors.grey[100],
+                elevation: 0,
+                shape: 10.roundedShape,
+                child: ListTile(
+                    onTap: () async {
+                      await showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (BuildContext context) {
+                          return ThreeColumnDialog(
+                            promptsList: context.uniProvider.fullPromptList,
+                            selectedPrompts: context.uniProvider.inUsePromptList,
+                            categories: context.uniProvider.categories,
+                          );
+                        },
+                      );
+                      setState(() {}); // Update uniModel values
+                    },
+                    horizontalTitleGap: 0,
+                    // trailing: Switch(
+                    //   value: isAdvancedSwitchOn,
+                    //   activeColor: AppColors.secondaryBlue,
+                    //   onChanged: (bool value) {
+                    //     isAdvancedSwitchOn = value;
+                    //     setState(() {});
+                    //   },
+                    // ),
+                    leading:
+                        Icons.settings_suggest.icon(color: color, size: 22).pOnly(top: 5),
+                    // title: (isAdvancedSwitchOn ? 'Custom mode' : 'Default mode')
+                    title: 'Advanced mode'
+                        .toString()
+                        .toText(medium: true, color: color, fontSize: 15),
+                    subtitle: 'Try for better results'
+                        .toString()
+                        .toText(color: color, fontSize: 13)
+                    // onTap: () => onTap(category),
+                    ),
+              ).px(10);
+            }),
+
             20.verticalSpace,
           ],
         ));

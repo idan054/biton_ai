@@ -2,6 +2,7 @@
 
 import 'dart:developer';
 
+import 'package:biton_ai/common/extensions/context_ext.dart';
 import 'package:biton_ai/common/extensions/num_ext.dart';
 import 'package:biton_ai/common/extensions/string_ext.dart';
 import 'package:biton_ai/common/models/post/woo_post_model.dart';
@@ -22,12 +23,14 @@ import '../customButton.dart';
 import 'design.dart';
 
 class ThreeColumnDialog extends StatefulWidget {
+  final WooCategoryModel? selectedCategory;
   final List<WooCategoryModel> categories;
   final List<WooPostModel> promptsList;
   final List<WooPostModel> selectedPrompts;
 
   const ThreeColumnDialog(
-      {required this.categories,
+      {this.selectedCategory,
+      required this.categories,
       required this.promptsList,
       required this.selectedPrompts,
       Key? key})
@@ -40,6 +43,7 @@ class ThreeColumnDialog extends StatefulWidget {
 class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
   late List<WooCategoryModel> categories = [];
 
+  bool _isSaveActive = false;
   bool _isLoading = false;
   bool _createMode = false;
   WooCategoryModel? selectedCategory;
@@ -65,7 +69,7 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
   @override
   void initState() {
     categories = widget.categories;
-    selectedCategory = categories.first;
+    selectedCategory = selectedCategory ?? categories.first;
 
     _fullPromptList = widget.promptsList;
     _initWooSelection(); // SET _selectedPromptList & Default
@@ -81,12 +85,13 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
 
     var initPrompt =
         _selectedPromptList.firstWhere((p) => p.category == categories.first.type);
-    onRadioChanged(initPrompt);
+    onRadioChanged(initPrompt, fromCategory: true);
     print('DONE: _initWooSelection() [${_selectedPromptList.length} SELECTED!]');
   }
 
-  void onRadioChanged(WooPostModel newPost) {
+  void onRadioChanged(WooPostModel newPost, {bool fromCategory = false}) {
     print('START: onRadioChanged()');
+    if (!fromCategory) _isSaveActive = true;
 
     _createMode = false;
     sRadioPost = newPost;
@@ -109,12 +114,13 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
   void _onCategoryChanged(WooCategoryModel category) async {
     if (_pageController.hasClients) _pageController.jumpToPage(1);
 
+    _isSaveActive = false;
     _createMode = false;
     selectedCategory = category;
 
     // Set Radio by category
     sRadioPost = _selectedPromptList.firstWhere((p) => p.category == category.type);
-    onRadioChanged(sRadioPost!);
+    onRadioChanged(sRadioPost!, fromCategory: true);
   }
 
   void _handleOnDeletePrompt(WooPostModel post) {
@@ -131,6 +137,7 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
 
   void reset4NewPrompt() {
     if (_pageController.hasClients) _pageController.jumpToPage(2);
+    _isSaveActive = true;
     _createMode = true;
     _isLoading = false;
     sRadioPost = null;
@@ -404,8 +411,9 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                buildCreateButton(_isLoading, createMode: _createMode,
-                    onPressed: () async {
+                buildCreateButton(_isLoading,
+                    createMode: _createMode,
+                    isDisable: !_isSaveActive, onPressed: () async {
                   bool isYourInputIncluded =
                       (_contentEditingController.text.contains('[YOUR_INPUT]') &&
                           (isGoogleCategory
@@ -428,7 +436,11 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
                   }
                 }),
                 const SizedBox(width: 15),
-                buildCloseButton(context),
+                buildCloseButton(context, onPressed: () {
+                  context.uniProvider.updateFullPromptList(_fullPromptList);
+                  context.uniProvider.updateInUsePromptList(_selectedPromptList);
+                  Navigator.pop(context);
+                }),
               ],
             ).bottom,
             const SizedBox(height: 20.0),

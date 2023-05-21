@@ -262,8 +262,7 @@ class _ResultsListState extends State<ResultsList> {
                 style: TextStyle(
                   fontSize: isProductTitle || isGoogleItem ? 19 : 15,
                   fontWeight: isProductTitle || isGoogleItem ? FontWeight.bold : null,
-                  // color: isGoogleItem ? AppColors.blueOld : AppColors.greyText,
-                  color: isGoogleItem ? AppColors.secondaryBlue : AppColors.greyText,
+                  color: isGoogleItem ? AppColors.blueOld : AppColors.greyText,
                 ),
                 minLines: 1,
                 maxLines: isGoogleItem ? 3 : (isShortDesc ? 6 : 999),

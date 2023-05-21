@@ -8,9 +8,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart';
 import 'common/constants.dart';
 import 'dart:html' as html;
 import 'package:hive/hive.dart';
+import 'common/models/uniModel.dart';
 import 'firebase_options.dart';
 import 'screens/homeScreen.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -20,7 +22,18 @@ void main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await Hive.initFlutter();
   userJwt = await setJwtToken();
-  runApp(const MyApp());
+
+
+  runApp(MultiProvider(
+    providers: [
+      ChangeNotifierProvider(create: (_) => UniProvider()),
+      // Provider.value(value: StreamModel().serverClient),
+      // FutureProvider<List<Activity>?>.value(
+      //     value: StreamModel().getFeedActivities(), initialData: const []),
+    ],
+    // builder:(context, child) =>
+    child: const MyApp(),
+  ));
 }
 
 class MyApp extends StatelessWidget {
