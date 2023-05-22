@@ -382,6 +382,7 @@ List<WooPostModel> setDefaultPromptFirst(List<WooPostModel> postList) {
 
 Widget buildUserButton(WooUserModel? currUser) {
   var color = AppColors.greyText.withOpacity(currUser == null ? 0.5 : 1);
+  var style = ''.toText(fontSize: 15, medium: true, color: color).style;
   return SizedBox(
     height: 50,
     child: Row(
@@ -390,11 +391,11 @@ Widget buildUserButton(WooUserModel? currUser) {
       children: [
         Icons.account_circle.icon(color: color, size: 24),
         (currUser?.name ?? 'Your profile')
-            .toText(fontSize: 15, medium: true, color: color)
+            .toText(style: style)
             .pOnly(right: 10, left: 10),
-        ('| ').toText(fontSize: 15, medium: true, color: color).pOnly(right: 10),
+        ('| ').toText(style: style).pOnly(right: 10),
         Icons.offline_bolt.icon(color: color, size: 24).pOnly(right: 10),
-        ('10 Tokens').toText(fontSize: 15, medium: true, color: color).pOnly(right: 10),
+        ('10 Tokens').toText(style: style).pOnly(right: 10),
       ],
     ).px(10).onTap(
         currUser == null

@@ -44,6 +44,7 @@ extension StringX on String {
       {Color color = Colors.black,
       double? fontSize,
       TextAlign? textAlign,
+      TextStyle? style,
       bool medium = false,
       int? maxLines = 2,
       bool bold = false,
@@ -53,6 +54,12 @@ extension StringX on String {
     var txt = this;
     if (autoRemove) txt = replaceAll(', ישראל', '');
 
+    var defaultStyle = TextStyle(
+        color: color,
+        fontWeight: FontWeight.normal,
+        fontSize: fontSize ?? 14,
+        decoration: underline ? TextDecoration.underline : null);
+
     return Text(txt,
         softWrap: softWrap,
         maxLines: maxLines,
@@ -60,28 +67,13 @@ extension StringX on String {
         textDirection: txt.isHebrew ? TextDirection.rtl : TextDirection.ltr,
         overflow: TextOverflow.ellipsis,
         style: GoogleFonts.openSans(
-            textStyle: (bold
-                ? TextStyle(
-                    color: color,
-                    fontWeight: FontWeight.bold,
-                    fontSize: fontSize ?? 14,
-                    decoration: underline ? TextDecoration.underline : null
-                    // height: 1
-                    ) // line spacing
-                : medium
-                    ? TextStyle(
-                        color: color,
-                        fontWeight: FontWeight.w600,
-                        fontSize: fontSize ?? 14,
-                        decoration: underline ? TextDecoration.underline : null
-                        // height: 1
-                        )
-                    : TextStyle(
-                        color: color,
-                        fontSize: fontSize ?? 14,
-                        decoration: underline ? TextDecoration.underline : null
-                        // height: 1
-                        )))); // line spacing}
+          textStyle: style ??
+              (bold
+                  ? defaultStyle.copyWith(fontWeight: FontWeight.bold)
+                  : medium
+                      ? defaultStyle.copyWith(fontWeight: FontWeight.w600)
+                      : defaultStyle),
+        )); // line spacing}
   }
 
   // ExpandableText toTextExpanded( // String text,
