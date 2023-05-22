@@ -120,8 +120,6 @@ class Gpt {
       var bonus = (1 / (prompts.length * 2));
       context.uniProvider
           .updateTextstoreBarLoader(context.uniProvider.textstoreBarLoader + bonus);
-    } else {
-      context.uniProvider.updateTextstoreBarLoader(0.0);
     }
   }
 

@@ -1,6 +1,5 @@
 // ignore_for_file: constant_identifier_names
 
-
 //~ Server Config:
 // POST https://textstore.ai/wp-json/jwt-auth/v1/token
 // BODY { "username": "",  "password": "" }

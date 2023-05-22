@@ -23,6 +23,7 @@ import '../common/models/category/woo_category_model.dart';
 import '../common/models/post/woo_post_model.dart';
 import '../common/models/prompt/result_model.dart';
 import '../common/models/user/woo_user_model.dart';
+import '../common/services/createProduct_service.dart';
 import '../common/services/gpt_service.dart';
 import '../widgets/threeColumnDialog/actions.dart';
 import '../widgets/threeColumnDialog/threeColumnDialog.dart';
@@ -41,7 +42,6 @@ class _HomeScreenState extends State<HomeScreen> {
   List<WooPostModel> _promptsList = [];
   List<WooPostModel> _inUsePrompts = [];
   WooUserModel? currUser;
-  String input = '';
 
   @override
   void initState() {
@@ -124,229 +124,91 @@ class _HomeScreenState extends State<HomeScreen> {
     _isLoading = _isLoading && errorMessage == null;
 
     return Scaffold(
-      backgroundColor: AppColors.lightPrimaryBg,
-      body: Column(
-        // mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          buildUserButton(currUser),
-          const SizedBox(height: 230),
+        backgroundColor: AppColors.lightPrimaryBg,
+        body: Column(
+          // mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            buildUserButton(currUser),
+            const SizedBox(height: 230),
 
-          textStoreAi.toText(fontSize: 50, bold: true),
-          const SizedBox(height: 10),
-          // 'Sell more by Ai Text for your store'.toText(fontSize: 20).px(25),
-          // 'Fast | Create product | SEO'.toText(fontSize: 20).px(25),
-          'Best Ai text maker for your store.'.toText(fontSize: 20).px(25),
-          const SizedBox(height: 20),
-          //~ Search TextField
-          textStoreBar(
-            context,
-            isLoading: _isLoading,
-            searchController: searchController,
-            suffixIcon: Stack(
-              // Use Stack to overlay prefixIcon and CircularProgressIndicator
-              alignment: Alignment.center,
-              children: [
-                if (_isLoading)
-                  CurvedCircularProgressIndicator(
-                    value: context.listenUniProvider.textstoreBarLoader,
-                    strokeWidth: 4,
-                    color: AppColors.primaryShiny,
-                    backgroundColor: AppColors.greyLight,
-                    animationDuration: 1500.milliseconds,
-                  ).sizedBox(30, 30).px(10).py(5),
-                if (!_isLoading)
-                  // Icons.search_rounded.icon(color: Colors.blueAccent, size: 30)
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icons.insights.icon(
-                          size: 30,
-                          color: _inUsePrompts.isEmpty
-                              ? AppColors.primaryShiny.withOpacity(0.40)
-                              : AppColors.primaryShiny),
-
-                      // 'Create'.toText(
-                      //     color: _inUsePrompts.isEmpty
-                      //         ? AppColors.primaryShiny.withOpacity(0.40)
-                      //         : AppColors.primaryShiny,
-                      //     medium: true,
-                      //     fontSize: 14)
-                    ],
-                  )
-                      .px(10)
-                      .py(10)
-                      // .py(15)
-                      .onTap(
-                          _inUsePrompts.isEmpty
-                              ? null
-                              : () async => _handleCreateProductButton(),
-                          tapColor: AppColors.primaryShiny.withOpacity(0.1)),
-              ],
-            ),
-            prefixIcon: Icons.tune
-                .icon(
-                    color: _categories.isEmpty || _promptsList.isEmpty
-                        ? AppColors.greyText.withOpacity(0.30)
-                        : AppColors.greyText,
-                    size: 25)
-                .px(20)
-                .py(12)
-                .onTap((_categories.isEmpty || _promptsList.isEmpty)
-                    ? null
-                    : () async {
-                        await showDialog(
-                          context: context,
-                          barrierDismissible: false,
-                          builder: (BuildContext context) {
-                            return ThreeColumnDialog(
-                              promptsList: _promptsList,
-                              selectedPrompts: _inUsePrompts,
-                              categories: _categories,
-                            );
-                          },
-                        );
-                        setState(() {}); // Update uniModel values
-                      }),
-          ),
-
-          if (errorMessage != null)
-            // 'This can take up to 15 seconds...'
-            SizedBox(
-              width: 800,
-              child: errorMessage
-                  .toString()
-                  .toText(color: AppColors.greyText, fontSize: 16, maxLines: 5)
-                  .py(10)
-                  .px(30)
-                  .appearAll,
+            textStoreAi.toText(fontSize: 50, bold: true),
+            const SizedBox(height: 10),
+            // 'Sell more by Ai Text for your store'.toText(fontSize: 20).px(25),
+            // 'Fast | Create product | SEO'.toText(fontSize: 20).px(25),
+            'Best Ai text maker for your store.'.toText(fontSize: 20).px(25),
+            const SizedBox(height: 20),
+            //~ Search TextField
+            textStoreBar(
+              context,
+              isLoading: _isLoading,
+              searchController: searchController,
+              onStart: _inUsePrompts.isEmpty ? null : () async => _handleOnSubmit(),
+              onSubmitted:
+              _inUsePrompts.isEmpty ? null : (val) async => _handleOnSubmit(),
+              prefixIcon: Icons.settings_suggest
+                  .icon(
+                      color: _categories.isEmpty || _promptsList.isEmpty
+                          ? AppColors.greyText.withOpacity(0.30)
+                          : AppColors.greyText,
+                      size: 25)
+                  .px(20)
+                  .py(12)
+                  .onTap((_categories.isEmpty || _promptsList.isEmpty)
+                      ? null
+                      : () async {
+                          await showDialog(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (BuildContext context) {
+                              return ThreeColumnDialog(
+                                promptsList: _promptsList,
+                                selectedPrompts: _inUsePrompts,
+                                categories: _categories,
+                              );
+                            },
+                          );
+                          setState(() {}); // Update uniModel values
+                        }),
             ),
 
-          if (_isLoading)
-            // 'This can take up to 15 seconds...'
-            SizedBox(
-              width: 800,
-              child: '$loadingText'
-                  .toText(color: AppColors.greyText, fontSize: 18)
-                  .py(5)
-                  .px(30)
-                  .appearAll,
-            ),
-          const Spacer(),
-          appVersion.toText(fontSize: 12).pad(10).centerLeft,
-        ],
-      ).center,
-    );
+            if (errorMessage != null)
+              // 'This can take up to 15 seconds...'
+              SizedBox(
+                width: 800,
+                child: errorMessage
+                    .toString()
+                    .toText(color: AppColors.greyText, fontSize: 16, maxLines: 5)
+                    .py(10)
+                    .px(30)
+                    .appearAll,
+              ),
+
+            if (_isLoading)
+              // 'This can take up to 15 seconds...'
+              SizedBox(
+                width: 800,
+                child: '$loadingText'
+                    .toText(color: AppColors.greyText, fontSize: 18)
+                    .py(5)
+                    .px(30)
+                    .appearAll,
+              ),
+            const Spacer(),
+            appVersion.toText(fontSize: 12).pad(10).centerLeft,
+          ],
+        )
+        // .center,
+        );
   }
 
-  void _handleCreateProductButton() async {
-    var wordsCounter = searchController.text.trim().split(' ').length;
-    if (wordsCounter <= 3) {
-      errorMessage = '''For great results, we need details like:
-- iPhone 14 Pro 128GB Black
-- Men's Solid Polo blue Shirt Short with Collar Zipper
-      ''';
-      setState(() {});
-      return;
-    }
-
-    input = searchController.text;
-    errorMessage = null;
+  void _handleOnSubmit() async {
     _isLoading = true;
-    startLoader(input);
     setState(() {});
-    List<ResultModel> results = [];
-
-    // Set prompt X3
-    var gPrompt = _inUsePrompts.firstWhere((p) => p.category == ResultCategory.gResults);
-    var content = gPrompt.content.replaceAll('[YOUR_INPUT]', input);
-    var subContent = (gPrompt.subContent ?? '').replaceAll('[YOUR_INPUT]', input);
-    var titlePrompts = <String>[];
-    var gDescPrompts = <String>[];
-    for (int i = 0; i < 3; i++) {
-      titlePrompts.add(content);
-      gDescPrompts.add(subContent);
-    }
-    if (kDebugMode && appConfig_fastHomeScreen) {
-      results = const [
-        // ResultModel(
-        //   title: longDescSample,
-        //   category: ResultCategory.longDesc,
-        // ),
-        ResultModel(
-            title: 'C A great google result title will appear here',
-            desc:
-                'C A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
-            category: ResultCategory.gResults),
-        ResultModel(
-            title: 'C A great google result title will appear here',
-            desc:
-                'C A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
-            category: ResultCategory.gResults),
-        ResultModel(
-            title: 'C A great google result title will appear here',
-            desc:
-                'C A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
-            category: ResultCategory.gResults),
-      ];
-    } else {
-      results = await Gpt.getResults(
-        context,
-        type: ResultCategory.gResults,
-        input: searchController.text,
-        prompts: titlePrompts,
-        gDescPrompts: gDescPrompts,
-      ).catchError((err) {
-        printRed('My ERROR: $err');
-        print('err.runtimeType ${err.runtimeType}');
-        // errorMessage = err.toString();
-        errorMessage = 'Something went wrong. Please try again';
-        setState(() {});
-      });
-    }
-    _navigateToSearchResults(context, input, results);
-  }
-
-  void _navigateToSearchResults(
-    BuildContext context,
-    String input,
-    List<ResultModel> results,
-  ) {
+    startLoader(searchController.text);
+    errorMessage = await createProductAction(context, searchController);
     _isLoading = false;
     setState(() {});
-
-    // Update user input in the prompt
-    _inUsePrompts = _inUsePrompts
-        .map((pBase) =>
-            pBase.copyWith(content: pBase.content.replaceAll('[YOUR_INPUT]', input)))
-        .toList();
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-          builder: (context) => ResultsScreen(input, results, _inUsePrompts)),
-    );
   }
-}
-
-List<ResultModel> setResultsFromGpt(Map<String, dynamic> resp, ResultCategory category) {
-  List<ResultModel> items = [];
-
-  // var usage = resp['usage'];
-  var results =
-      resp['choices'].map((item) => item['message']['content']).toList(growable: true);
-  print('results $results');
-  for (var result in [...results]) {
-    var item = ResultModel(title: result, category: category);
-    items.add(item);
-  }
-  return items;
-}
-
-Future<List<WooPostModel>> getAllUserPrompts() async {
-  var postList =
-      await WooApi.getPosts(userId: debugUid.toString(), catIds: promptsCategoryIds);
-  postList = setDefaultPromptFirst(postList);
-  return postList;
 }
 
 List<WooPostModel> setSelectedList(List<WooPostModel> _fullPromptList) {
@@ -411,11 +273,14 @@ Widget textStoreBar(
   BuildContext context, {
   required bool isLoading,
   required TextEditingController searchController,
-  required Widget suffixIcon,
   required Widget prefixIcon,
+  required ValueChanged<String>? onSubmitted,
+  required GestureTapCallback? onStart,
 }) {
+  var _inUsePrompts = context.uniProvider.inUsePromptList;
   var hLoaderRatio = 1.2;
   var width = 800.0;
+
   return Hero(
     tag: 'buildMainBar',
     child: Stack(
@@ -437,6 +302,7 @@ Widget textStoreBar(
             borderRadius: BorderRadius.circular(99),
             child: TextField(
               controller: searchController,
+              onSubmitted: onSubmitted,
               decoration: InputDecoration(
                 filled: true,
                 fillColor: AppColors.white,
@@ -451,8 +317,46 @@ Widget textStoreBar(
                 ),
                 hintText: 'Enter full product name',
                 hintStyle: const TextStyle(color: Colors.grey),
-                suffixIcon: suffixIcon,
+                // suffixIcon: suffixIcon,
                 prefixIcon: prefixIcon,
+                suffixIcon: Stack(
+                  // Use Stack to overlay prefixIcon and CircularProgressIndicator
+                  alignment: Alignment.center,
+                  children: [
+                    if (isLoading)
+                      CurvedCircularProgressIndicator(
+                        value: context.listenUniProvider.textstoreBarLoader,
+                        strokeWidth: 4,
+                        color: AppColors.primaryShiny,
+                        backgroundColor: AppColors.greyLight,
+                        animationDuration: 1500.milliseconds,
+                      ).sizedBox(30, 30).px(10).py(5),
+                    if (!isLoading)
+                      // Icons.search_rounded.icon(color: Colors.blueAccent, size: 30)
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icons.insights.icon(
+                              size: 30,
+                              color: _inUsePrompts.isEmpty
+                                  ? AppColors.primaryShiny.withOpacity(0.40)
+                                  : AppColors.primaryShiny),
+
+                          // 'Create'.toText(
+                          //     color: _inUsePrompts.isEmpty
+                          //         ? AppColors.primaryShiny.withOpacity(0.40)
+                          //         : AppColors.primaryShiny,
+                          //     medium: true,
+                          //     fontSize: 14)
+                        ],
+                      )
+                          .px(15)
+                          .py(10)
+                          // .py(15)
+                          .onTap(onStart,
+                              tapColor: AppColors.primaryShiny.withOpacity(0.1)),
+                  ],
+                ),
               ),
             ),
           ).px(15),

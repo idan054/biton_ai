@@ -15,6 +15,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../common/constants.dart';
 import '../common/models/prompt/result_model.dart';
+import '../common/services/color_printer.dart';
+import '../common/services/createProduct_service.dart';
 import '../common/services/gpt_service.dart';
 import '../common/themes/app_colors.dart';
 import '../widgets/customButton.dart';
@@ -53,6 +55,7 @@ class ResultsScreen extends StatefulWidget {
 
 class _ResultsScreenState extends State<ResultsScreen> {
   bool isAdvancedSwitchOn = false;
+  bool _isLoading = false;
 
   var inputController = TextEditingController();
   String exampleUrl = '';
@@ -147,7 +150,6 @@ class _ResultsScreenState extends State<ResultsScreen> {
     var sCategoryItems =
         selectedResults.map((item) => item.category).toList(growable: true);
     double width = MediaQuery.of(context).size.width;
-    print('widthhh ${width}');
     print('width > 600 ${width > 600}');
 
     bool desktopMode = width > 850;
@@ -202,17 +204,42 @@ class _ResultsScreenState extends State<ResultsScreen> {
   }
 
   Widget buildTextStoreBar(BuildContext context) {
-    return textStoreBar(context,
-        isLoading: false,
-        searchController: inputController,
-        suffixIcon: 'Create'
-            .toText(
-                color: AppColors.primaryShiny.withOpacity(0.40),
-                medium: true,
-                fontSize: 14)
-            .px(20)
-            .py(15),
-        prefixIcon: Icons.tune.icon(color: AppColors.greyText.withOpacity(0.30)));
+    var uniModel = context.listenUniProvider;
+    return textStoreBar(
+      context,
+      isLoading: _isLoading,
+      searchController: inputController,
+      onStart: () async => _handleOnSubmit(),
+      onSubmitted: (val) async => _handleOnSubmit(),
+      prefixIcon: Icons.tune
+          .icon(color: AppColors.greyText, size: 25)
+          .px(20)
+          .py(12)
+          .onTap(() async {
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return ThreeColumnDialog(
+              promptsList: uniModel.fullPromptList,
+              selectedPrompts: uniModel.inUsePromptList,
+              categories: uniModel.categories,
+            );
+          },
+        );
+        setState(() {}); // Update uniModel values
+      }),
+    );
+  }
+
+  void _handleOnSubmit() async {
+    _isLoading = true;
+    setState(() {});
+    // startLoader(inputController.text);
+    // errorMessage =
+    await createProductAction(context, inputController);
+    _isLoading = false;
+    setState(() {});
   }
 
   // void _removeIfAlreadySelected(ResultModel result) {
