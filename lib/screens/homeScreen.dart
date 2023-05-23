@@ -144,7 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
               searchController: searchController,
               onStart: _inUsePrompts.isEmpty ? null : () async => _handleOnSubmit(),
               onSubmitted:
-              _inUsePrompts.isEmpty ? null : (val) async => _handleOnSubmit(),
+                  _inUsePrompts.isEmpty ? null : (val) async => _handleOnSubmit(),
               prefixIcon: Icons.settings_suggest
                   .icon(
                       color: _categories.isEmpty || _promptsList.isEmpty
@@ -202,10 +202,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _handleOnSubmit() async {
+    errorMessage = null;
     _isLoading = true;
     setState(() {});
     startLoader(searchController.text);
-    errorMessage = await createProductAction(context, searchController);
+    await createProductAction(context, searchController).catchError((err) {
+      printRed('My ERROR: $err');
+      errorMessage = err.toString().replaceAll('Exception: ', '');
+    });
     _isLoading = false;
     setState(() {});
   }
@@ -290,7 +294,10 @@ Widget textStoreBar(
             width: width - 14,
             height: 50 + (10 * hLoaderRatio),
             child: const LinearProgressIndicator(
+              // value: context.listenUniProvider.textstoreBarLoader,
+              // color: AppColors.primaryShiny,
               color: AppColors.lightShinyPrimary,
+
               // color: AppColors.primaryShiny.withOpacity(0.20),
               backgroundColor: Colors.transparent,
             ),
@@ -326,8 +333,8 @@ Widget textStoreBar(
                     if (isLoading)
                       CurvedCircularProgressIndicator(
                         value: context.listenUniProvider.textstoreBarLoader,
-                        strokeWidth: 4,
                         color: AppColors.primaryShiny,
+                        strokeWidth: 8,
                         backgroundColor: AppColors.greyLight,
                         animationDuration: 1500.milliseconds,
                       ).sizedBox(30, 30).px(10).py(5),

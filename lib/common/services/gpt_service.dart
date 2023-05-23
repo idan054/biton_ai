@@ -67,6 +67,7 @@ class Gpt {
   }) async {
     printWhite('START: _multiCallChatGPT()');
 
+
     var type = '${reqType?.name.toUpperCase()}';
     if (gDescription) type += ' - Descriptions';
 
@@ -93,7 +94,7 @@ class Gpt {
           print('($type) $counter gptModel.tokenUsage ${gptResp.tokenUsage}');
           gptResponses.add(gptResp);
         } else {
-          throw Exception('Failed to call API');
+          throw Exception('Something went wrong. Please try again');
         }
       }
 
@@ -110,7 +111,7 @@ class Gpt {
     } catch (e, s) {
       print('e $e');
       // USAGE: _multiCallChatGPT.catchError((error) {)
-      throw Exception('Failed to call API');
+      throw Exception('Something went wrong. Please try again');
     }
   }
 

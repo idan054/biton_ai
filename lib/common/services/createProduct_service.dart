@@ -31,17 +31,13 @@ Future<String?> createProductAction(
 ) async {
   var _inUsePrompts = context.uniProvider.inUsePromptList;
   String input = searchController.text;
-  String? errorMessage;
-  _checkWordsLimit(input);
+  String? errMessage = _checkWordsLimit(input);
+  if (errMessage != null) throw Exception(errMessage);
 
-  final results = await _getGptResult(context, input).catchError((err) {
-    // errorMessage = err.toString();
-    printRed('My ERROR: $err');
-    errorMessage = 'Something went wrong. Please try again';
-  });
+  final results = await _getGptResult(context, input);
 
   _navigateToSearchResults(context, input, results);
-  return errorMessage;
+  return errMessage;
 }
 
 String? _checkWordsLimit(String text) {
@@ -126,23 +122,24 @@ Future<List<WooPostModel>> getAllUserPrompts() async {
 }
 
 const dummyDataList = [
+  ResultModel(
+    title: longDescSample,
+    category: ResultCategory.longDesc,
+  ),
+
   // ResultModel(
-  //   title: longDescSample,
-  //   category: ResultCategory.longDesc,
-  // ),
-  ResultModel(
-      title: 'C A great google result title will appear here',
-      desc:
-          'C A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
-      category: ResultCategory.gResults),
-  ResultModel(
-      title: 'C A great google result title will appear here',
-      desc:
-          'C A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
-      category: ResultCategory.gResults),
-  ResultModel(
-      title: 'C A great google result title will appear here',
-      desc:
-          'C A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
-      category: ResultCategory.gResults),
+  //     title: 'C A great google result title will appear here',
+  //     desc:
+  //         'C A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
+  //     category: ResultCategory.gResults),
+  // ResultModel(
+  //     title: 'C A great google result title will appear here',
+  //     desc:
+  //         'C A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
+  //     category: ResultCategory.gResults),
+  // ResultModel(
+  //     title: 'C A great google result title will appear here',
+  //     desc:
+  //         'C A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence. A great google result desc will appear here, the average length is about 2 to 3 lines, that the reason i duplicate this sentence.',
+  //     category: ResultCategory.gResults),
 ];

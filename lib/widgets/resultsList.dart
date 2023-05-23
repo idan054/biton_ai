@@ -219,7 +219,7 @@ class _ResultsListState extends State<ResultsList> {
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12.5),
           side: isSelected && !isLongDesc && appConfig_highlightSelection
-              ? const BorderSide(color: AppColors.primaryShiny, width: 3.0)
+              ? const BorderSide(color: AppColors.primaryShiny, width: 2.0)
               : BorderSide.none),
       child:
           // region LisTile

@@ -1,5 +1,7 @@
 // ignore_for_file: no_leading_underscores_for_local_identifiers, curly_braces_in_flow_control_structures
 
+import 'dart:async';
+
 import 'package:biton_ai/common/extensions/context_ext.dart';
 import 'package:biton_ai/common/extensions/num_ext.dart';
 import 'package:biton_ai/common/extensions/string_ext.dart';
@@ -9,6 +11,7 @@ import 'package:biton_ai/screens/homeScreen.dart';
 import 'package:biton_ai/widgets/htmlEditorViewerWidget.dart';
 import 'package:biton_ai/widgets/resultsCategoriesList.dart';
 import 'package:collection/collection.dart';
+import 'package:curved_progress_bar/curved_progress_bar.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -53,9 +56,10 @@ class ResultsScreen extends StatefulWidget {
   State<ResultsScreen> createState() => _ResultsScreenState();
 }
 
-class _ResultsScreenState extends State<ResultsScreen> {
+class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateMixin {
   bool isAdvancedSwitchOn = false;
   bool _isLoading = false;
+  String? errorMessage;
 
   var inputController = TextEditingController();
   String exampleUrl = '';
@@ -66,6 +70,8 @@ class _ResultsScreenState extends State<ResultsScreen> {
 
   List<ResultModel> selectedResults = []; // Top List (Remove)
   // List<ResultModel> currentResults = []; // Bottom List (Add)
+
+  AnimationController? _animationController;
 
   @override
   void initState() {
@@ -78,6 +84,11 @@ class _ResultsScreenState extends State<ResultsScreen> {
 
     exampleUrl = _getUrl(widget.input);
     inputController.text = widget.input;
+
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 10),
+    );
     super.initState();
   }
 
@@ -92,7 +103,11 @@ class _ResultsScreenState extends State<ResultsScreen> {
       input: widget.input,
       prompts: _promptList,
       gDescPrompts: _promptList,
-    );
+    ).catchError((err) {
+      printRed('My ERROR: $err');
+      errorMessage = err.toString().replaceAll('Exception: ', '');
+      setState(() {});
+    });
 
     // if (type == ResultCategory.gResults) googleResults = [...googleResults, ...results];
     if (type == ResultCategory.titles) titlesResults = results;
@@ -104,23 +119,54 @@ class _ResultsScreenState extends State<ResultsScreen> {
   ResultModel? lastSelectedResult; // For restore when re-pick
   ResultCategory drawerCategory = ResultCategory.gResults;
 
+  Timer? _timer; // 1 time run.
+  double _longDescLoader = 0.0;
+
   Widget buildCardsRow(List<ResultModel> currList) {
-    if (currList.isEmpty) {
-      return Column(
-        children: [
-          if (drawerCategory == ResultCategory.longDesc)
-            'Finish writing product article... (it can take up to 60 seconds)'
-                .toText(color: AppColors.greyText, fontSize: 18)
-                .py(10)
-                .px(30)
-                .centerLeft
-                .appearAll,
-          const CircularProgressIndicator(
-            strokeWidth: 7,
-            color: AppColors.primaryShiny,
-          ).pOnly(top: 100).center,
-        ],
-      );
+    if (currList.isEmpty && errorMessage == null) {
+      return StatefulBuilder(builder: (context, stfBuilder) {
+        // var ratio = 15;
+        // 1 time run.
+
+        // _timer ??= Timer.periodic((1000 / ratio).milliseconds, (timer) {
+        //   if (mounted) {
+        //     _longDescLoader = (_longDescLoader + (1 / (60 * ratio)));
+        //     stfBuilder(() {});
+        //   }
+        // });
+
+        // if (drawerCategory == ResultCategory.longDesc) {
+        //   print('START: Future.delayed(1.sec()');
+        //   Future.delayed(1.seconds).then((_) => _animationController!.forward());
+        //   print('_animationController ${_animationController}');
+        // }
+
+        return Column(
+          children: [
+            if (drawerCategory == ResultCategory.longDesc) ...[
+              r'Finish writing sales article... (it can take up to 60 seconds)'
+                  .toText(color: AppColors.greyText, fontSize: 18, medium: true)
+                  .py(10)
+                  .px(30)
+                  .centerLeft
+                  .appearAll,
+
+              CurvedLinearProgressIndicator(
+                // value: _longDescLoader,
+                // value: _animationController!.value, // use the controller's value
+                strokeWidth: 10,
+                color: AppColors.primaryShiny,
+                backgroundColor: AppColors.greyLight,
+              ).sizedBox(500, null).pOnly(top: 10).px(35).centerLeft,
+            ] else ...[
+              const CircularProgressIndicator(
+                strokeWidth: 7,
+                color: AppColors.primaryShiny,
+              ).pOnly(top: 100).center,
+            ]
+          ],
+        );
+      });
     }
 
     if (currList.first.category == ResultCategory.longDesc) {
@@ -205,39 +251,54 @@ class _ResultsScreenState extends State<ResultsScreen> {
 
   Widget buildTextStoreBar(BuildContext context) {
     var uniModel = context.listenUniProvider;
-    return textStoreBar(
-      context,
-      isLoading: _isLoading,
-      searchController: inputController,
-      onStart: () async => _handleOnSubmit(),
-      onSubmitted: (val) async => _handleOnSubmit(),
-      prefixIcon: Icons.tune
-          .icon(color: AppColors.greyText, size: 25)
-          .px(20)
-          .py(12)
-          .onTap(() async {
-        await showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (BuildContext context) {
-            return ThreeColumnDialog(
-              promptsList: uniModel.fullPromptList,
-              selectedPrompts: uniModel.inUsePromptList,
-              categories: uniModel.categories,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        textStoreBar(
+          context,
+          isLoading: _isLoading,
+          searchController: inputController,
+          onStart: () async => _handleOnSubmit(),
+          onSubmitted: (val) async => _handleOnSubmit(),
+          prefixIcon: Icons.tune
+              .icon(color: AppColors.greyText, size: 25)
+              .px(20)
+              .py(12)
+              .onTap(() async {
+            await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) {
+                return ThreeColumnDialog(
+                  promptsList: uniModel.fullPromptList,
+                  selectedPrompts: uniModel.inUsePromptList,
+                  categories: uniModel.categories,
+                );
+              },
             );
-          },
-        );
-        setState(() {}); // Update uniModel values
-      }),
+            setState(() {}); // Update uniModel values
+          }),
+        ),
+        if (errorMessage != null)
+          errorMessage
+              .toString()
+              .toText(color: AppColors.errRed, fontSize: 16, maxLines: 5)
+              .py(5)
+              .px(20)
+      ],
     );
   }
 
   void _handleOnSubmit() async {
+    errorMessage = null;
     _isLoading = true;
     setState(() {});
     // startLoader(inputController.text);
-    // errorMessage =
-    await createProductAction(context, inputController);
+    await createProductAction(context, inputController).catchError((err) {
+      printRed('My ERROR: $err');
+      errorMessage = err.toString().replaceAll('Exception: ', '');
+    });
     _isLoading = false;
     setState(() {});
   }

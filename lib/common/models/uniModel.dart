@@ -8,6 +8,7 @@ class UniProvider with ChangeNotifier {
   List<WooPostModel> fullPromptList = [];
   List<WooPostModel> inUsePromptList = [];
 
+
   void updateTextstoreBarLoader(double data, {bool notify = true}) {
     textstoreBarLoader = data;
     if (notify) notifyListeners();
