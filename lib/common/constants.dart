@@ -5,8 +5,11 @@
 // BODY { "username": "",  "password": "" }
 import 'package:flutter/foundation.dart';
 
+// POST https://textstore.ai/wp-json/jwt-auth/v1/token
+// BODY { "username": "",  "password": "" }
 const debugJwt =
-    'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3d3dy50ZXh0c3RvcmUuYWkiLCJpYXQiOjE2ODQyMjk0NTksIm5iZiI6MTY4NDIyOTQ1OSwiZXhwIjoxNjg0ODM0MjU5LCJkYXRhIjp7InVzZXIiOnsiaWQiOiIxIn19fQ.qJln-UdYiO6GvdBXfCPB0K7CqUioaVM2Z3VyxNxu01w';
+    'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3d3dy50ZXh0c3RvcmUuYWkiLCJpYXQiOjE2ODQ4NDMxMzEsIm5iZiI6MTY4NDg0MzEzMSwiZXhwIjoxNjg1NDQ3OTMxLCJkYXRhIjp7InVzZXIiOnsiaWQiOiIxIn19fQ.vdu3oHEDRPwuN7TUswG0q2f0WwTS86Y5FJlgcHHCU2k';
+
 // My Working Wordpress php request:  https://gist.github.com/idan054/a02143ad92cf65ce090f8dfe697c6419
 const appCategoryId = 27; // only subCategories of it will appear
 const baseUrl = 'https://textstore.ai/wp-json';

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:biton_ai/common/constants.dart';
 import 'package:biton_ai/common/services/color_printer.dart';
+import 'package:biton_ai/common/services/handle_exceptions.dart';
 import '../../screens/wordpress/auth_screen.dart' as click;
 import 'package:biton_ai/common/models/post/woo_post_model.dart';
 import 'package:flutter/material.dart';
@@ -21,7 +22,9 @@ class WooApi {
       var categories = jsonList.map((json) => WooCategoryModel.fromJson(json)).toList();
       return categories;
     } else {
-      throw Exception('Failed to get categories');
+      printRed('response.body ${response.body}');
+      var exception = handleExceptions(response);
+      throw Exception(exception ?? 'Failed to delete categories, please try again');
     }
   }
 
@@ -40,7 +43,6 @@ class WooApi {
         catIds.toString().replaceAll(' ', '').replaceAll('[', '').replaceAll(']', '');
     url += '&categories=$catIdsEncoded';
 
-
     final response = await http.get(Uri.parse(url));
     print('WooApi.getPosts() statusCode: ${response.statusCode}');
 
@@ -50,7 +52,9 @@ class WooApi {
       // for (var p in posts) print('${p.id} ${p.title} ${p.isDefault}');
       return posts;
     } else {
-      throw Exception('Failed to create post');
+      printRed('response.body ${response.body}');
+      var exception = handleExceptions(response);
+      throw Exception(exception ?? 'Failed to get prompts, please try again');
     }
   }
 
@@ -93,7 +97,9 @@ class WooApi {
           : printRed('[REMOVE ${post.id}] ${post.title}');
       return post;
     } else {
-      throw Exception('Failed to create post');
+      printRed('response.body ${response.body}');
+      var exception = handleExceptions(response);
+      throw Exception(exception ?? 'Failed to create prompt, Please try again');
     }
   }
 
@@ -111,7 +117,9 @@ class WooApi {
 
     print('WooApi.deletePost() statusCode: ${response.statusCode}');
     if (response.statusCode != 204) {
-      throw Exception('Failed to delete post');
+      printRed('response.body ${response.body}');
+      var exception = handleExceptions(response);
+      throw Exception(exception ?? 'Failed to delete prompt, please try again');
     }
   }
 
@@ -132,7 +140,9 @@ class WooApi {
       return user;
       // setState(() {});
     } else {
-      throw Exception('Failed to get user');
+      printRed('response.body ${response.body}');
+      var exception = handleExceptions(response);
+      throw Exception(exception ?? 'Failed to get user, please try again');
     }
   }
 

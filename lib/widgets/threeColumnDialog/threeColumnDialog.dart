@@ -18,6 +18,7 @@ import '../../common/constants.dart';
 import '../../common/extensions/widget_ext.dart';
 import '../../common/models/category/woo_category_model.dart';
 import '../../common/models/prompt/result_model.dart';
+import '../../common/services/color_printer.dart';
 import '../../screens/homeScreen.dart';
 import '../customButton.dart';
 import 'design.dart';
@@ -148,6 +149,8 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
     _titleFocusNode.requestFocus();
     setState(() {});
   }
+
+  String? errMessage;
 
   @override
   Widget build(BuildContext context) {
@@ -389,8 +392,9 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
                             ? _googleDescEditingController.text.contains('[YOUR_INPUT]')
                             : true));
 
-                var color =
-                    isYourInputIncluded ? AppColors.greyUnavailable80 : AppColors.errRed;
+                var color = !isYourInputIncluded || errMessage != null
+                    ? AppColors.errRed
+                    : AppColors.greyUnavailable80;
 
                 // Hide when edit prompts if no .errRed
                 if (isYourInputIncluded && !_createMode) return const Offstage();
@@ -398,9 +402,12 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
                 return Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icons.tips_and_updates.icon(color: color).pOnly(right: 5),
+                    (errMessage != null ? Icons.warning : Icons.tips_and_updates)
+                        .icon(color: color)
+                        .pOnly(right: 5),
+
                     // style: TextStyle(color: color, fontSize: 14),
-                    'Use [YOUR_INPUT]  to make the prompt flexible'
+                    (errMessage ?? 'Use [YOUR_INPUT]  to make the prompt flexible')
                         .toText(color: color)
                         .expanded()
                   ],
@@ -475,7 +482,12 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
         newPost,
         postId: _createMode ? null : sRadioPost!.id,
         isSelected: true,
-      );
+      ).catchError((err) {
+        printRed('My ERROR: $err');
+        _isLoading = false;
+        errMessage = err.toString().replaceAll('Exception: ', '');
+        setState(() {});
+      });
 
       onRadioChanged(newPost);
       _fullPromptList = setDefaultPromptFirst(_fullPromptList);

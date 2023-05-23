@@ -42,6 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<WooPostModel> _promptsList = [];
   List<WooPostModel> _inUsePrompts = [];
   WooUserModel? currUser;
+  String? errorMessage;
 
   @override
   void initState() {
@@ -54,7 +55,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void getUser() async {
     if (currUser == null) {
-      currUser = await WooApi.getUserByToken(userJwt);
+      currUser = await WooApi.getUserByToken(userJwt).catchError((err) {
+        printRed('My ERROR: $err');
+        errorMessage = err.toString().replaceAll('Exception: ', '');
+        setState(() {});
+      });
       setState(() {});
     }
   }
@@ -87,7 +92,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Timer? _timer; // 1 time run.
   String? loadingText;
-  String? errorMessage;
 
   int loadingIndex = 0;
 
@@ -142,9 +146,12 @@ class _HomeScreenState extends State<HomeScreen> {
               context,
               isLoading: _isLoading,
               searchController: searchController,
-              onStart: _inUsePrompts.isEmpty ? null : () async => _handleOnSubmit(),
-              onSubmitted:
-                  _inUsePrompts.isEmpty ? null : (val) async => _handleOnSubmit(),
+              onStart: _inUsePrompts.isEmpty || currUser == null
+                  ? null
+                  : () async => _handleOnSubmit(),
+              onSubmitted: _inUsePrompts.isEmpty || currUser == null
+                  ? null
+                  : (val) async => _handleOnSubmit(),
               prefixIcon: Icons.settings_suggest
                   .icon(
                       color: _categories.isEmpty || _promptsList.isEmpty
@@ -177,7 +184,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 width: 800,
                 child: errorMessage
                     .toString()
-                    .toText(color: AppColors.greyText, fontSize: 16, maxLines: 5)
+                    .toText(
+                        color: (errorMessage != null &&
+                                errorMessage!.contains('we need details'))
+                            ? AppColors.greyText
+                            : AppColors.errRed,
+                        fontSize: 16,
+                        maxLines: 5)
                     .py(10)
                     .px(30)
                     .appearAll,
@@ -263,13 +276,9 @@ Widget buildUserButton(WooUserModel? currUser) {
         Icons.offline_bolt.icon(color: color, size: 24).pOnly(right: 10),
         ('10 Tokens').toText(style: style).pOnly(right: 10),
       ],
-    ).px(10).onTap(
-        currUser == null
-            ? null
-            : () {
-                window.open('https://www.textstore.ai/my-account/', '_blank');
-              },
-        radius: 5),
+    ).px(10).onTap(() {
+      window.open('https://www.textstore.ai/my-account/', '_blank');
+    }, radius: 5),
   ).appearOpacity.centerLeft;
 }
 
