@@ -76,7 +76,7 @@ ResultCategory getCategory(List<int> catIds) {
 }
 
 String? fetchContentFromJson(String content, bool subContent) {
-  var googleDesc = ' googleDesc=';
+  var googleDesc = 'googleDesc=';
   if (content.contains(googleDesc)) {
     return subContent
         ? content.split(googleDesc).last.replaceAll(googleDesc, '')

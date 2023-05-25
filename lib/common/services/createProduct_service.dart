@@ -73,7 +73,7 @@ void _navigateToSearchResults(
 
 Future<List<ResultModel>> _getGptResult(BuildContext context, String input) async {
   var _inUsePrompts = context.uniProvider.inUsePromptList;
-  print('_inUsePrompts ${_inUsePrompts}');
+  // print('_inUsePrompts ${_inUsePrompts}');
   List<ResultModel> results = [];
 
   // Set prompt X3

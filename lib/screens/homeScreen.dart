@@ -108,6 +108,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  bool _redirectLoading = false;
   bool _isLoading = false;
   Timer? _timer; // 1 time run.
   String? loadingText;
@@ -151,7 +152,9 @@ class _HomeScreenState extends State<HomeScreen> {
           // mainAxisAlignment: MainAxisAlignment.center,
           children: [
             buildUserButton(context, currUser,
-                onTap: () async => setup(forceDialog: true)),
+                onTap: currUser == null
+                    ? () async => setup(forceDialog: true)
+                    : () async => _redirectWebsite()),
             const SizedBox(height: 230),
 
             textStoreAi.toText(fontSize: 50, bold: true),
@@ -248,6 +251,43 @@ class _HomeScreenState extends State<HomeScreen> {
     _isLoading = false;
     setState(() {});
   }
+
+  void _redirectWebsite() async {
+    print('START: _redirectWebsite()');
+
+    _redirectLoading = true;
+    setState(() {});
+    final userWebToken = await WooApi.userWebToken();
+    String url = 'https://textstore.ai/my-account/?mo_jwt_token=$userWebToken';
+    print('url ${url}');
+    await Future.delayed(350.milliseconds);
+    _redirectLoading = false;
+    setState(() {});
+    window.open(url, '_blank');
+  }
+
+  Widget buildUserButton(BuildContext context, WooUserModel? currUser,
+      {GestureTapCallback? onTap}) {
+    var color = AppColors.greyText.withOpacity(currUser == null ? 0.5 : 1);
+    var style = ''.toText(fontSize: 15, medium: true, color: color).style;
+    return SizedBox(
+      height: 50,
+      child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Icons.account_circle.icon(color: color, size: 24),
+            if (currUser == null || _redirectLoading) ...[
+              'Loading...'.toText(style: style).pOnly(right: 10, left: 10),
+            ] else ...[
+              currUser.name.toString().toText(style: style).pOnly(right: 10, left: 10),
+              ('| ').toText(style: style).pOnly(right: 10),
+              Icons.offline_bolt.icon(color: color, size: 24).pOnly(right: 10),
+              ('10 Tokens').toText(style: style).pOnly(right: 10),
+            ],
+          ]).px(10).onTap(onTap, radius: 5),
+    ).appearOpacity.centerLeft;
+  }
 }
 
 List<WooPostModel> setSelectedList(List<WooPostModel> _fullPromptList) {
@@ -279,29 +319,6 @@ List<WooPostModel> setDefaultPromptFirst(List<WooPostModel> postList) {
     }
   }
   return _postList;
-}
-
-Widget buildUserButton(BuildContext context, WooUserModel? currUser,
-    {GestureTapCallback? onTap}) {
-  var color = AppColors.greyText.withOpacity(currUser == null ? 0.5 : 1);
-  var style = ''.toText(fontSize: 15, medium: true, color: color).style;
-  return SizedBox(
-    height: 50,
-    child: Row(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Icons.account_circle.icon(color: color, size: 24),
-          if (currUser == null) ...[
-            'Loading...'.toText(style: style).pOnly(right: 10, left: 10),
-          ] else ...[
-            currUser.name.toString().toText(style: style).pOnly(right: 10, left: 10),
-            ('| ').toText(style: style).pOnly(right: 10),
-            Icons.offline_bolt.icon(color: color, size: 24).pOnly(right: 10),
-            ('10 Tokens').toText(style: style).pOnly(right: 10),
-          ],
-        ]).px(10).onTap(onTap, radius: 5),
-  ).appearOpacity.centerLeft;
 }
 
 Widget textStoreBar(

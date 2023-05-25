@@ -134,7 +134,7 @@ class _CategoryDrawerListState extends State<CategoryDrawerList> {
                   barrierDismissible: false,
                   builder: (BuildContext context) {
                     var sWooCategory = context.uniProvider.categories
-                        .firstWhere((cat) => cat.type == selectedCategory);
+                        .firstWhere((cat) => cat.type == category);
                     print('sWooCategory.name ${sWooCategory.name}');
 
                     return ThreeColumnDialog(

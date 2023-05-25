@@ -22,7 +22,7 @@ class Gpt {
     assert(type != ResultCategory.gResults || gDescPrompts != null,
         'gDescPrompts is required when type is ResultCategory.gResults');
 
-    printWhite('START: getResults: ${type.name}');
+    printWhite('START: getResults(): ${type.name}');
     print('${prompts.length} prompts: $prompts');
 
     List<ResultModel> results = [];
@@ -65,7 +65,7 @@ class Gpt {
     required int model, // 3 & 4 available
     required List<String> prompts,
   }) async {
-    printWhite('START: _multiCallChatGPT()');
+    printWhite('START: _multiCallChatGPT() | ${reqType?.name}');
 
 
     var type = '${reqType?.name.toUpperCase()}';

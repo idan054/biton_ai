@@ -1,8 +1,11 @@
+// ignore_for_file: curly_braces_in_flow_control_structures
+
 import 'dart:convert';
 import 'package:biton_ai/common/constants.dart';
 import 'package:biton_ai/common/services/color_printer.dart';
 import 'package:biton_ai/common/services/handle_exceptions.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:hive/hive.dart';
 import '../../screens/wordpress/auth_screen.dart' as click;
 import 'package:biton_ai/common/models/post/woo_post_model.dart';
 import 'package:flutter/material.dart';
@@ -12,8 +15,8 @@ import '../models/category/woo_category_model.dart';
 import '../models/user/woo_user_model.dart';
 
 class WooApi {
-  static String wooApiKey = dotenv.env['API_KEY']!;
-  static String wooApiSecret = dotenv.env['API_SECRET']!;
+  static String _wooApiKey = dotenv.env['API_KEY']!;
+  static String _wooApiSecret = dotenv.env['API_SECRET']!;
 
   static Future<List<WooCategoryModel>> getCategories() async {
     printWhite('START: WooApi.getCategories()');
@@ -53,7 +56,7 @@ class WooApi {
     if (response.statusCode == 200) {
       final List<dynamic> jsonList = json.decode(response.body);
       var posts = jsonList.map((json) => WooPostModel.fromJson(json)).toList();
-      for (var p in posts) print('${p.id} ${p.title} ${p.isDefault}');
+      for (var p in posts) print('${p.id} | ${p.title} | ${p.isDefault}');
       return posts;
     } else {
       printRed('response.body ${response.body}');
@@ -160,6 +163,7 @@ class WooApi {
     }
   }
 
+// AKA Generate App Token
   static Future<String> userLogin({
     required String email,
     required String password,
@@ -189,7 +193,6 @@ class WooApi {
     }
   }
 
-  ///~ GET JWT From [click.AuthScreen]
   static Future<WooUserModel> getUserByToken(String jwtToken) async {
     print('START: WooApi.getUserByToken()');
 
@@ -227,6 +230,36 @@ class WooApi {
       // setState(() {});
     } else {
       throw Exception('Failed to get user');
+    }
+  }
+
+  // Sign and redirect the App Website
+  static Future<String> userWebToken() async {
+    print('START: WooApi.webSignIn()');
+
+    var box = await Hive.openBox('myBox');
+    var userEmail = box.get('userEmail');
+    var userPass = box.get('userPass');
+
+    var headers = {
+      'Content-Type': 'application/json',
+    };
+
+    var body = jsonEncode({
+      "username": "$userEmail",
+      "password": "$userPass",
+    });
+
+    final response = await http.post(Uri.parse('$baseUrl/ai-engine/v1/web_token'),
+        body: body, headers: headers);
+    print('WooApi.getUserById() statusCode: ${response.statusCode}');
+    print('response.body ${response.body}');
+
+    if (response.statusCode == 200) {
+      final json = jsonDecode(response.body);
+      return json['jwt_token'];
+    } else {
+      throw Exception('Failed to JWT Web Token');
     }
   }
 }

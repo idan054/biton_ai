@@ -70,7 +70,7 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
   @override
   void initState() {
     categories = widget.categories;
-    selectedCategory = selectedCategory ?? categories.first;
+    selectedCategory = widget.selectedCategory ?? categories.first;
 
     _fullPromptList = widget.promptsList;
     _initWooSelection(); // SET _selectedPromptList & Default
