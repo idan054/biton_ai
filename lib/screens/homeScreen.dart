@@ -25,6 +25,7 @@ import '../common/models/prompt/result_model.dart';
 import '../common/models/user/woo_user_model.dart';
 import '../common/services/createProduct_service.dart';
 import '../common/services/gpt_service.dart';
+import '../widgets/registerDialog/register_dialog.dart';
 import '../widgets/threeColumnDialog/actions.dart';
 import '../widgets/threeColumnDialog/threeColumnDialog.dart';
 
@@ -46,22 +47,43 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void initState() {
-    print('START: initState()');
-    getUser();
-    getPrompts();
-    getCategories();
+    WidgetsBinding.instance.addPostFrameCallback((_) async => setup());
     super.initState();
   }
 
-  void getUser() async {
-    if (currUser == null) {
-      currUser = await WooApi.getUserByToken(userJwt).catchError((err) {
-        printRed('My ERROR: $err');
-        errorMessage = err.toString().replaceAll('Exception: ', '');
-        setState(() {});
-      });
-      setState(() {});
+  void setup({bool forceDialog = false}) async {
+    print('START: setup()');
+    final initToken = context.uniProvider.currUser.token;
+    getCategories();
+
+    if (initToken == null || forceDialog) {
+      await showDialog(
+        context: context,
+        barrierDismissible: initToken != null,
+        builder: (BuildContext context) {
+          return const RegisterDialog();
+        },
+      );
     }
+
+    final updatedToken = context.uniProvider.currUser.token;
+    await getUser(updatedToken!); // SET currUser
+    getPrompts(); // USE  currUser
+  }
+
+  Future getUser(String token) async {
+    print('START: getUser()');
+
+    currUser = null;
+    setState(() {});
+
+    currUser = await WooApi.getUserByToken(token).catchError((err) {
+      printRed('My ERROR: $err');
+      errorMessage = err.toString().replaceAll('Exception: ', '');
+      setState(() {});
+    });
+    context.uniProvider.updateWooUserModel(currUser!.copyWith(token: token));
+    setState(() {});
   }
 
   void getPrompts() async {
@@ -69,7 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _inUsePrompts = [];
     setState(() {});
 
-    _promptsList = await getAllUserPrompts();
+    _promptsList = await getAllUserPrompts(currUser!);
     _inUsePrompts = setSelectedList(_promptsList);
 
     context.uniProvider.updateFullPromptList(_promptsList);
@@ -87,12 +109,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   bool _isLoading = false;
-
-  // var loadingSeconds = 0;
-
   Timer? _timer; // 1 time run.
   String? loadingText;
-
   int loadingIndex = 0;
 
   void startLoader(String input) {
@@ -132,7 +150,8 @@ class _HomeScreenState extends State<HomeScreen> {
         body: Column(
           // mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            buildUserButton(currUser),
+            buildUserButton(context, currUser,
+                onTap: () async => setup(forceDialog: true)),
             const SizedBox(height: 230),
 
             textStoreAi.toText(fontSize: 50, bold: true),
@@ -215,10 +234,13 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _handleOnSubmit() async {
+    print('START: _handleOnSubmit()');
+
     errorMessage = null;
     _isLoading = true;
     setState(() {});
     startLoader(searchController.text);
+
     await createProductAction(context, searchController).catchError((err) {
       printRed('My ERROR: $err');
       errorMessage = err.toString().replaceAll('Exception: ', '');
@@ -259,26 +281,26 @@ List<WooPostModel> setDefaultPromptFirst(List<WooPostModel> postList) {
   return _postList;
 }
 
-Widget buildUserButton(WooUserModel? currUser) {
+Widget buildUserButton(BuildContext context, WooUserModel? currUser,
+    {GestureTapCallback? onTap}) {
   var color = AppColors.greyText.withOpacity(currUser == null ? 0.5 : 1);
   var style = ''.toText(fontSize: 15, medium: true, color: color).style;
   return SizedBox(
     height: 50,
     child: Row(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        Icons.account_circle.icon(color: color, size: 24),
-        (currUser?.name ?? 'Your profile')
-            .toText(style: style)
-            .pOnly(right: 10, left: 10),
-        ('| ').toText(style: style).pOnly(right: 10),
-        Icons.offline_bolt.icon(color: color, size: 24).pOnly(right: 10),
-        ('10 Tokens').toText(style: style).pOnly(right: 10),
-      ],
-    ).px(10).onTap(() {
-      window.open('https://www.textstore.ai/my-account/', '_blank');
-    }, radius: 5),
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Icons.account_circle.icon(color: color, size: 24),
+          if (currUser == null) ...[
+            'Loading...'.toText(style: style).pOnly(right: 10, left: 10),
+          ] else ...[
+            currUser.name.toString().toText(style: style).pOnly(right: 10, left: 10),
+            ('| ').toText(style: style).pOnly(right: 10),
+            Icons.offline_bolt.icon(color: color, size: 24).pOnly(right: 10),
+            ('10 Tokens').toText(style: style).pOnly(right: 10),
+          ],
+        ]).px(10).onTap(onTap, radius: 5),
   ).appearOpacity.centerLeft;
 }
 
@@ -339,31 +361,33 @@ Widget textStoreBar(
                   // Use Stack to overlay prefixIcon and CircularProgressIndicator
                   alignment: Alignment.center,
                   children: [
-                    if (isLoading)
+                    if (isLoading || _inUsePrompts.isEmpty)
                       CurvedCircularProgressIndicator(
-                        value: context.listenUniProvider.textstoreBarLoader,
+                        value: _inUsePrompts.isEmpty
+                            ? null
+                            : context.listenUniProvider.textstoreBarLoader,
                         color: AppColors.primaryShiny,
-                        strokeWidth: 8,
+                        strokeWidth: 6,
                         backgroundColor: AppColors.greyLight,
                         animationDuration: 1500.milliseconds,
                       ).sizedBox(30, 30).px(10).py(5),
-                    if (!isLoading)
+                    if (!isLoading && _inUsePrompts.isNotEmpty)
                       // Icons.search_rounded.icon(color: Colors.blueAccent, size: 30)
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icons.insights.icon(
-                              size: 30,
-                              color: _inUsePrompts.isEmpty
-                                  ? AppColors.primaryShiny.withOpacity(0.40)
-                                  : AppColors.primaryShiny),
-
-                          // 'Create'.toText(
+                          // Icons.insights.icon(
+                          //     size: 30,
                           //     color: _inUsePrompts.isEmpty
                           //         ? AppColors.primaryShiny.withOpacity(0.40)
-                          //         : AppColors.primaryShiny,
-                          //     medium: true,
-                          //     fontSize: 14)
+                          //         : AppColors.primaryShiny),
+
+                          'Create'.toText(
+                              color: _inUsePrompts.isEmpty
+                                  ? AppColors.primaryShiny.withOpacity(0.40)
+                                  : AppColors.primaryShiny,
+                              medium: true,
+                              fontSize: 14)
                         ],
                       )
                           .px(15)

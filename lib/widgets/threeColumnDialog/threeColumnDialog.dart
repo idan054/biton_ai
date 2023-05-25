@@ -418,30 +418,33 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                buildCreateButton(_isLoading,
+                buildCreateButton(
+                    title: _createMode ? 'Create' : 'Save',
+                    isLoading: _isLoading,
                     createMode: _createMode,
-                    isDisable: !_isSaveActive, onPressed: () async {
-                  bool isYourInputIncluded =
-                      (_contentEditingController.text.contains('[YOUR_INPUT]') &&
+                    isUnavailable: !_isSaveActive,
+                    onPressed: () async {
+                      bool isYourInputIncluded = (_contentEditingController.text
+                              .contains('[YOUR_INPUT]') &&
                           (isGoogleCategory
                               ? _googleDescEditingController.text.contains('[YOUR_INPUT]')
                               : true));
 
-                  print('isYourInputIncluded ${isYourInputIncluded} '
-                      '\n ${_contentEditingController.text}'
-                      '\n ${_googleDescEditingController.text}');
+                      print('isYourInputIncluded ${isYourInputIncluded} '
+                          '\n ${_contentEditingController.text}'
+                          '\n ${_googleDescEditingController.text}');
 
-                  if ((sRadioPost?.isDefault ?? false) || isYourInputIncluded) {
-                    _isLoading = true;
-                    setState(() {});
-                    await handleSave();
-                    _createMode = false;
-                    _isLoading = false;
-                    setState(() {});
-                  } else {
-                    _createMode ? bulbHintState!(() {}) : setState(() {});
-                  }
-                }),
+                      if ((sRadioPost?.isDefault ?? false) || isYourInputIncluded) {
+                        _isLoading = true;
+                        setState(() {});
+                        await handleSave();
+                        _createMode = false;
+                        _isLoading = false;
+                        setState(() {});
+                      } else {
+                        _createMode ? bulbHintState!(() {}) : setState(() {});
+                      }
+                    }),
                 const SizedBox(width: 15),
                 buildCloseButton(context, onPressed: () {
                   context.uniProvider.updateFullPromptList(_fullPromptList);
@@ -469,7 +472,7 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
       if (!_createMode) _fullPromptList.removeWhere((post) => post.id == sRadioPost?.id);
 
       var newPost = WooPostModel(
-        author: debugUid,
+        author: appConfig_Uid,
         title: title,
         content: content,
         category: selectedCategory!.type,

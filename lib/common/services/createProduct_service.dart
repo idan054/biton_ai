@@ -6,6 +6,7 @@ import 'package:biton_ai/common/extensions/context_ext.dart';
 import 'package:biton_ai/common/extensions/string_ext.dart';
 import 'package:biton_ai/common/extensions/widget_ext.dart';
 import 'package:biton_ai/common/extensions/num_ext.dart';
+import 'package:biton_ai/common/models/user/woo_user_model.dart';
 import 'package:biton_ai/common/services/color_printer.dart';
 import 'package:biton_ai/common/services/wooApi.dart';
 import 'package:biton_ai/common/themes/app_colors.dart';
@@ -72,6 +73,7 @@ void _navigateToSearchResults(
 
 Future<List<ResultModel>> _getGptResult(BuildContext context, String input) async {
   var _inUsePrompts = context.uniProvider.inUsePromptList;
+  print('_inUsePrompts ${_inUsePrompts}');
   List<ResultModel> results = [];
 
   // Set prompt X3
@@ -84,6 +86,7 @@ Future<List<ResultModel>> _getGptResult(BuildContext context, String input) asyn
     titlePrompts.add(content);
     gDescPrompts.add(subContent);
   }
+
   if (kDebugMode && appConfig_fastHomeScreen) {
     results = dummyDataList;
   } else {
@@ -114,9 +117,9 @@ List<ResultModel> setResultsFromGpt(Map<String, dynamic> resp, ResultCategory ca
   return items;
 }
 
-Future<List<WooPostModel>> getAllUserPrompts() async {
+Future<List<WooPostModel>> getAllUserPrompts(WooUserModel currUser) async {
   var postList =
-      await WooApi.getPosts(userId: debugUid.toString(), catIds: promptsCategoryIds);
+      await WooApi.getPosts(userId: currUser.id.toString(), catIds: promptsCategoryIds);
   postList = setDefaultPromptFirst(postList);
   return postList;
 }

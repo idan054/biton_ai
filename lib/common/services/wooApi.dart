@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:biton_ai/common/constants.dart';
 import 'package:biton_ai/common/services/color_printer.dart';
 import 'package:biton_ai/common/services/handle_exceptions.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../../screens/wordpress/auth_screen.dart' as click;
 import 'package:biton_ai/common/models/post/woo_post_model.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +12,9 @@ import '../models/category/woo_category_model.dart';
 import '../models/user/woo_user_model.dart';
 
 class WooApi {
+  static String wooApiKey = dotenv.env['API_KEY']!;
+  static String wooApiSecret = dotenv.env['API_SECRET']!;
+
   static Future<List<WooCategoryModel>> getCategories() async {
     printWhite('START: WooApi.getCategories()');
 
@@ -49,7 +53,7 @@ class WooApi {
     if (response.statusCode == 200) {
       final List<dynamic> jsonList = json.decode(response.body);
       var posts = jsonList.map((json) => WooPostModel.fromJson(json)).toList();
-      // for (var p in posts) print('${p.id} ${p.title} ${p.isDefault}');
+      for (var p in posts) print('${p.id} ${p.title} ${p.isDefault}');
       return posts;
     } else {
       printRed('response.body ${response.body}');
@@ -70,15 +74,16 @@ class WooApi {
 
     final headers = {
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer $userJwt',
+      // 'Authorization': post.isDefault ? 'Bearer $adminJwt' : 'Bearer $appConfig_userJwt',
+      'Authorization': 'Bearer $appConfig_userJwt',
     };
 
-    print('updatePost() updateMode ${updateMode}');
+    print('updatePost() updateMode $updateMode');
 
     final body = jsonEncode({
       'title': post.title,
       'content': post.content,
-      'author': post.isDefault ? textStoreUid : post.author,
+      // 'author': post.isDefault ? textStoreUid : post.author,
       'categories': post.categories,
       'status': 'publish',
       'meta': {'isSelected': isSelected},
@@ -111,7 +116,7 @@ class WooApi {
       Uri.parse(url),
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer $userJwt',
+        'Authorization': 'Bearer $appConfig_userJwt',
       },
     );
 
@@ -120,6 +125,67 @@ class WooApi {
       printRed('response.body ${response.body}');
       var exception = handleExceptions(response);
       throw Exception(exception ?? 'Failed to delete prompt, please try again');
+    }
+  }
+
+  static Future userSignup({
+    required String email,
+    required String password,
+  }) async {
+    print('START: WooApi.createUser()');
+    var url = '$baseUrl/wp/v2/users/';
+    var username = email.split('@').first;
+
+    var headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $adminJwt',
+    };
+    var body = jsonEncode({
+      'username': username,
+      'email': email,
+      'password': password,
+      // author = Create / edit his posts
+      // Editor = Create / edit Everyone posts
+      'roles': ['editor']
+    });
+
+    final response = await http.post(Uri.parse(url), headers: headers, body: body);
+    print('response.statusCode ${response.statusCode}');
+
+    if (response.statusCode == 201) {
+    } else {
+      printRed('response.body ${response.body}');
+      var exception = handleExceptions(response);
+      throw Exception(exception ?? 'Failed to get user, please try again');
+    }
+  }
+
+  static Future<String> userLogin({
+    required String email,
+    required String password,
+  }) async {
+    print('START: WooApi.userLogin()');
+    var url = '$baseUrl/jwt-auth/v1/token/';
+
+    var headers = {
+      'Content-Type': 'application/json',
+      // 'Authorization': 'Bearer $adminJwt',
+    };
+
+    var body = jsonEncode({
+      'username': email,
+      'password': password,
+    });
+
+    final response = await http.post(Uri.parse(url), headers: headers, body: body);
+    print('response.statusCode ${response.statusCode}');
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body)['token'];
+    } else {
+      printRed('response.body ${response.body}');
+      var exception = handleExceptions(response);
+      throw Exception(exception ?? 'Failed to get user, please try again');
     }
   }
 
@@ -136,6 +202,7 @@ class WooApi {
     if (response.statusCode == 200) {
       final json = jsonDecode(response.body);
       var user = WooUserModel.fromJson(json);
+      print('user.toJson() ${user.toJson()}');
 
       return user;
       // setState(() {});

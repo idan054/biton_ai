@@ -11,6 +11,7 @@ class CustomButton extends StatelessWidget {
     this.titleStyle,
     this.backgroundColor = AppColors.primaryShiny,
     this.shape,
+    this.invert = false,
     this.width = 140,
     this.height = 45,
     this.loading = false,
@@ -31,12 +32,17 @@ class CustomButton extends StatelessWidget {
   final ShapeBorder? shape;
   final double width;
   final double height;
+  final bool invert;
   final bool loading;
   final bool isDisabled;
   final Color? splashColor;
 
   ShapeBorder get _shape =>
-      shape ?? RoundedRectangleBorder(borderRadius: BorderRadius.circular(4));
+      shape ??
+      RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(6),
+          side:
+              invert ? BorderSide(color: backgroundColor, width: 2.0) : BorderSide.none);
 
   BoxConstraints get _constraints =>
       BoxConstraints.tightFor(width: width, height: height);
@@ -48,7 +54,11 @@ class CustomButton extends StatelessWidget {
     return Material(
       type: MaterialType.card,
       clipBehavior: Clip.antiAlias,
-      color: isDisabled ? AppColors.greyUnavailable : backgroundColor,
+      color: invert
+          ? Colors.transparent
+          : isDisabled
+              ? AppColors.greyUnavailable
+              : backgroundColor,
       shape: _shape,
       elevation: elevation,
       child: InkWell(
@@ -59,7 +69,11 @@ class CustomButton extends StatelessWidget {
           child: Ink(
             decoration: ShapeDecoration(
               shape: _shape,
-              color: isDisabled ? AppColors.greyText : backgroundColor,
+              color: invert
+                  ? Colors.transparent
+                  : isDisabled
+                      ? AppColors.greyText
+                      : backgroundColor,
             ),
             child: loading
                 ? Center(
@@ -85,8 +99,8 @@ class CustomButton extends StatelessWidget {
                       ],
                       if (title != null)
                         title!.toText(
-                          // medium: true,
-                          color: Colors.white,
+                          medium: invert,
+                          color: invert ? backgroundColor : Colors.white,
                           fontSize: 15,
                         )
                     ],

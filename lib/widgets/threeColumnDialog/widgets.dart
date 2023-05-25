@@ -42,10 +42,12 @@ Widget buildCloseButton(BuildContext context, {required VoidCallback onPressed})
   );
 }
 
-Widget buildCreateButton(
-  bool isLoading, {
-  required bool createMode,
-  required bool isDisable,
+Widget buildCreateButton({
+  required bool isLoading,
+  bool createMode = true,
+  bool invert = false,
+  required String title,
+  required bool isUnavailable,
   VoidCallback? onPressed,
 }) {
   // bool defaultSelected = sRadioPost != null && sRadioPost!.isDefault && !_createMode;
@@ -54,16 +56,12 @@ Widget buildCreateButton(
   return CustomButton(
     width: 105,
     height: 45,
-    shape: 6.roundedShape,
+    invert: invert,
+    title: isLoading ? 'Loading...' : title,
     backgroundColor: isLoading
         ? AppColors.greyUnavailable80
-        : (AppColors.secondaryBlue.withOpacity(isDisable ? 0.3 : 1.0)),
-    onPressed: isLoading || isDisable ? null : onPressed,
-    title: isLoading
-        ? 'Loading...'
-        : createMode
-            ? 'Create'
-            : 'Save',
+        : (AppColors.secondaryBlue.withOpacity(isUnavailable ? 0.3 : 1.0)),
+    onPressed: isLoading || isUnavailable ? null : onPressed,
   );
 }
 

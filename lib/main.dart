@@ -1,3 +1,4 @@
+import 'package:biton_ai/common/extensions/context_ext.dart';
 import 'package:biton_ai/common/services/color_printer.dart';
 import 'package:biton_ai/screens/resultsScreen.dart';
 import 'package:biton_ai/screens/wordpress/auth_screen.dart';
@@ -5,6 +6,7 @@ import 'package:biton_ai/screens/wordpress/woo_posts_screen.dart';
 import 'package:biton_ai/widgets/resultsList.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:path_provider/path_provider.dart';
@@ -13,6 +15,7 @@ import 'common/constants.dart';
 import 'dart:html' as html;
 import 'package:hive/hive.dart';
 import 'common/models/uniModel.dart';
+import 'common/models/user/woo_user_model.dart';
 import 'firebase_options.dart';
 import 'screens/homeScreen.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -20,9 +23,9 @@ import 'package:firebase_core/firebase_core.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // await dotenv.load();
   await Hive.initFlutter();
-  userJwt = await setJwtToken();
-
+  var token = await setUserToken();
 
   runApp(MultiProvider(
     providers: [
@@ -32,15 +35,19 @@ void main() async {
       //     value: StreamModel().getFeedActivities(), initialData: const []),
     ],
     // builder:(context, child) =>
-    child: const MyApp(),
+    child: MyApp(token),
   ));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final String? token;
+
+  const MyApp(this.token, {super.key});
 
   @override
   Widget build(BuildContext context) {
+    context.uniProvider.updateWooUserModel(WooUserModel(token: token), notify: false);
+
     return ScreenUtilInit(
       builder: (BuildContext context, Widget? child) => MaterialApp(
           debugShowCheckedModeBanner: false,
@@ -53,37 +60,39 @@ class MyApp extends StatelessWidget {
   }
 }
 
-Future<String> setJwtToken() async {
+Future<String?> setUserToken({String? token, String? userEmail, String? userPass}) async {
   printWhite('START: setJwtToken()');
-
   var box = await Hive.openBox('myBox');
 
-  String hash = html.window.location.href.split('?').last;
-  // print('hash ${hash}');
-  Uri uri = Uri.parse('http://Whatever/?$hash');
-  Map<String, String> queryParams = uri.queryParameters;
-
-  //> 1) try use queryToken
-  if (queryParams['token'] != null) {
-    printYellow('Get Token by query! $queryParams');
-    var queryToken = queryParams['token'].toString();
-    box.put('token', queryToken);
-    //
-    return queryToken;
+  //> 1) Set token on signup / login
+  if (token != null) {
+    printYellow('Login user Token found! $token');
+    box.put('token', token);
+    box.put('userEmail', userEmail);
+    box.put('userPass', userPass);
+    appConfig_userJwt = token;
+    return token;
   } else {
-    //> 2) try use cache
+    //> 2) Try use cache
     var cacheToken = box.get('token');
     if (cacheToken != null) {
       printGreen('Get Token by Cache! $cacheToken');
+      appConfig_userJwt = cacheToken;
       return cacheToken;
     }
 
-    //> 3) redirect login
-    printRed('Token not found! Should Redirect login page');
-    if (!kDebugMode) {
-      // redirect in Live
-      html.window.location.href = 'https://www.textstore.ai/my-account/';
-    }
-    return debugJwt;
+    //> 3) Require login (open dialog)
+    printRed('Token not found! User should login');
+
+    // if (kDebugMode) {
+    //   appConfig_userJwt = adminJwt;
+    //   return true;
+    // } else {
+    //   // redirect in Live
+    //   // html.window.location.href = 'https://www.textstore.ai/my-account/';
+    //   return false;
+    // }
+
+    return null;
   }
 }

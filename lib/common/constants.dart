@@ -1,14 +1,17 @@
-// ignore_for_file: constant_identifier_names
+// ignore_for_file: constant_identifier_names, non_constant_identifier_names
 
 //~ Server Config:
 // POST https://textstore.ai/wp-json/jwt-auth/v1/token
 // BODY { "username": "",  "password": "" }
 import 'package:flutter/foundation.dart';
 
+//! This file should be .env
+
 // POST https://textstore.ai/wp-json/jwt-auth/v1/token
 // BODY { "username": "",  "password": "" }
-const debugJwt =
-    'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3d3dy50ZXh0c3RvcmUuYWkiLCJpYXQiOjE2ODQ4NDMxMzEsIm5iZiI6MTY4NDg0MzEzMSwiZXhwIjoxNjg1NDQ3OTMxLCJkYXRhIjp7InVzZXIiOnsiaWQiOiIxIn19fQ.vdu3oHEDRPwuN7TUswG0q2f0WwTS86Y5FJlgcHHCU2k';
+// Might need to update expiration to Never
+const adminJwt =
+    'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3d3dy50ZXh0c3RvcmUuYWkiLCJpYXQiOjE2ODQ5MTQ1NzgsIm5iZiI6MTY4NDkxNDU3OCwiZXhwIjoxNjg1NTE5Mzc4LCJkYXRhIjp7InVzZXIiOnsiaWQiOiIxIn19fQ.IQmC28dLMUuJ6n9zEnYKJJNroAp_FwSAP59VgUl-sL8';
 
 // My Working Wordpress php request:  https://gist.github.com/idan054/a02143ad92cf65ce090f8dfe697c6419
 const appCategoryId = 27; // only subCategories of it will appear
@@ -16,11 +19,11 @@ const baseUrl = 'https://textstore.ai/wp-json';
 
 const promptsCategoryIds = [28, 29, 30, 31];
 const textStoreUid = 1; // Admin user
-const debugUid = 7; // Idan test user
 
 
 //~ App config:
-var userJwt = ''; // Set on main() main.dart
+var appConfig_userJwt = ''; // Set on main() main.dart
+var appConfig_Uid = 7; // Idan test user
 
 const appConfig_hideDefault = true || !kDebugMode;
 const textStoreAi = 'TextStore';

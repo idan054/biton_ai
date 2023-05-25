@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../models/uniModel.dart';
 
+
 extension ContextX on BuildContext {
   //? Smart navigation shortcuts (Based auto_route)
   // context.router.replace(route) //   pushReplacement
