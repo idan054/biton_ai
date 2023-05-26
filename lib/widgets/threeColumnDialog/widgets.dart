@@ -42,12 +42,12 @@ Widget buildCloseButton(BuildContext context, {required VoidCallback onPressed})
   );
 }
 
-Widget buildCreateButton({
-  required bool isLoading,
+Widget buildTextstoreButton({
+  bool isLoading = false,
   bool createMode = true,
   bool invert = false,
   required String title,
-  required bool isUnavailable,
+  bool isUnavailable = false,
   VoidCallback? onPressed,
 }) {
   // bool defaultSelected = sRadioPost != null && sRadioPost!.isDefault && !_createMode;

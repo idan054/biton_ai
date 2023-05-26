@@ -51,8 +51,8 @@ class WooPostModel with _$WooPostModel {
       title: title,
       content: mainContent!,
       subContent: subContent,
-      isSelected: json['meta']['isSelected'] ?? false,
-      isDefault: json['meta']['isDefault'], // the TextStore UID
+      isSelected: json['acf']?['isSelected'] ?? false,
+      isDefault: json['acf']?['isDefault'] ?? false, // the TextStore UID
     );
     return post;
   }

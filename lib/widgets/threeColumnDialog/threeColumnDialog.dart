@@ -420,7 +420,7 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                buildCreateButton(
+                buildTextstoreButton(
                     title: _createMode ? 'Create' : 'Save',
                     isLoading: _isLoading,
                     createMode: _createMode,

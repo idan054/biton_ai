@@ -15,8 +15,10 @@ import 'package:biton_ai/widgets/resultsList.dart';
 import 'package:curved_progress_bar/curved_progress_bar.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../common/constants.dart';
 import '../common/models/category/woo_category_model.dart';
@@ -73,7 +75,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future getUser(String token) async {
     print('START: getUser()');
-
+    _profileLoading = true;
     currUser = null;
     setState(() {});
 
@@ -83,6 +85,7 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {});
     });
     context.uniProvider.updateWooUserModel(currUser!.copyWith(token: token));
+    _profileLoading = false;
     setState(() {});
   }
 
@@ -108,7 +111,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  bool _redirectLoading = false;
+  bool _profileLoading = false;
   bool _isLoading = false;
   Timer? _timer; // 1 time run.
   String? loadingText;
@@ -141,6 +144,62 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void showUserMenu(BuildContext context) {
+    final RenderBox button = context.findRenderObject() as RenderBox;
+    final RenderBox overlay =
+        Overlay.of(context)!.context.findRenderObject() as RenderBox;
+
+    final RelativeRect position = RelativeRect.fromRect(
+      Rect.fromPoints(
+        button.localToGlobal(button.size.topLeft(const Offset(0, 40)), ancestor: overlay),
+        button.localToGlobal(button.size.topLeft(const Offset(0, 40)), ancestor: overlay),
+      ),
+      Offset.zero & overlay.size,
+    );
+
+    showMenu(
+      context: context,
+      position: position,
+      items: [
+        PopupMenuItem(
+          onTap: _redirectWebsite,
+          child: 'Your profile'.toText(),
+        ),
+        PopupMenuItem(
+          onTap: _logoutUser,
+          child: 'Logout profile'.toText(color: AppColors.errRed),
+        ),
+      ],
+      elevation: 8,
+    ).then((value) => print('Selected: $value'));
+  }
+
+  void _logoutUser() async {
+    print('START: _logoutUser()');
+    currUser = null;
+    context.uniProvider.updateWooUserModel(const WooUserModel());
+    appConfig_userJwt = '';
+    setState(() {});
+    final box = await Hive.openBox('currUserBox');
+    box.clear();
+  }
+
+  void _redirectWebsite() async {
+    print('START: _redirectWebsite()');
+
+    _profileLoading = true;
+    setState(() {});
+    final userWebToken = await WooApi.userWebToken();
+    String url = 'https://textstore.ai/my-account/?mo_jwt_token=$userWebToken';
+    print('url ${url}');
+    await Future.delayed(350.milliseconds);
+    _profileLoading = false;
+    setState(() {});
+
+    // window.open(url, '_blank');
+    window.open(url, 'New Tab');
+  }
+
   @override
   Widget build(BuildContext context) {
     // var loader = context.listenUniProvider.textstoreBarLoader;
@@ -151,10 +210,14 @@ class _HomeScreenState extends State<HomeScreen> {
         body: Column(
           // mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            buildUserButton(context, currUser,
-                onTap: currUser == null
-                    ? () async => setup(forceDialog: true)
-                    : () async => _redirectWebsite()),
+            buildUserButton(
+              context,
+              currUser,
+              onTap: currUser == null
+                  ? () async => setup(forceDialog: true)
+                  : () => showUserMenu(context),
+              // : () async => _redirectWebsite()),
+            ),
             const SizedBox(height: 230),
 
             textStoreAi.toText(fontSize: 50, bold: true),
@@ -252,23 +315,9 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {});
   }
 
-  void _redirectWebsite() async {
-    print('START: _redirectWebsite()');
-
-    _redirectLoading = true;
-    setState(() {});
-    final userWebToken = await WooApi.userWebToken();
-    String url = 'https://textstore.ai/my-account/?mo_jwt_token=$userWebToken';
-    print('url ${url}');
-    await Future.delayed(350.milliseconds);
-    _redirectLoading = false;
-    setState(() {});
-    window.open(url, '_blank');
-  }
-
   Widget buildUserButton(BuildContext context, WooUserModel? currUser,
       {GestureTapCallback? onTap}) {
-    var color = AppColors.greyText.withOpacity(currUser == null ? 0.5 : 1);
+    var color = AppColors.greyText.withOpacity(_profileLoading ? 0.5 : 1);
     var style = ''.toText(fontSize: 15, medium: true, color: color).style;
     return SizedBox(
       height: 50,
@@ -277,8 +326,10 @@ class _HomeScreenState extends State<HomeScreen> {
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Icons.account_circle.icon(color: color, size: 24),
-            if (currUser == null || _redirectLoading) ...[
-              'Loading...'.toText(style: style).pOnly(right: 10, left: 10),
+            if (currUser == null || _profileLoading) ...[
+              (_profileLoading ? 'Loading...' : 'Login profile')
+                  .toText(style: style)
+                  .pOnly(right: 10, left: 10),
             ] else ...[
               currUser.name.toString().toText(style: style).pOnly(right: 10, left: 10),
               ('| ').toText(style: style).pOnly(right: 10),

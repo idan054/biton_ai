@@ -62,7 +62,7 @@ class MyApp extends StatelessWidget {
 
 Future<String?> setUserToken({String? token, String? userEmail, String? userPass}) async {
   printWhite('START: setJwtToken()');
-  var box = await Hive.openBox('myBox');
+  var box = await Hive.openBox('currUserBox');
 
   //> 1) Set token on signup / login
   if (token != null) {
