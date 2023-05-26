@@ -44,6 +44,7 @@ class _RegisterDialogState extends State<RegisterDialog> {
 
   @override
   Widget build(BuildContext context) {
+    String? token = context.uniProvider.currUser.token;
     double width = MediaQuery.of(context).size.width;
     bool desktopMode = width > 900;
 
@@ -52,19 +53,21 @@ class _RegisterDialogState extends State<RegisterDialog> {
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const CircleAvatar(
-          backgroundColor: Colors.white,
-          child: Icon(Icons.arrow_back, color: AppColors.secondaryBlue),
-        )
-            .onTap(
-                () => _pageController.page == 0
-                    ? Navigator.pop(context)
-                    : _pageController.hasClients
-                        ? _pageController.jumpToPage((_pageController.page! - 1).toInt())
-                        : null,
-                tapColor: Colors.blue)
-            .center
-            .pOnly(right: 400, bottom: 10),
+        if (token != null)
+          const CircleAvatar(
+            backgroundColor: Colors.white,
+            child: Icon(Icons.arrow_back, color: AppColors.secondaryBlue),
+          )
+              .onTap(
+                  () => _pageController.page == 0
+                      ? Navigator.pop(context)
+                      : _pageController.hasClients
+                          ? _pageController
+                              .jumpToPage((_pageController.page! - 1).toInt())
+                          : null,
+                  tapColor: Colors.blue)
+              .center
+              .pOnly(right: 400, bottom: 10),
         //
         Dialog(
           backgroundColor: AppColors.white,
@@ -127,22 +130,24 @@ class _RegisterDialogState extends State<RegisterDialog> {
           ),
           const SizedBox(height: 5.0),
           fieldTitle('Password'),
-          SizedBox(
-            height: 50,
-            child: TextField(
-              style: const TextStyle(color: Colors.black),
-              controller: _passController,
-              obscureText: !_isPasswordVisible,
-              decoration: fieldPromptStyle(false).copyWith(
-                  suffixIcon:
-                      (_isPasswordVisible ? Icons.visibility : Icons.visibility_off)
-                          .icon(color: Colors.grey)
-                          .onTap(() {
-                _isPasswordVisible = !_isPasswordVisible;
-                setState(() {});
-              })),
-            ),
-          ),
+          StatefulBuilder(builder: (context, passStf) {
+            return SizedBox(
+              height: 50,
+              child: TextField(
+                style: const TextStyle(color: Colors.black),
+                controller: _passController,
+                obscureText: !_isPasswordVisible,
+                decoration: fieldPromptStyle(false).copyWith(
+                    suffixIcon:
+                        (_isPasswordVisible ? Icons.visibility : Icons.visibility_off)
+                            .icon(color: Colors.grey)
+                            .onTap(() {
+                  _isPasswordVisible = !_isPasswordVisible;
+                  passStf(() {});
+                })),
+              ),
+            );
+          }),
           StatefulBuilder(builder: (context, stfState) {
             errState = stfState;
             var color = AppColors.errRed;

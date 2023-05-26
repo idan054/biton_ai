@@ -66,12 +66,20 @@ class WooApi {
   }
 
   static Future<WooPostModel> updatePost(
+    WooUserModel currUser,
     WooPostModel post, {
     int? postId,
     bool isSelected = false, // threeColumnDialog.dart
   }) async {
     print('START: WooApi.createPost()');
+
     bool updateMode = postId != null;
+    if (post.author != currUser.id) {
+      printYellow(
+          "SKIP: Can't ${updateMode ? 'update' : 'create'} post ${post.id}: ${post.title}");
+      return post;
+    }
+
     var url = '$baseUrl/wp/v2/posts';
     if (updateMode) url += '/$postId';
 
@@ -81,8 +89,7 @@ class WooApi {
       'Authorization': 'Bearer $appConfig_userJwt',
     };
 
-    print('updatePost() updateMode $updateMode');
-
+    // print('updatePost() updateMode $updateMode [${post.title}]');
     final body = jsonEncode({
       'title': post.title,
       'content': post.content,
@@ -96,8 +103,8 @@ class WooApi {
         ? await http.put(Uri.parse(url), headers: headers, body: body)
         : await http.post(Uri.parse(url), headers: headers, body: body);
 
-    printGreen('WooApi.createPost() statusCode: ${response.statusCode}');
     if (response.statusCode == 201 || response.statusCode == 200) {
+      printGreen('WooApi.createPost() statusCode: ${response.statusCode}');
       final json = jsonDecode(response.body);
       var post = WooPostModel.fromJson(json);
       post.isSelected
@@ -149,7 +156,7 @@ class WooApi {
       'password': password,
       // author = Create / edit his posts
       // Editor = Create / edit Everyone posts
-      'roles': ['editor']
+      'roles': ['author']
     });
 
     final response = await http.post(Uri.parse(url), headers: headers, body: body);

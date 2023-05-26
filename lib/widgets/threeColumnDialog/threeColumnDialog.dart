@@ -6,6 +6,7 @@ import 'package:biton_ai/common/extensions/context_ext.dart';
 import 'package:biton_ai/common/extensions/num_ext.dart';
 import 'package:biton_ai/common/extensions/string_ext.dart';
 import 'package:biton_ai/common/models/post/woo_post_model.dart';
+import 'package:biton_ai/common/models/user/woo_user_model.dart';
 import 'package:biton_ai/common/services/wooApi.dart';
 import 'package:biton_ai/common/themes/app_colors.dart';
 import 'package:biton_ai/widgets/threeColumnDialog/widgets.dart';
@@ -83,7 +84,8 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
 
   void _initWooSelection() {
     _selectedPromptList = widget.selectedPrompts;
-
+    print('_selectedPromptList ${_selectedPromptList.length}');
+    print('_selectedPromptList ${_selectedPromptList}');
     var initPrompt =
         _selectedPromptList.firstWhere((p) => p.category == categories.first.type);
     onRadioChanged(initPrompt, fromCategory: true);
@@ -461,6 +463,7 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
   }
 
   Future handleSave() async {
+    final currUser = context.uniProvider.currUser;
     final isGooglePrompt = selectedCategory!.type == ResultCategory.gResults;
     final title = _titleEditingController.text.trim();
     final googleDesc = _googleDescEditingController.text.trim();
@@ -472,16 +475,17 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
       if (!_createMode) _fullPromptList.removeWhere((post) => post.id == sRadioPost?.id);
 
       var newPost = WooPostModel(
-        author: appConfig_Uid,
+        author: sRadioPost!.author,
         title: title,
         content: content,
         category: selectedCategory!.type,
         categories: [selectedCategory!.id],
         isSelected: true,
       );
-      _deselectOtherPrompts(newPost);
+      _deselectOtherPrompts(newPost, currUser);
 
       newPost = await WooApi.updatePost(
+        currUser,
         newPost,
         postId: _createMode ? null : sRadioPost!.id,
         isSelected: true,
@@ -499,11 +503,13 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
     }
   }
 
-  void _deselectOtherPrompts(WooPostModel newPost) {
+  void _deselectOtherPrompts(WooPostModel newPost, WooUserModel currUser) {
+    print('START: _deselectOtherPrompts()');
+
     for (var post in _fullPromptList) {
       // deselect any other prompts in this category
       if (post.category == newPost.category && post.isSelected && post.id != newPost.id) {
-        WooApi.updatePost(post, postId: post.id, isSelected: false);
+        WooApi.updatePost(currUser, post, postId: post.id, isSelected: false);
       }
     }
   }

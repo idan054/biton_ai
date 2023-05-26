@@ -329,6 +329,7 @@ Widget textStoreBar(
   required ValueChanged<String>? onSubmitted,
   required GestureTapCallback? onStart,
 }) {
+  String? token = context.uniProvider.currUser.token;
   var _inUsePrompts = context.uniProvider.inUsePromptList;
   var hLoaderRatio = 1.2;
   var width = 800.0;
@@ -378,7 +379,7 @@ Widget textStoreBar(
                   // Use Stack to overlay prefixIcon and CircularProgressIndicator
                   alignment: Alignment.center,
                   children: [
-                    if (isLoading || _inUsePrompts.isEmpty)
+                    if ((isLoading || _inUsePrompts.isEmpty) && token != null) ...[
                       CurvedCircularProgressIndicator(
                         value: _inUsePrompts.isEmpty
                             ? null
@@ -388,7 +389,9 @@ Widget textStoreBar(
                         backgroundColor: AppColors.greyLight,
                         animationDuration: 1500.milliseconds,
                       ).sizedBox(30, 30).px(10).py(5),
-                    if (!isLoading && _inUsePrompts.isNotEmpty)
+                    ] else ...[
+                      // if (!isLoading && _inUsePrompts.isNotEmpty)
+
                       // Icons.search_rounded.icon(color: Colors.blueAccent, size: 30)
                       Row(
                         mainAxisSize: MainAxisSize.min,
@@ -412,6 +415,7 @@ Widget textStoreBar(
                           // .py(15)
                           .onTap(onStart,
                               tapColor: AppColors.primaryShiny.withOpacity(0.1)),
+                    ]
                   ],
                 ),
               ),
