@@ -37,8 +37,8 @@ class WooPostModel with _$WooPostModel {
         .replaceAll('<p>', '')
         .replaceAll('</p>', '')
         .trim();
-    var mainContent = fetchContentFromJson(content, false);
-    var subContent = fetchContentFromJson(content, true);
+    var mainContent = fetchContentFromJson(content, isSubContent: false);
+    var subContent = fetchContentFromJson(content, isSubContent: true);
 
     var categoriesRaw = json['categories'] as List<dynamic>;
     var categories = categoriesRaw.map((category) => category as int).toList();
@@ -51,8 +51,8 @@ class WooPostModel with _$WooPostModel {
       title: title,
       content: mainContent!,
       subContent: subContent,
-      isSelected: json['acf']?['isSelected'] ?? false,
-      isDefault: json['acf']?['isDefault'] ?? false, // the TextStore UID
+      isSelected: json['meta']?['isSelected'] ?? false,
+      isDefault: json['meta']?['isDefault'] ?? false, // the TextStore UID
     );
     return post;
   }
@@ -75,13 +75,13 @@ ResultCategory getCategory(List<int> catIds) {
   return type!;
 }
 
-String? fetchContentFromJson(String content, bool subContent) {
+String? fetchContentFromJson(String content, {required bool isSubContent}) {
   var googleDesc = 'googleDesc=';
   if (content.contains(googleDesc)) {
-    return subContent
+    return isSubContent
         ? content.split(googleDesc).last.replaceAll(googleDesc, '')
         : content.split(googleDesc).first;
   } else {
-    return subContent ? null : content;
+    return isSubContent ? null : content;
   }
 }

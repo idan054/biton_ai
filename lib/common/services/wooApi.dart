@@ -97,7 +97,7 @@ class WooApi {
       // "author": post.isDefault ? textStoreUid : post.author,
       "categories": post.categories,
       "status": "publish",
-      "acf": {"isSelected": isSelected},
+      "meta": {"isSelected": isSelected},
     });
 
     final response = updateMode
@@ -139,6 +139,24 @@ class WooApi {
     }
   }
 
+  static Future<bool> checkPhoneExist(String phone) async {
+    print("START: WooApi.checkPhoneExist()");
+
+    final response =
+        await http.get(Uri.parse("$baseUrl/ai-engine/v1/users-by-phone?phone=$phone"));
+
+    print("WooApi.checkPhoneExist() statusCode: ${response.statusCode}");
+    if (response.statusCode == 200) {
+      final List<dynamic> jsonList = json.decode(response.body);
+      print('jsonList $jsonList');
+      return jsonList.isNotEmpty;
+    } else {
+      printRed("response.body ${response.body}");
+      var exception = handleExceptions(response);
+      throw Exception(exception ?? "Check if phone exist failed, please try again");
+    }
+  }
+
   static Future userSignup({
     required String email,
     required String password,
@@ -146,7 +164,8 @@ class WooApi {
   }) async {
     print("START: WooApi.userSignup()");
     var url = "$baseUrl/wp/v2/users/";
-    var username = email.split("@").first;
+    var username =
+        '${email.split("@").first}${UniqueKey().toString().replaceAll('[', '').replaceAll(']', '').replaceAll('#', '-')}';
 
     var headers = {
       "Content-Type": "application/json",
@@ -159,7 +178,7 @@ class WooApi {
       // author = Create / edit his posts
       // Editor = Create / edit Everyone posts
       "roles": ["author"],
-      "acf": {"phone": phone}
+      "meta": {"phone": phone},
     });
 
     final response = await http.post(Uri.parse(url), headers: headers, body: body);
@@ -167,7 +186,7 @@ class WooApi {
 
     if (response.statusCode == 201) {
     } else {
-    printRed("response.body ${response.body}");
+      printRed("response.body ${response.body}");
       var exception = handleExceptions(response);
       throw Exception(exception ?? "Failed to get user, please try again");
     }

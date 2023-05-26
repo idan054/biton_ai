@@ -13,7 +13,7 @@ String? handleExceptions(Response resp) {
   if (message == 'Expired token') return 'Oops! Please re-login your account';
 
   if (message.toString().contains('that username already exists!')) {
-    return 'Please login, Account exists';
+    return 'Please login, Profile email exists';
   }
 
   if (message.toString().contains('password you entered')) {
