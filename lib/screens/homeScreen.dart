@@ -95,7 +95,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {});
 
     _promptsList = await getAllUserPrompts(currUser!);
-    _inUsePrompts = setSelectedList(_promptsList);
+    _inUsePrompts = setSelectedList(context, _promptsList);
 
     context.uniProvider.updateFullPromptList(_promptsList);
     context.uniProvider.updateInUsePromptList(_inUsePrompts);
@@ -224,7 +224,8 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 10),
             // 'Sell more by Ai Text for your store'.toText(fontSize: 20).px(25),
             // 'Fast | Create product | SEO'.toText(fontSize: 20).px(25),
-            'Best Ai text maker for your store.'.toText(fontSize: 20).px(25),
+            // 'Ai that make sales'.toText(fontSize: 20).px(25),
+            'Sell more with Ai text for your store'.toText(fontSize: 20).px(25),
             const SizedBox(height: 20),
             //~ Search TextField
             textStoreBar(
@@ -341,22 +342,27 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-List<WooPostModel> setSelectedList(List<WooPostModel> _fullPromptList) {
+List<WooPostModel> setSelectedList(
+    BuildContext context, List<WooPostModel> _fullPromptList) {
   List<WooPostModel> _selectedPromptList = [];
 
   //1) Add user selected prompts
   for (var prompt in _fullPromptList) {
-    if (prompt.isSelected) _selectedPromptList.add(prompt);
+    if (prompt.isSelected && prompt.author == context.uniProvider.currUser.id) {
+      _selectedPromptList.add(prompt);
+    }
   }
 
   //2) Add default ONLY where needed
   for (var prompt in _fullPromptList) {
     if (_selectedPromptList.any((p) => p.category == prompt.category)) {
-      // Do nothing, prompt.isSelected added for this category
+      // Do nothing, this category already have prompt.isSelected
     } else {
       if (prompt.isDefault) _selectedPromptList.add(prompt);
     }
   }
+  print('\nDONE: _selectedPromptList (${_selectedPromptList.length} prompts)');
+  for (var p in _selectedPromptList) printLightBlue("${p.id} | ${p.title}");
   return _selectedPromptList;
 }
 
@@ -389,19 +395,16 @@ Widget textStoreBar(
     tag: 'buildMainBar',
     child: Stack(
       children: [
-        if (isLoading)
-          SizedBox(
-            width: width - 14,
-            height: 50 + (10 * hLoaderRatio),
-            child: const LinearProgressIndicator(
-              // value: context.listenUniProvider.textstoreBarLoader,
-              // color: AppColors.primaryShiny,
-              color: AppColors.lightShinyPrimary,
+        // if (isLoading)
+        //   SizedBox(
+        //     width: width - 14,
+        //     height: 50 + (10 * hLoaderRatio),
+        //     child: const LinearProgressIndicator(
+        //       color: AppColors.lightShinyPrimary,
+        //       backgroundColor: Colors.transparent,
+        //     ),
+        //   ).roundedFull.offset(7, -5 * hLoaderRatio),
 
-              // color: AppColors.primaryShiny.withOpacity(0.20),
-              backgroundColor: Colors.transparent,
-            ),
-          ).roundedFull.offset(7, -5 * hLoaderRatio),
         SizedBox(
           width: width,
           child: Material(

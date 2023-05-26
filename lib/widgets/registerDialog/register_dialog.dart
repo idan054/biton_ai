@@ -170,35 +170,36 @@ class _RegisterDialogState extends State<RegisterDialog> {
             isLoading: isLoading,
             createMode: !loginMode,
             onPressed: () async {
-              isLoading = true;
-              formState!(() {});
-
-              final otp =
-                  await otpRequest!.confirm(_otpController.text).catchError((err) {
-                isLoading = false;
-                printRed('My ERROR: $err');
-                // errMessage = err.toString().replaceAll('Exception: ', '');
-                errMessage = 'SMS code incorrect';
+              try {
+                isLoading = true;
                 formState!(() {});
-              });
 
-              print('otp.user ${otp.user?.phoneNumber}');
-              print('otp.user ${otp.additionalUserInfo?.isNewUser}');
-              if (otp.user != null) {
-                // If verified:
-                final _phone = phone!.replaceAll('+', '');
-                await WooApi.userSignup(
-                  email: _emailController.text,
-                  password: _passController.text,
-                  phone: _phone,
-                ).catchError((err) {
+                final otp =
+                    await otpRequest!.confirm(_otpController.text).catchError((err) {
                   isLoading = false;
                   printRed('My ERROR: $err');
-                  errMessage = err.toString().replaceAll('Exception: ', '');
-                  //? TODO: User exist? Try Auto login ?
+                  // errMessage = err.toString().replaceAll('Exception: ', '');
+                  errMessage = 'SMS code incorrect';
                   formState!(() {});
                 });
-                _handleLogin(isLoading, formState);
+
+                print('otp.user ${otp.user?.phoneNumber}');
+                print('otp.user ${otp.additionalUserInfo?.isNewUser}');
+                if (otp.user != null) {
+                  // If verified:
+                  final _phone = phone!.replaceAll('+', '');
+                  await WooApi.userSignup(
+                    email: _emailController.text,
+                    password: _passController.text,
+                    phone: _phone,
+                  );
+                  _handleLogin();
+                }
+              } on Exception catch (err, s) {
+                isLoading = false;
+                printRed('My ERROR: $err');
+                errMessage = err.toString().replaceAll('Exception: ', '');
+                formState!(() {});
               }
             },
           ).center,
@@ -295,7 +296,7 @@ class _RegisterDialogState extends State<RegisterDialog> {
                             .pOnly(right: 5),
                         errMessage!.toText(color: color).expanded()
                       ],
-                    ).pOnly(top: 5);
+                    ).pOnly(top: 5, bottom: 5);
             }),
             (loginMode ? 'New? Create profile' : 'Login instead')
                 .toText(color: AppColors.secondaryBlue, underline: true)
@@ -307,7 +308,7 @@ class _RegisterDialogState extends State<RegisterDialog> {
                   // formState!(() {});
                 }, radius: 5)
                 .centerLeft
-                .offset(0, loginMode ? 0 : -15),
+                .offset(0, loginMode ? 0 : -5),
             const SizedBox(height: 15),
             buildTextstoreButton(
               title: loginMode ? 'Login' : 'Sign up',
@@ -316,8 +317,7 @@ class _RegisterDialogState extends State<RegisterDialog> {
               isLoading: isLoading,
               createMode: !loginMode,
               onPressed: () async {
-                if (kDebugMode) {
-                } else {
+                try {
                   if (!_emailController.text.isEmail) {
                     errMessage = 'Please use a valid Email';
                     errState!(() {});
@@ -336,30 +336,50 @@ class _RegisterDialogState extends State<RegisterDialog> {
                     errState!(() {});
                     return;
                   }
-                }
 
-                errMessage = null;
-                isLoading = true;
-                formState!(() {});
+                  errMessage = null;
+                  isLoading = true;
+                  formState!(() {});
 
-                //~ SignUp if needed:
-                if (!loginMode) {
-                  final _phone = phone!.replaceAll('+', '');
-                  final isPhoneExist = await WooApi.checkPhoneExist(_phone);
-                  if (isPhoneExist) {
-                    errMessage = 'Please login, Profile phone exist';
-                    errState!(() {});
-                    return;
+                  //~ SignUp if needed:
+                  if (!loginMode) {
+                    final _phone = phone!.replaceAll('+', '');
+                    final isPhoneExist = await WooApi.checkPhoneExist(_phone);
+                    if (isPhoneExist) {
+                      errMessage = 'Please login, Profile phone exist';
+                      errState!(() {});
+                      return;
+                    }
+
+                    final isEmailExist =
+                        await WooApi.checkEmailExists(_emailController.text);
+                    if (isEmailExist) {
+                      errMessage = 'Please login, Profile email exist';
+                      errState!(() {});
+                      return;
+                    }
+
+                    // reCAPTCHA & send SMS code.
+                    otpRequest =
+                        await FirebaseAuth.instance.signInWithPhoneNumber(phone!);
+                    _pageController.jumpToPage(2);
+                    setState(() {});
                   }
 
-                  // reCAPTCHA & send SMS code.
-                  otpRequest = await FirebaseAuth.instance.signInWithPhoneNumber(phone!);
-                  _pageController.jumpToPage(2);
-                  setState(() {});
-                }
+                  if (errMessage != null) return;
+                  if (loginMode) await _handleLogin();
+                } on Exception catch (err, s) {
+                  isLoading = false;
+                  printRed('My ERROR: $err');
+                  errMessage = err.toString().replaceAll('Exception: ', '');
+                  formState!(() {});
 
-                if (errMessage != null) return;
-                if (loginMode) await _handleLogin(isLoading, formState);
+                  if (errMessage == "Oops! Profile doesn't exist") {
+                    errMessage = null;
+                    loginMode = !loginMode;
+                    setState(() {});
+                  }
+                }
               },
             ).center,
           ],
@@ -368,19 +388,12 @@ class _RegisterDialogState extends State<RegisterDialog> {
     });
   }
 
-  Future _handleLogin(bool isLoading, StateSetter? formState) async {
+  Future _handleLogin() async {
     //~ Login:
     var token = await WooApi.userLogin(
       email: _emailController.text,
       password: _passController.text,
-    ).catchError((err) {
-      isLoading = false;
-      printRed('My ERROR: $err');
-      errMessage = err.toString().replaceAll('Exception: ', '');
-      //? TODO: User exist? Try Auto login ?
-      formState!(() {});
-    });
-
+    );
     setUserToken(
         token: token, userEmail: _emailController.text, userPass: _passController.text);
     context.uniProvider.updateWooUserModel(WooUserModel(token: token));

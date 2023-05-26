@@ -150,7 +150,6 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
                   .px(30)
                   .centerLeft
                   .appearAll,
-
               CurvedLinearProgressIndicator(
                 // value: _longDescLoader,
                 // value: _animationController!.value, // use the controller's value
@@ -251,42 +250,45 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
 
   Widget buildTextStoreBar(BuildContext context) {
     var uniModel = context.listenUniProvider;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        textStoreBar(
-          context,
-          isLoading: _isLoading,
-          searchController: inputController,
-          onStart: () async => _handleOnSubmit(),
-          onSubmitted: (val) async => _handleOnSubmit(),
-          prefixIcon: Icons.tune
-              .icon(color: AppColors.greyText, size: 25)
-              .px(20)
-              .py(12)
-              .onTap(() async {
-            await showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (BuildContext context) {
-                return ThreeColumnDialog(
-                  promptsList: uniModel.fullPromptList,
-                  selectedPrompts: uniModel.inUsePromptList,
-                  categories: uniModel.categories,
-                );
-              },
-            );
-            setState(() {}); // Update uniModel values
-          }),
-        ),
-        if (errorMessage != null)
-          errorMessage
-              .toString()
-              .toText(color: AppColors.errRed, fontSize: 16, maxLines: 5)
-              .py(5)
-              .px(20)
-      ],
+    return Offstage(
+      offstage: true,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          textStoreBar(
+            context,
+            isLoading: _isLoading,
+            searchController: inputController,
+            onStart: () async => _handleOnSubmit(),
+            onSubmitted: (val) async => _handleOnSubmit(),
+            prefixIcon: Icons.tune
+                .icon(color: AppColors.greyText, size: 25)
+                .px(20)
+                .py(12)
+                .onTap(() async {
+              await showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (BuildContext context) {
+                  return ThreeColumnDialog(
+                    promptsList: uniModel.fullPromptList,
+                    selectedPrompts: uniModel.inUsePromptList,
+                    categories: uniModel.categories,
+                  );
+                },
+              );
+              setState(() {}); // Update uniModel values
+            }),
+          ),
+          if (errorMessage != null)
+            errorMessage
+                .toString()
+                .toText(color: AppColors.errRed, fontSize: 16, maxLines: 5)
+                .py(5)
+                .px(20)
+        ],
+      ),
     );
   }
 
@@ -402,13 +404,37 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
               mainAxisSize: MainAxisSize.min,
               children: [
                 20.verticalSpace,
-                textStoreAi.toText(fontSize: 25, bold: true).px(25).centerLeft,
+                textStoreAi.toText(fontSize: 35, bold: true).px(25).centerLeft,
                 20.verticalSpace,
               ],
             ).onTap(
                 () => Navigator.push(
                     context, MaterialPageRoute(builder: (context) => const HomeScreen())),
                 radius: 5),
+            Builder(builder: (context) {
+              var color = AppColors.primaryShiny;
+              return Card(
+                // color: Colors.grey[100],
+                // color: AppColors.lightShinyPrimary,
+                color: AppColors.transparent,
+                elevation: 0,
+                shape: 10.roundedShape.copyWith(
+                      side: BorderSide(color: color, width: 2),
+                    ),
+                child: ListTile(
+                  onTap: () async {
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => const HomeScreen()));
+                  },
+                  horizontalTitleGap: 0,
+                  leading: Icons.shopping_bag.icon(color: color, size: 22),
+                  title: 'Create new product'
+                      .toString()
+                      .toText(bold: true, color: color, fontSize: 15),
+                ),
+              ).pOnly(left: 3, right: 30);
+            }),
+            const SizedBox(height: 10),
             CategoryDrawerList(
               categories: const [
                 ResultCategory.gResults,
@@ -435,7 +461,6 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
               },
             ),
             const Spacer(),
-            //? todo UI Ready But not works yet!
             Builder(builder: (context) {
               var color =
                   isAdvancedSwitchOn ? AppColors.secondaryBlue : AppColors.greyText;
@@ -480,7 +505,6 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
                     ),
               ).px(10);
             }),
-
             20.verticalSpace,
           ],
         ));

@@ -51,12 +51,13 @@ class WooApi {
     url += "&categories=$catIdsEncoded";
 
     final response = await http.get(Uri.parse(url));
-    print("WooApi.getPosts() statusCode: ${response.statusCode}");
 
     if (response.statusCode == 200) {
       final List<dynamic> jsonList = json.decode(response.body);
       var posts = jsonList.map((json) => WooPostModel.fromJson(json)).toList();
-      for (var p in posts) print("${p.id} | ${p.title} | ${p.isDefault}");
+      print(
+          "WooApi.getPosts() statusCode: ${response.statusCode} [${posts.length} prompts found]");
+      // for (var p in posts) print("${p.id} | ${p.title} | ${p.isDefault}");
       return posts;
     } else {
       printRed("response.body ${response.body}");
@@ -154,6 +155,21 @@ class WooApi {
       printRed("response.body ${response.body}");
       var exception = handleExceptions(response);
       throw Exception(exception ?? "Check if phone exist failed, please try again");
+    }
+  }
+
+  static Future<bool> checkEmailExists(String email) async {
+    final response = await http.get(Uri.parse('$baseUrl/wp/v2/users?search=$email'));
+
+    if (response.statusCode == 200) {
+      print("WooApi.checkEmailExists() statusCode: ${response.statusCode}");
+
+      final List<dynamic> users = json.decode(response.body);
+      return users.isNotEmpty;
+    } else {
+      printRed("response.body ${response.body}");
+      var exception = handleExceptions(response);
+      throw Exception(exception ?? "Failed to check if user mail exist");
     }
   }
 

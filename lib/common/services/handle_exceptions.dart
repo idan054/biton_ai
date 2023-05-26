@@ -20,5 +20,9 @@ String? handleExceptions(Response resp) {
     return 'Oops! password is incorrect';
   }
 
+  if (message.toString().contains('Unknown email address')) {
+    return "Oops! Profile doesn't exist";
+  }
+
   return message;
 }
