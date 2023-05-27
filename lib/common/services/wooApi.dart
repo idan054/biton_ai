@@ -121,7 +121,7 @@ class WooApi {
   }
 
   static Future<void> deletePost(int postId) async {
-    print("START: WooApi.deletePost()");
+    print("START: WooApi.deletePost() $postId");
     var url = "$baseUrl/wp/v2/posts/$postId";
 
     final response = await http.delete(
@@ -132,8 +132,9 @@ class WooApi {
       },
     );
 
-    print("WooApi.deletePost() statusCode: ${response.statusCode}");
-    if (response.statusCode != 204) {
+    if (response.statusCode == 200) {
+      printGreen("WooApi.deletePost() statusCode: ${response.statusCode}");
+    } else {
       printRed("response.body ${response.body}");
       var exception = handleExceptions(response);
       throw Exception(exception ?? "Failed to delete prompt, please try again");

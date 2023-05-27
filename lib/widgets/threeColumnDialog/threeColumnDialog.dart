@@ -14,6 +14,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../common/constants.dart';
 import '../../common/extensions/widget_ext.dart';
@@ -439,7 +440,7 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
                       if ((sRadioPost?.isDefault ?? false) || isYourInputIncluded) {
                         _isLoading = true;
                         setState(() {});
-                        await handleSave();
+                        await handleSave().catchSentryError();
                         _createMode = false;
                         _isLoading = false;
                         setState(() {});
@@ -462,45 +463,48 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
     });
   }
 
-  Future handleSave() async {
-    final currUser = context.uniProvider.currUser;
-    final isGooglePrompt = selectedCategory!.type == ResultCategory.gResults;
-    final title = _titleEditingController.text.trim();
-    final googleDesc = _googleDescEditingController.text.trim();
-    final mainContent = _contentEditingController.text;
-    final content = isGooglePrompt ? '$mainContent googleDesc=$googleDesc' : mainContent;
+  Future<void> handleSave() async {
+      final currUser = context.uniProvider.currUser;
+      final isGooglePrompt = selectedCategory!.type == ResultCategory.gResults;
+      final title = _titleEditingController.text.trim();
+      final googleDesc = _googleDescEditingController.text.trim();
+      final mainContent = _contentEditingController.text;
+      final content =
+          isGooglePrompt ? '$mainContent googleDesc=$googleDesc' : mainContent;
 
-    if (title.isNotEmpty && mainContent.isNotEmpty && selectedCategory != null) {
-      // Remove old version
-      if (!_createMode) _fullPromptList.removeWhere((post) => post.id == sRadioPost?.id);
+      if (title.isNotEmpty && mainContent.isNotEmpty && selectedCategory != null) {
+        // Remove old version
+        if (!_createMode)
+          _fullPromptList.removeWhere((post) => post.id == sRadioPost?.id);
 
-      var newPost = WooPostModel(
-        author: sRadioPost!.author,
-        title: title,
-        content: content,
-        category: selectedCategory!.type,
-        categories: [selectedCategory!.id],
-        isSelected: true,
-      );
-      _deselectOtherPrompts(newPost, currUser);
+        var newPost = WooPostModel(
+          author: sRadioPost!.author,
+          title: title,
+          content: content,
+          category: selectedCategory!.type,
+          categories: [selectedCategory!.id],
+          isSelected: true,
+        );
+        _deselectOtherPrompts(newPost, currUser);
 
-      newPost = await WooApi.updatePost(
-        currUser,
-        newPost,
-        postId: _createMode ? null : sRadioPost!.id,
-        isSelected: true,
-      ).catchError((err) {
-        printRed('My ERROR: $err');
-        _isLoading = false;
-        errMessage = err.toString().replaceAll('Exception: ', '');
-        setState(() {});
-      });
+        newPost = await WooApi.updatePost(
+          currUser,
+          newPost,
+          postId: _createMode ? null : sRadioPost!.id,
+          isSelected: true,
+        ).catchError((err) {
+          printRed('My ERROR: $err');
+          _isLoading = false;
+          errMessage = err.toString().replaceAll('Exception: ', '');
+          setState(() {});
+        });
 
-      onRadioChanged(newPost);
-      _fullPromptList = setDefaultPromptFirst(_fullPromptList);
-      _fullPromptList.insert(1, newPost); // Start of  list
+        onRadioChanged(newPost);
+        _fullPromptList = setDefaultPromptFirst(_fullPromptList);
+        _fullPromptList.insert(1, newPost); // Start of  list
 
-    }
+      }
+
   }
 
   void _deselectOtherPrompts(WooPostModel newPost, WooUserModel currUser) {

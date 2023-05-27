@@ -1,6 +1,9 @@
 import 'package:biton_ai/common/themes/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:entry/entry.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
+
+import '../services/color_printer.dart';
 
 var appearDuration = 650;
 // var appearDuration = 1550;
@@ -19,6 +22,20 @@ extension IconDataX on IconData {
 // );
 }
 
+extension CatchErrorExtension<T> on Future<T> {
+  Future<T> catchSentryError({void Function(Object err, StackTrace trace)? onError}) {
+    return catchError((error, stackTrace) async {
+      printLightBlue('START: catchSentryError()'); // Default error handling action
+      printRed('Error: $error');
+      print('StackTrace: $stackTrace');
+      var errSentry = await Sentry.captureException(error, stackTrace: stackTrace);
+      print('errSentry $errSentry');
+      if (onError != null) {
+        onError(error, stackTrace); // Call custom error handler if provided
+      }
+    });
+  }
+}
 
 extension WidgetX on Widget {
   // My extension:

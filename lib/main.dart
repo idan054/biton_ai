@@ -1,4 +1,5 @@
 import 'package:biton_ai/common/extensions/context_ext.dart';
+import 'package:biton_ai/common/extensions/widget_ext.dart';
 import 'package:biton_ai/common/services/color_printer.dart';
 import 'package:biton_ai/screens/resultsScreen.dart';
 import 'package:biton_ai/screens/wordpress/auth_screen.dart';
@@ -11,6 +12,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'common/constants.dart';
 import 'dart:html' as html;
 import 'package:hive/hive.dart';
@@ -20,23 +22,25 @@ import 'firebase_options.dart';
 import 'screens/homeScreen.dart';
 import 'package:firebase_core/firebase_core.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   // await dotenv.load();
   await Hive.initFlutter();
-  var token = await setUserToken();
+  final token = await setUserToken();
 
-  runApp(MultiProvider(
-    providers: [
-      ChangeNotifierProvider(create: (_) => UniProvider()),
-      // Provider.value(value: StreamModel().serverClient),
-      // FutureProvider<List<Activity>?>.value(
-      //     value: StreamModel().getFeedActivities(), initialData: const []),
-    ],
-    // builder:(context, child) =>
-    child: MyApp(token),
-  ));
+  const sentryUrl =
+      'https://58ec3c5acddb489c8bcbc70d51dbb1c4@o1148186.ingest.sentry.io/4505254606864384';
+  await SentryFlutter.init(
+    (options) {
+      options.dsn = sentryUrl;
+      options.tracesSampleRate = 1.0; // 1.0 = capture 100%
+    },
+    appRunner: () => runApp(MultiProvider(
+      providers: [ChangeNotifierProvider(create: (_) => UniProvider())],
+      child: MyApp(token),
+    )),
+  ).catchSentryError();
 }
 
 class MyApp extends StatelessWidget {
