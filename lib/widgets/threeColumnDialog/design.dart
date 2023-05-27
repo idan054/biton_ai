@@ -23,27 +23,34 @@ var fieldTitleStyle = InputDecoration(
     contentPadding: const EdgeInsets.symmetric(vertical: 7),
     border: InputBorder.none,
     enabledBorder: InputBorder.none,
+    // enabledBorder: UnderlineInputBorder(
+    //   borderRadius: BorderRadius.circular(4),
+    //   borderSide: BorderSide(color: AppColors.greyUnavailable80, width: 1.5),
+    // ),
     focusedBorder: UnderlineInputBorder(
       borderRadius: BorderRadius.circular(4),
       borderSide: const BorderSide(color: AppColors.secondaryBlue, width: 1.5),
     ));
 
-InputDecoration fieldPromptStyle(bool isDefault, {bool intlPhoneField = false}) => InputDecoration(
-    filled: isDefault,
-    contentPadding: isDefault || intlPhoneField? null : const EdgeInsets.symmetric(horizontal: 6),
-    fillColor: AppColors.greyLight.withOpacity(0.40),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(5),
-      borderSide: const BorderSide(color: AppColors.secondaryBlue, width: 1.5),
-    ),
-    disabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(5),
-      borderSide: BorderSide(color: AppColors.greyLight, width: 1.5),
-    ),
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(5),
-      borderSide: BorderSide(color: AppColors.greyLight, width: 1.5),
-    ));
+InputDecoration fieldPromptStyle(bool isDefault, {bool intlPhoneField = false}) =>
+    InputDecoration(
+        filled: isDefault,
+        contentPadding: isDefault || intlPhoneField
+            ? null
+            : const EdgeInsets.symmetric(horizontal: 6),
+        fillColor: AppColors.greyLight.withOpacity(0.40),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(5),
+          borderSide: const BorderSide(color: AppColors.secondaryBlue, width: 1.5),
+        ),
+        disabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(5),
+          borderSide: BorderSide(color: AppColors.greyLight, width: 1.5),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(5),
+          borderSide: BorderSide(color: AppColors.greyLight, width: 1.5),
+        ));
 
 Widget fieldTitle(String text) => text
     .toText(medium: true, color: AppColors.greyUnavailable80, fontSize: 14)

@@ -25,23 +25,27 @@ class Gpt {
     printWhite('START: getResults(): ${type.name}');
     print('${prompts.length} prompts: $prompts');
 
+    // .toSet() retrieve only unique items
+    prompts = prompts.toSet().toList();
+    bool isSamePrompts = prompts.length == 1;
+    print('isSamePrompts ${isSamePrompts}');
+
     List<ResultModel> results = [];
     ChatGptModel? titles;
     ChatGptModel? descriptions;
-    titles = await _multiCallChatGPT(context,
-        reqType: type,
-        prompts: prompts,
-        // model: type == ResultCategory.longDesc ? 3 : 4);
-        model: 3);
+    titles = isSamePrompts
+        ? await _singleCallChatGPT(context,
+            reqType: type, n: 3, prompt: prompts.first, model: 4)
+        //
+        : await _multiCallChatGPT(context, reqType: type, prompts: prompts, model: 4);
 
     if (type == ResultCategory.gResults) {
-      descriptions = await _multiCallChatGPT(
-        context,
-        model: 3,
-        reqType: type,
-        gDescription: true,
-        prompts: gDescPrompts!,
-      );
+      descriptions = isSamePrompts
+          ? await _singleCallChatGPT(context,
+              model: 4, reqType: type, gDescription: true, n: 3, prompt: prompts.first)
+          //
+          : await _multiCallChatGPT(context,
+              model: 4, reqType: type, gDescription: true, prompts: gDescPrompts!);
     }
 
     var i = 0;
@@ -67,7 +71,6 @@ class Gpt {
   }) async {
     printWhite('START: _multiCallChatGPT() | ${reqType?.name}');
 
-
     var type = '${reqType?.name.toUpperCase()}';
     if (gDescription) type += ' - Descriptions';
 
@@ -86,7 +89,7 @@ class Gpt {
         if (response.statusCode == 200) {
           printGreen(
               '($type) $counter response.statusCode ${response.statusCode} [GPT$model]');
-          _updateTextStoreLoader(context, reqType!, prompts);
+          _updateTextStoreLoader(context, reqType!, prompts.length);
 
           final jsonResponse = json.decode(response.body);
           /**/ // print('jsonResponse $jsonResponse');
@@ -116,31 +119,38 @@ class Gpt {
   }
 
   static void _updateTextStoreLoader(
-      BuildContext context, ResultCategory reqType, List prompts) {
+      BuildContext context, ResultCategory reqType, int x) {
     if (reqType == ResultCategory.gResults) {
-      var bonus = (1 / (prompts.length * 2));
+      var bonus = (1 / (x * 2));
+      print('bonus ${bonus}');
       context.uniProvider
           .updateTextstoreBarLoader(context.uniProvider.textstoreBarLoader + bonus);
     }
   }
 
   // Make GPT Functions in this class
-  static Future<ChatGptModel> _callChatGPT({
-    String? reqType, // As Request PRINT name
+  static Future<ChatGptModel> _singleCallChatGPT(
+    BuildContext context, {
+    ResultCategory? reqType, // As Request PRINT name
     required String prompt,
     required int n,
     required int model, // 3 & 4 available
+    bool gDescription = false,
   }) async {
     // print('\nSTART: callChatGPT()');
     printYellow('prompt: $prompt');
+    var type = '${reqType?.name.toUpperCase()}';
+    if (gDescription) type += ' - Descriptions';
 
+    _updateTextStoreLoader(context, reqType!, 1);
     var url = '$baseUrl/ai-engine/v1/call-chat-gpt-$model';
     final headers = {'Content-Type': 'application/json'};
     final body = json.encode({'prompt': prompt, 'n': n});
     final response = await http.post(Uri.parse(url), headers: headers, body: body);
 
-    printGreen('response.statusCode ${response.statusCode} ($reqType)');
     if (response.statusCode == 200) {
+      printGreen('($type) Single response.statusCode ${response.statusCode} [GPT$model]');
+
       final jsonResponse = json.decode(response.body);
       var gptModel = ChatGptModel.fromJson(jsonResponse);
       print('gptModel.tokenUsage ${gptModel.tokenUsage}');

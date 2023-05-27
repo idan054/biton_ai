@@ -31,28 +31,23 @@ class WooPostModel with _$WooPostModel {
 
   // factory WooPostModel.fromJson(Map<String, dynamic> json) => _$WooPostModelFromJson(json);
   factory WooPostModel.fromJson(Map<String, dynamic> json) {
-    var title = json['title']['rendered'];
-    var content = json['content']['rendered']
-        .toString()
-        .replaceAll('<p>', '')
-        .replaceAll('</p>', '')
-        .trim();
-    var mainContent = fetchContentFromJson(content, isSubContent: false);
-    var subContent = fetchContentFromJson(content, isSubContent: true);
+    // var content = json['content']['rendered'].toString().replaceAll('<p>', '').replaceAll('</p>', '').trim();
+    // var mainContent = fetchContentFromJson(content, isSubContent: false);
+    // var subContent = fetchContentFromJson(content, isSubContent: true);
 
     var categoriesRaw = json['categories'] as List<dynamic>;
     var categories = categoriesRaw.map((category) => category as int).toList();
 
     var post = WooPostModel(
-      id: json['id'],
-      author: json['author'],
       categories: categories,
       category: getCategory(categories),
-      title: title,
-      content: mainContent!,
-      subContent: subContent,
-      isSelected: json['meta']?['isSelected'] ?? false,
-      isDefault: json['meta']?['isDefault'] ?? false, // the TextStore UID
+      id: json['id'],
+      author: json['author'],
+      title: json['title']['rendered'],
+      content: json['acf']['prompt'],
+      subContent: json['acf']['googleDesc'],
+      isSelected: json['acf']?['isSelected'] ?? false,
+      isDefault: json['acf']?['isDefault'] ?? false, // the TextStore UID
     );
     return post;
   }
@@ -75,13 +70,13 @@ ResultCategory getCategory(List<int> catIds) {
   return type!;
 }
 
-String? fetchContentFromJson(String content, {required bool isSubContent}) {
-  var googleDesc = 'googleDesc=';
-  if (content.contains(googleDesc)) {
-    return isSubContent
-        ? content.split(googleDesc).last.replaceAll(googleDesc, '')
-        : content.split(googleDesc).first;
-  } else {
-    return isSubContent ? null : content;
-  }
-}
+// String? _fetchContentFromJson(String content, {required bool isSubContent}) {
+//   var googleDesc = 'googleDesc=';
+//   if (content.contains(googleDesc)) {
+//     return isSubContent
+//         ? content.split(googleDesc).last.replaceAll(googleDesc, '')
+//         : content.split(googleDesc).first;
+//   } else {
+//     return isSubContent ? null : content;
+//   }
+// }

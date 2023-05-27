@@ -38,7 +38,6 @@ class WooApi {
   static Future<List<WooPostModel>> getPosts({
     String? userId,
     required List<int> catIds,
-    // required List<WooCategoryModel> categories,
   }) async {
     print("START: WooApi.getPosts()");
 
@@ -66,6 +65,7 @@ class WooApi {
     }
   }
 
+  // Update / Create post
   static Future<WooPostModel> updatePost(
     WooUserModel currUser,
     WooPostModel post, {
@@ -76,29 +76,32 @@ class WooApi {
 
     bool updateMode = postId != null;
     if (post.author != currUser.id) {
+      printYellow('post.author != currUser.id | ${post.author} != ${currUser.id}');
       printYellow(
           "SKIP: Can't ${updateMode ? "update" : "create"} post ${post.id}: ${post.title}");
       return post;
     }
 
-    // var url = "$baseUrl/wp/v2/posts";
     var url = "$baseUrl/wp/v2/posts";
     if (updateMode) url += "/$postId";
 
     final headers = {
       "Content-Type": "application/json",
-      // "Authorization": post.isDefault ? "Bearer $adminJwt" : "Bearer $appConfig_userJwt",
       "Authorization": "Bearer $appConfig_userJwt",
     };
 
     // print("updatePost() updateMode $updateMode [${post.title}]");
     final body = jsonEncode({
       "title": post.title,
-      "content": post.content,
+      // "content": post.content,
       // "author": post.isDefault ? textStoreUid : post.author,
       "categories": post.categories,
       "status": "publish",
-      "meta": {"isSelected": isSelected},
+      "acf": {
+        "googleDesc": post.subContent,
+        "prompt": post.content,
+      },
+      "acf": {"isSelected": isSelected},
     });
 
     final response = updateMode

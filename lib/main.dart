@@ -50,7 +50,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    context.uniProvider.updateWooUserModel(WooUserModel(token: token), notify: false);
+    context.uniProvider.updateWooUserModel(
+        context.uniProvider.currUser.copyWith(token: token),
+        notify: false);
 
     return ScreenUtilInit(
       builder: (BuildContext context, Widget? child) => MaterialApp(

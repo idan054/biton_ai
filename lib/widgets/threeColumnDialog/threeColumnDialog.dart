@@ -80,6 +80,9 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
     // Set Radio by category
     sRadioPost =
         _selectedPromptList.firstWhere((p) => p.category == selectedCategory!.type);
+
+    final currUser = context.uniProvider.currUser;
+    print('currUser ${currUser.toJson()}');
     super.initState();
   }
 
@@ -94,7 +97,7 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
   }
 
   void onRadioChanged(WooPostModel newPost, {bool fromCategory = false}) {
-    print('START: onRadioChanged()');
+    print('START: onRadioChanged() ${newPost.title}');
     if (!fromCategory) _isSaveActive = true;
 
     _createMode = false;
@@ -338,6 +341,8 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
           TextField(
             focusNode: _titleFocusNode,
             controller: _titleEditingController,
+            textDirection: _titleEditingController.text.toText().textDirection,
+            textAlign: _titleEditingController.text.toText().textAlign!,
             style: const TextStyle(
               fontSize: 17,
               color: AppColors.greyUnavailable,
@@ -355,9 +360,15 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
             SizedBox(
               height: isGoogleCategory ? 95 : 140,
               child: TextField(
+                textDirection: _contentEditingController.text.toText().textDirection,
+                textAlign: _contentEditingController.text.toText().textAlign!,
                 enabled: !isDefault,
                 maxLines: null,
                 expands: true,
+                onChanged: (value) {
+                  _isSaveActive = true;
+                  setState(() {});
+                },
                 style: TextStyle(
                     color: isDefault ? AppColors.greyUnavailable80 : Colors.black),
                 controller: isDefault
@@ -373,6 +384,10 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
                 height: 95,
                 child: TextField(
                   enabled: !isDefault,
+                  onChanged: (value) {
+                    _isSaveActive = true;
+                    setState(() {});
+                  },
                   maxLines: null,
                   expands: true,
                   style: TextStyle(
@@ -380,6 +395,8 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
                   controller: isDefault
                       ? TextEditingController(text: defaultHint)
                       : _googleDescEditingController,
+                  textDirection: _googleDescEditingController.text.toText().textDirection,
+                  textAlign: _googleDescEditingController.text.toText().textAlign!,
                   decoration: fieldPromptStyle(isDefault),
                 ),
               ),
@@ -433,9 +450,9 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
                               ? _googleDescEditingController.text.contains('[YOUR_INPUT]')
                               : true));
 
-                      print('isYourInputIncluded ${isYourInputIncluded} '
-                          '\n ${_contentEditingController.text}'
-                          '\n ${_googleDescEditingController.text}');
+                      // print('isYourInputIncluded $isYourInputIncluded '
+                      //     '\n ${_contentEditingController.text}'
+                      //     '\n ${_googleDescEditingController.text}');
 
                       if ((sRadioPost?.isDefault ?? false) || isYourInputIncluded) {
                         _isLoading = true;
@@ -465,43 +482,49 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
   }
 
   Future<void> handleSave() async {
+    print('START: handleSave()');
+
     final currUser = context.uniProvider.currUser;
+    print('currUser ${currUser.toJson()}');
+
     final isGooglePrompt = selectedCategory!.type == ResultCategory.gResults;
     final title = _titleEditingController.text.trim();
     final googleDesc = _googleDescEditingController.text.trim();
     final mainContent = _contentEditingController.text;
-    final content = isGooglePrompt ? '$mainContent googleDesc=$googleDesc' : mainContent;
+    // final content = isGooglePrompt ? '$mainContent googleDesc=$googleDesc' : mainContent;
 
     if (title.isNotEmpty && mainContent.isNotEmpty && selectedCategory != null) {
       // Remove old version
       if (!_createMode) _fullPromptList.removeWhere((post) => post.id == sRadioPost?.id);
 
-        var newPost = WooPostModel(
-          author: sRadioPost?.author ?? currUser.id!,
-          // author: sRadioPost!.author,
-          title: title,
-          content: content,
-          category: selectedCategory!.type,
-          categories: [selectedCategory!.id],
-          isSelected: true,
-        );
-        _deselectOtherPrompts(newPost, currUser);
+      var newPost = WooPostModel(
+        author: sRadioPost?.author ?? currUser.id!,
+        // author: sRadioPost!.author,
+        title: title,
+        content: mainContent,
+        subContent: googleDesc,
+        category: selectedCategory!.type,
+        categories: [selectedCategory!.id],
+        isSelected: true,
+      );
+      _deselectOtherPrompts(newPost, currUser);
 
-        newPost = await WooApi.updatePost(
-          currUser,
-          newPost,
-          postId: _createMode ? null : sRadioPost!.id,
-          isSelected: true,
-        ).catchError((err) {
-          printRed('My ERROR: $err');
-          _isLoading = false;
-          errMessage = err.toString().replaceAll('Exception: ', '');
-          setState(() {});
-        });
+      // Add post id
+      newPost = await WooApi.updatePost(
+        currUser,
+        newPost,
+        postId: _createMode ? null : sRadioPost!.id,
+        isSelected: true,
+      ).catchError((err) {
+        printRed('My ERROR: $err');
+        _isLoading = false;
+        errMessage = err.toString().replaceAll('Exception: ', '');
+        setState(() {});
+      });
 
-        onRadioChanged(newPost);
-        _fullPromptList = setDefaultPromptFirst(_fullPromptList);
-        _fullPromptList.insert(1, newPost); // Start of  list
+      onRadioChanged(newPost);
+      _fullPromptList = setDefaultPromptFirst(_fullPromptList);
+      _fullPromptList.insert(1, newPost); // Start of  list
 
     }
   }

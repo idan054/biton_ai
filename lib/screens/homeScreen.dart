@@ -84,7 +84,10 @@ class _HomeScreenState extends State<HomeScreen> {
       errorMessage = err.toString().replaceAll('Exception: ', '');
       setState(() {});
     });
+    print('currUser.toJson() ${currUser?.toJson()}');
     context.uniProvider.updateWooUserModel(currUser!.copyWith(token: token));
+    print('context.uniProvider.currUser ${context.uniProvider.currUser.toJson()}');
+
     _profileLoading = false;
     setState(() {});
   }
@@ -395,16 +398,15 @@ Widget textStoreBar(
     tag: 'buildMainBar',
     child: Stack(
       children: [
-        // if (isLoading)
-        //   SizedBox(
-        //     width: width - 14,
-        //     height: 50 + (10 * hLoaderRatio),
-        //     child: const LinearProgressIndicator(
-        //       color: AppColors.lightShinyPrimary,
-        //       backgroundColor: Colors.transparent,
-        //     ),
-        //   ).roundedFull.offset(7, -5 * hLoaderRatio),
-
+        if (isLoading)
+          SizedBox(
+            width: width - 14,
+            height: 50 + (10 * hLoaderRatio),
+            child: const LinearProgressIndicator(
+              color: AppColors.lightShinyPrimary,
+              backgroundColor: Colors.transparent,
+            ),
+          ).roundedFull.offset(7, -5 * hLoaderRatio),
         SizedBox(
           width: width,
           child: Material(

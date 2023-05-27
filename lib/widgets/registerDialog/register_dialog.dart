@@ -421,7 +421,8 @@ class _RegisterDialogState extends State<RegisterDialog> {
     );
     setUserToken(
         token: token, userEmail: _emailController.text, userPass: _passController.text);
-    context.uniProvider.updateWooUserModel(WooUserModel(token: token));
+    context.uniProvider
+        .updateWooUserModel(context.uniProvider.currUser.copyWith(token: token));
     Navigator.pop(context);
   }
 }
