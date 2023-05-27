@@ -441,6 +441,7 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
                         _isLoading = true;
                         setState(() {});
                         await handleSave().catchSentryError();
+
                         _createMode = false;
                         _isLoading = false;
                         setState(() {});

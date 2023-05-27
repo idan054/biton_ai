@@ -40,8 +40,7 @@ Future<void> main() async {
       providers: [ChangeNotifierProvider(create: (_) => UniProvider())],
       child: MyApp(token),
     )),
-  )
-      .catchSentryError();
+  );
 }
 
 class MyApp extends StatelessWidget {
