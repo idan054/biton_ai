@@ -34,7 +34,7 @@ List<String> promptsByType(
   bool useSelected = promptsBase.any((item) => item.category == type && item.isSelected);
   String prompt = promptsBase
       .firstWhere((item) =>
-          item.category == type && (useSelected ? item.isSelected : item.isDefault))
+          item.category == type && (useSelected ? item.isSelected : item.isAdmin))
       .content;
   if (type == ResultCategory.gResults) limit = 3;
   if (type == ResultCategory.titles) limit = 3;

@@ -24,7 +24,10 @@ mixin _$WooPostModel {
   String get title => throw _privateConstructorUsedError;
   String get content => throw _privateConstructorUsedError;
   String? get subContent => throw _privateConstructorUsedError;
-  bool get isDefault => throw _privateConstructorUsedError;
+  bool get isAdmin =>
+      throw _privateConstructorUsedError; // Edit on wordpress dashboard only
+  bool get isDefault =>
+      throw _privateConstructorUsedError; // Edit on wordpress dashboard only
   bool get isSelected => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -47,6 +50,7 @@ abstract class $WooPostModelCopyWith<$Res> {
       String title,
       String content,
       String? subContent,
+      bool isAdmin,
       bool isDefault,
       bool isSelected});
 }
@@ -71,6 +75,7 @@ class _$WooPostModelCopyWithImpl<$Res, $Val extends WooPostModel>
     Object? title = null,
     Object? content = null,
     Object? subContent = freezed,
+    Object? isAdmin = null,
     Object? isDefault = null,
     Object? isSelected = null,
   }) {
@@ -103,6 +108,10 @@ class _$WooPostModelCopyWithImpl<$Res, $Val extends WooPostModel>
           ? _value.subContent
           : subContent // ignore: cast_nullable_to_non_nullable
               as String?,
+      isAdmin: null == isAdmin
+          ? _value.isAdmin
+          : isAdmin // ignore: cast_nullable_to_non_nullable
+              as bool,
       isDefault: null == isDefault
           ? _value.isDefault
           : isDefault // ignore: cast_nullable_to_non_nullable
@@ -131,6 +140,7 @@ abstract class _$$_WooPostModelCopyWith<$Res>
       String title,
       String content,
       String? subContent,
+      bool isAdmin,
       bool isDefault,
       bool isSelected});
 }
@@ -153,6 +163,7 @@ class __$$_WooPostModelCopyWithImpl<$Res>
     Object? title = null,
     Object? content = null,
     Object? subContent = freezed,
+    Object? isAdmin = null,
     Object? isDefault = null,
     Object? isSelected = null,
   }) {
@@ -185,6 +196,10 @@ class __$$_WooPostModelCopyWithImpl<$Res>
           ? _value.subContent
           : subContent // ignore: cast_nullable_to_non_nullable
               as String?,
+      isAdmin: null == isAdmin
+          ? _value.isAdmin
+          : isAdmin // ignore: cast_nullable_to_non_nullable
+              as bool,
       isDefault: null == isDefault
           ? _value.isDefault
           : isDefault // ignore: cast_nullable_to_non_nullable
@@ -209,6 +224,7 @@ class _$_WooPostModel implements _WooPostModel {
       required this.title,
       required this.content,
       this.subContent,
+      this.isAdmin = false,
       this.isDefault = false,
       this.isSelected = false})
       : _categories = categories;
@@ -236,14 +252,19 @@ class _$_WooPostModel implements _WooPostModel {
   final String? subContent;
   @override
   @JsonKey()
+  final bool isAdmin;
+// Edit on wordpress dashboard only
+  @override
+  @JsonKey()
   final bool isDefault;
+// Edit on wordpress dashboard only
   @override
   @JsonKey()
   final bool isSelected;
 
   @override
   String toString() {
-    return 'WooPostModel(id: $id, author: $author, categories: $categories, category: $category, title: $title, content: $content, subContent: $subContent, isDefault: $isDefault, isSelected: $isSelected)';
+    return 'WooPostModel(id: $id, author: $author, categories: $categories, category: $category, title: $title, content: $content, subContent: $subContent, isAdmin: $isAdmin, isDefault: $isDefault, isSelected: $isSelected)';
   }
 
   @override
@@ -261,6 +282,7 @@ class _$_WooPostModel implements _WooPostModel {
             (identical(other.content, content) || other.content == content) &&
             (identical(other.subContent, subContent) ||
                 other.subContent == subContent) &&
+            (identical(other.isAdmin, isAdmin) || other.isAdmin == isAdmin) &&
             (identical(other.isDefault, isDefault) ||
                 other.isDefault == isDefault) &&
             (identical(other.isSelected, isSelected) ||
@@ -278,6 +300,7 @@ class _$_WooPostModel implements _WooPostModel {
       title,
       content,
       subContent,
+      isAdmin,
       isDefault,
       isSelected);
 
@@ -304,6 +327,7 @@ abstract class _WooPostModel implements WooPostModel {
       required final String title,
       required final String content,
       final String? subContent,
+      final bool isAdmin,
       final bool isDefault,
       final bool isSelected}) = _$_WooPostModel;
 
@@ -322,8 +346,10 @@ abstract class _WooPostModel implements WooPostModel {
   @override
   String? get subContent;
   @override
+  bool get isAdmin;
+  @override // Edit on wordpress dashboard only
   bool get isDefault;
-  @override
+  @override // Edit on wordpress dashboard only
   bool get isSelected;
   @override
   @JsonKey(ignore: true)

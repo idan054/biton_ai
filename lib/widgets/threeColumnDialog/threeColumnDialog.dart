@@ -138,7 +138,7 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
     _fullPromptList.remove(post);
 
     var defaultPrompt =
-        _fullPromptList.firstWhere((p) => p.isDefault && p.category == post.category);
+        _fullPromptList.firstWhere((p) => p.isAdmin && p.category == post.category);
     onRadioChanged(defaultPrompt);
   }
 
@@ -289,7 +289,7 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
                           onRadioChanged(currPost);
                         }, radius: 5, tapColor: Colors.transparent),
                         const Spacer(),
-                        if (!currPost.isDefault) ...[
+                        if (!currPost.isAdmin) ...[
                           Icons.edit
                               .icon(
                                   color: isSelected
@@ -326,8 +326,8 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
 
   Widget buildPromptForm() {
     bool isGoogleCategory = selectedCategory!.type == ResultCategory.gResults;
-    bool isDefault =
-        (sRadioPost != null && sRadioPost!.isDefault) && appConfig_hideDefault;
+    bool isAdmin =
+        (sRadioPost != null && sRadioPost!.isAdmin) && appConfig_hideDefault;
 
     // "TextStore team prompt: Great for most sellers, can't be edited"
     String defaultHint = "Great for most sellers, can't be edited";
@@ -350,7 +350,7 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
             ),
             decoration: fieldTitleStyle,
           ),
-          // if (!isDefaultPrompt) ...[
+          // if (!isAdminPrompt) ...[
           if (true) ...[
             const SizedBox(height: 4.0),
             if (!isGoogleCategory) const Spacer(flex: 3),
@@ -362,7 +362,7 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
               child: TextField(
                 textDirection: _contentEditingController.text.toText().textDirection,
                 textAlign: _contentEditingController.text.toText().textAlign!,
-                enabled: !isDefault,
+                enabled: !isAdmin,
                 maxLines: null,
                 expands: true,
                 onChanged: (value) {
@@ -370,11 +370,11 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
                   setState(() {});
                 },
                 style: TextStyle(
-                    color: isDefault ? AppColors.greyUnavailable80 : Colors.black),
-                controller: isDefault
+                    color: isAdmin ? AppColors.greyUnavailable80 : Colors.black),
+                controller: isAdmin
                     ? TextEditingController(text: defaultHint)
                     : _contentEditingController,
-                decoration: fieldPromptStyle(isDefault),
+                decoration: fieldPromptStyle(isAdmin),
               ),
             ),
             if (isGoogleCategory) ...[
@@ -383,7 +383,7 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
               SizedBox(
                 height: 95,
                 child: TextField(
-                  enabled: !isDefault,
+                  enabled: !isAdmin,
                   onChanged: (value) {
                     _isSaveActive = true;
                     setState(() {});
@@ -391,17 +391,17 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
                   maxLines: null,
                   expands: true,
                   style: TextStyle(
-                      color: isDefault ? AppColors.greyUnavailable80 : Colors.black),
-                  controller: isDefault
+                      color: isAdmin ? AppColors.greyUnavailable80 : Colors.black),
+                  controller: isAdmin
                       ? TextEditingController(text: defaultHint)
                       : _googleDescEditingController,
                   textDirection: _googleDescEditingController.text.toText().textDirection,
                   textAlign: _googleDescEditingController.text.toText().textAlign!,
-                  decoration: fieldPromptStyle(isDefault),
+                  decoration: fieldPromptStyle(isAdmin),
                 ),
               ),
             ],
-            if (sRadioPost != null && sRadioPost!.isDefault) ...[
+            if (sRadioPost != null && sRadioPost!.isAdmin) ...[
               // Hide info Red bulb on default prompts
             ] else ...[
               StatefulBuilder(builder: (context, stfState) {
@@ -454,7 +454,7 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
                       //     '\n ${_contentEditingController.text}'
                       //     '\n ${_googleDescEditingController.text}');
 
-                      if ((sRadioPost?.isDefault ?? false) || isYourInputIncluded) {
+                      if ((sRadioPost?.isAdmin ?? false) || isYourInputIncluded) {
                         _isLoading = true;
                         setState(() {});
                         await handleSave().catchSentryError();

@@ -361,7 +361,8 @@ List<WooPostModel> setSelectedList(
     if (_selectedPromptList.any((p) => p.category == prompt.category)) {
       // Do nothing, this category already have prompt.isSelected
     } else {
-      if (prompt.isDefault) _selectedPromptList.add(prompt);
+      //~ Must be only 1 prompt.isDefault per type
+      if (prompt.isAdmin && prompt.isDefault) _selectedPromptList.add(prompt);
     }
   }
   print('\nDONE: _selectedPromptList (${_selectedPromptList.length} prompts)');
@@ -373,7 +374,7 @@ List<WooPostModel> setDefaultPromptFirst(List<WooPostModel> postList) {
   var _postList = postList;
   // Set the Default prompt on Top
   for (var post in [..._postList]) {
-    if (post.isDefault) {
+    if (post.isAdmin) {
       _postList.remove(post);
       _postList.insert(0, post);
     }

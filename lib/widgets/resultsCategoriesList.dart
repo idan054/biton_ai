@@ -50,7 +50,7 @@ class _CategoryDrawerListState extends State<CategoryDrawerList> {
     customPromptCategories = [];
     final selectedPrompts = context.uniProvider.inUsePromptList;
     for (var prompt in selectedPrompts) {
-      prompt.isDefault ? null : customPromptCategories.add(prompt.category);
+      prompt.isAdmin ? null : customPromptCategories.add(prompt.category);
     }
   }
 

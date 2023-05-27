@@ -32,10 +32,10 @@ var fieldTitleStyle = InputDecoration(
       borderSide: const BorderSide(color: AppColors.secondaryBlue, width: 1.5),
     ));
 
-InputDecoration fieldPromptStyle(bool isDefault, {bool intlPhoneField = false}) =>
+InputDecoration fieldPromptStyle(bool isAdmin, {bool intlPhoneField = false}) =>
     InputDecoration(
-        filled: isDefault,
-        contentPadding: isDefault || intlPhoneField
+        filled: isAdmin,
+        contentPadding: isAdmin || intlPhoneField
             ? null
             : const EdgeInsets.symmetric(horizontal: 6),
         fillColor: AppColors.greyLight.withOpacity(0.40),

@@ -50,7 +50,7 @@ Widget buildTextstoreButton({
   bool isUnavailable = false,
   VoidCallback? onPressed,
 }) {
-  // bool defaultSelected = sRadioPost != null && sRadioPost!.isDefault && !_createMode;
+  // bool defaultSelected = sRadioPost != null && sRadioPost!.isAdmin && !_createMode;
   // if (defaultSelected) return const Offstage();
 
   return CustomButton(

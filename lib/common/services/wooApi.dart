@@ -56,7 +56,7 @@ class WooApi {
       var posts = jsonList.map((json) => WooPostModel.fromJson(json)).toList();
       print(
           "WooApi.getPosts() statusCode: ${response.statusCode} [${posts.length} prompts found]");
-      // for (var p in posts) print("${p.id} | ${p.title} | ${p.isDefault}");
+      // for (var p in posts) print("${p.id} | ${p.title} | ${p.isAdmin}");
       return posts;
     } else {
       printRed("response.body ${response.body}");
@@ -94,7 +94,7 @@ class WooApi {
     final body = jsonEncode({
       "title": post.title,
       // "content": post.content,
-      // "author": post.isDefault ? textStoreUid : post.author,
+      // "author": post.isAdmin ? textStoreUid : post.author,
       "categories": post.categories,
       "status": "publish",
       "acf": {

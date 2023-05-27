@@ -25,7 +25,8 @@ class WooPostModel with _$WooPostModel {
     required String title,
     required String content,
     String? subContent,
-    @Default(false) bool isDefault,
+    @Default(false) bool isAdmin, // Edit on wordpress dashboard only
+    @Default(false) bool isDefault, // Edit on wordpress dashboard only
     @Default(false) bool isSelected,
   }) = _WooPostModel;
 
@@ -47,7 +48,7 @@ class WooPostModel with _$WooPostModel {
       content: json['acf']['prompt'],
       subContent: json['acf']['googleDesc'],
       isSelected: json['acf']?['isSelected'] ?? false,
-      isDefault: json['acf']?['isDefault'] ?? false, // the TextStore UID
+      isAdmin: json['acf']?['isAdmin'] ?? false, // the TextStore UID
     );
     return post;
   }
