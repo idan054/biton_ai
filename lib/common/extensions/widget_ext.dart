@@ -26,13 +26,10 @@ extension IconDataX on IconData {
 extension CatchErrorExtension<T> on Future<T> {
   Future<T> catchSentryError({void Function(Object err, StackTrace trace)? onError}) {
     return catchError((error, stackTrace) async {
-      printLightBlue('START: catchSentryError()'); // Default error handling action
+      printWhite('START: catchSentryError()'); // Default error handling action
       printRed('Error: $error');
       print('StackTrace: $stackTrace');
-      if (!kDebugMode) {
-        var errSentry = await Sentry.captureException(error, stackTrace: stackTrace);
-        print('errSentry $errSentry');
-      }
+      if (!kDebugMode) await Sentry.captureException(error, stackTrace: stackTrace);
       if (onError != null) {
         onError(error, stackTrace); // Call custom error handler if provided
       }

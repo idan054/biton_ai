@@ -3,12 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'package:rich_console/rich_console.dart';
 
-String? handleExceptions(Response resp) {
-  final json = jsonDecode(resp.body);
-
-  var code = json['code'];
-  var message = json['message'];
-  var status = json['data']?['status'] ?? '';
+String? handleExceptions(Response? resp, {Exception? err}) {
+  String? message;
+  if (resp != null) {
+    final json = jsonDecode(resp.body);
+    message = json['message'];
+    var code = json['code'];
+    var status = json['data']?['status'] ?? '';
+  } else {
+    message = err.toString();
+  }
 
   if (message == 'Expired token') return 'Oops! Please re-login your account';
 
@@ -22,6 +26,10 @@ String? handleExceptions(Response resp) {
 
   if (message.toString().contains('Unknown email address')) {
     return "Oops! Profile doesn't exist";
+  }
+
+  if (message.toString().contains('invalid-phone-number')) {
+    return "Oops! Please use a valid phone";
   }
 
   return message;

@@ -1,3 +1,5 @@
+// ignore_for_file: curly_braces_in_flow_control_structures
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -8,6 +10,12 @@ extension StringNullX on String? {
 }
 
 extension StringX on String {
+
+  bool get isDigitsOnly {
+    for (var char in codeUnits) if (char < 48 || char > 57) return false;
+    return true;
+  }
+
   String get sentenceCase => split(' ')
       .map((e) => e.replaceAll('-', ' '))
       .map((e) => e[0].toUpperCase() + e.substring(1))

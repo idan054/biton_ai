@@ -75,7 +75,7 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
     selectedCategory = widget.selectedCategory ?? categories.first;
 
     _fullPromptList = widget.promptsList;
-    _initWooSelection(); // SET _selectedPromptList & Default
+    _initWooSelection().catchSentryError(); // SET _selectedPromptList & Default
 
     // Set Radio by category
     sRadioPost =
@@ -83,7 +83,7 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
     super.initState();
   }
 
-  void _initWooSelection() {
+  Future<void> _initWooSelection() async {
     _selectedPromptList = widget.selectedPrompts;
     print('_selectedPromptList ${_selectedPromptList.length}');
     print('_selectedPromptList ${_selectedPromptList}');
@@ -102,12 +102,12 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
     _titleEditingController.text = newPost.title;
     _contentEditingController.text = newPost.content;
     _googleDescEditingController.text = newPost.subContent ?? '';
-    updateSelectedList(newPost);
+    updateSelectedList(newPost).catchSentryError();
 
     setState(() {});
   }
 
-  void updateSelectedList(WooPostModel newPrompt) {
+  Future<void> updateSelectedList(WooPostModel newPrompt) async {
     // print('START: addSelectedPrompt()');
     var oldPrompt =
         _selectedPromptList.firstWhereOrNull((p) => p.category == newPrompt.category);
@@ -465,21 +465,20 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
   }
 
   Future<void> handleSave() async {
-      final currUser = context.uniProvider.currUser;
-      final isGooglePrompt = selectedCategory!.type == ResultCategory.gResults;
-      final title = _titleEditingController.text.trim();
-      final googleDesc = _googleDescEditingController.text.trim();
-      final mainContent = _contentEditingController.text;
-      final content =
-          isGooglePrompt ? '$mainContent googleDesc=$googleDesc' : mainContent;
+    final currUser = context.uniProvider.currUser;
+    final isGooglePrompt = selectedCategory!.type == ResultCategory.gResults;
+    final title = _titleEditingController.text.trim();
+    final googleDesc = _googleDescEditingController.text.trim();
+    final mainContent = _contentEditingController.text;
+    final content = isGooglePrompt ? '$mainContent googleDesc=$googleDesc' : mainContent;
 
-      if (title.isNotEmpty && mainContent.isNotEmpty && selectedCategory != null) {
-        // Remove old version
-        if (!_createMode)
-          _fullPromptList.removeWhere((post) => post.id == sRadioPost?.id);
+    if (title.isNotEmpty && mainContent.isNotEmpty && selectedCategory != null) {
+      // Remove old version
+      if (!_createMode) _fullPromptList.removeWhere((post) => post.id == sRadioPost?.id);
 
         var newPost = WooPostModel(
-          author: sRadioPost!.author,
+          author: sRadioPost?.author ?? currUser.id!,
+          // author: sRadioPost!.author,
           title: title,
           content: content,
           category: selectedCategory!.type,
@@ -504,8 +503,7 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
         _fullPromptList = setDefaultPromptFirst(_fullPromptList);
         _fullPromptList.insert(1, newPost); // Start of  list
 
-      }
-
+    }
   }
 
   void _deselectOtherPrompts(WooPostModel newPost, WooUserModel currUser) {

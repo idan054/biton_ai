@@ -23,6 +23,7 @@ import '../../common/models/category/woo_category_model.dart';
 import '../../common/models/prompt/result_model.dart';
 import '../../common/models/user/woo_user_model.dart';
 import '../../common/services/color_printer.dart';
+import '../../common/services/handle_exceptions.dart';
 import '../../main.dart';
 import '../../screens/homeScreen.dart';
 import '../customButton.dart';
@@ -50,12 +51,19 @@ class _RegisterDialogState extends State<RegisterDialog> {
   String? phone;
   bool _isPasswordVisible = false; // Track the password visibility state
   bool loginMode = true;
+  bool isLoading = false;
 
   @override
   Widget build(BuildContext context) {
     String? token = context.uniProvider.currUser.token;
     double width = MediaQuery.of(context).size.width;
-    bool desktopMode = width > 900;
+    bool desktopMode = width > 500;
+
+    final dialogHeight = (loginMode
+        ? 390.0
+        : _pageController.page == 1
+            ? 300.0 // On OTP
+            : 470.0);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -86,16 +94,13 @@ class _RegisterDialogState extends State<RegisterDialog> {
           insetPadding: EdgeInsets.symmetric(horizontal: desktopMode ? 40 : 25),
           child: SizedBox(
             width: 450,
-            height: loginMode
-                ? 390
-                : _pageController.page == 1
-                    ? 300 // On OTP
-                    : 470, // On sign up
+            height: errMessage == null ? dialogHeight : (dialogHeight + 25.0),
+            // On sign up
             child: PageView(
                 physics: const NeverScrollableScrollPhysics(),
                 controller: _pageController,
                 children: [
-                  buildPromptForm(),
+                  buildSignupForm(),
                   buildOtpSection(),
                 ]),
           ),
@@ -105,12 +110,18 @@ class _RegisterDialogState extends State<RegisterDialog> {
   }
 
   Widget buildOtpSection() {
-    bool isLoading = false;
+    double width = MediaQuery.of(context).size.width;
+    bool desktopMode = width > 500;
+
+    // bool
+    // isLoading = false;
+
     StateSetter? errState;
     StateSetter? formState;
 
     return StatefulBuilder(builder: (context, stfState) {
-      formState = stfState;
+      // formState = stfState;
+      formState = setState;
       return Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -118,14 +129,14 @@ class _RegisterDialogState extends State<RegisterDialog> {
           'TextStore'
               .toText(
                 color: Colors.black,
-                fontSize: 44,
+                fontSize: desktopMode ? 44 : 35,
                 bold: true,
               )
               .center,
           const Spacer(),
-          fieldTitle('Enter SMS code'),
+          fieldTitle('SMS code sent to $phone'),
           SizedBox(
-            height: 50,
+            height: desktopMode ? 50 : 40,
             child: TextField(
               autofocus: true,
               maxLines: null,
@@ -137,7 +148,10 @@ class _RegisterDialogState extends State<RegisterDialog> {
           ),
           const SizedBox(height: 5.0),
           ('send again')
-              .toText(color: AppColors.secondaryBlue, underline: true)
+              .toText(
+                  color: AppColors.secondaryBlue,
+                  underline: true,
+                  fontSize: desktopMode ? 14 : 11)
               .pOnly(bottom: 5)
               .onTap(() async {
                 // reCAPTCHA & send SMS code.
@@ -145,7 +159,7 @@ class _RegisterDialogState extends State<RegisterDialog> {
                 context.showSnackbar(message: 'SMS has been sent to ${phone}');
               }, radius: 5)
               .centerLeft
-              .offset(0, loginMode ? 0 : -15),
+              .offset(0, loginMode ? 0 : -5),
           StatefulBuilder(builder: (context, stfState) {
             errState = stfState;
             var color = AppColors.errRed;
@@ -162,7 +176,8 @@ class _RegisterDialogState extends State<RegisterDialog> {
                           .pOnly(right: 5),
                       errMessage!.toText(color: color).expanded()
                     ],
-                  ).pOnly(top: 5);
+                  );
+            // .pOnly(top: 5);
           }),
           const SizedBox(height: 15),
           buildTextstoreButton(
@@ -205,17 +220,21 @@ class _RegisterDialogState extends State<RegisterDialog> {
           ).center,
           const SizedBox(height: 35),
         ],
-      ).px(60);
+      ).px(desktopMode ? 60 : 20);
     });
   }
 
-  Widget buildPromptForm() {
-    bool isLoading = false;
+  Widget buildSignupForm() {
+    double width = MediaQuery.of(context).size.width;
+    bool desktopMode = width > 500;
+
+    // bool isLoading = false;
     StateSetter? errState;
     StateSetter? formState;
 
     return StatefulBuilder(builder: (context, stfState) {
-      formState = stfState;
+      // formState = stfState;
+      formState = setState;
       return Form(
         key: _formKey,
         child: Column(
@@ -225,14 +244,14 @@ class _RegisterDialogState extends State<RegisterDialog> {
             'TextStore'
                 .toText(
                   color: Colors.black,
-                  fontSize: 44,
+                  fontSize: desktopMode ? 44 : 35,
                   bold: true,
                 )
                 .center,
             const SizedBox(height: 10.0),
             fieldTitle('Email'),
             SizedBox(
-              height: 50,
+              height: desktopMode ? 50 : 40,
               child: TextField(
                 autofocus: true,
                 maxLines: null,
@@ -246,7 +265,7 @@ class _RegisterDialogState extends State<RegisterDialog> {
             fieldTitle('Password'),
             StatefulBuilder(builder: (context, passStf) {
               return SizedBox(
-                height: 50,
+                height: desktopMode ? 50 : 40,
                 child: TextField(
                   style: const TextStyle(color: Colors.black),
                   controller: _passController,
@@ -265,18 +284,16 @@ class _RegisterDialogState extends State<RegisterDialog> {
             const SizedBox(height: 5.0),
             if (!loginMode) ...[
               fieldTitle('Phone (SMS code)'),
-              SizedBox(
-                height: 65,
-                child: IntlPhoneField(
-                  pickerDialogStyle: PickerDialogStyle(padding: 20.all, width: 400),
-                  controller: _phoneController,
-                  decoration: fieldPromptStyle(false),
-                  initialCountryCode: 'IL',
-                  style: const TextStyle(color: Colors.black),
-                  onChanged: (_phone) {
-                    phone = _phone.completeNumber;
-                  },
-                ),
+              IntlPhoneField(
+                pickerDialogStyle: PickerDialogStyle(padding: 20.all, width: 400),
+                controller: _phoneController,
+                decoration: fieldPromptStyle(false, intlPhoneField: true),
+                initialCountryCode: 'IL',
+                style: const TextStyle(color: Colors.black),
+                autovalidateMode: AutovalidateMode.disabled,
+                onChanged: (_phone) {
+                  phone = _phone.completeNumber;
+                },
               ),
               const SizedBox(height: 5.0),
             ],
@@ -296,10 +313,14 @@ class _RegisterDialogState extends State<RegisterDialog> {
                             .pOnly(right: 5),
                         errMessage!.toText(color: color).expanded()
                       ],
-                    ).pOnly(top: 5, bottom: 5);
+                    );
             }),
             (loginMode ? 'New? Create profile' : 'Login instead')
-                .toText(color: AppColors.secondaryBlue, underline: true)
+                .toText(
+                  color: AppColors.secondaryBlue,
+                  underline: true,
+                  fontSize: desktopMode ? 14 : 11,
+                )
                 .pOnly(bottom: 5)
                 .onTap(() {
                   errMessage = null;
@@ -331,7 +352,7 @@ class _RegisterDialogState extends State<RegisterDialog> {
                   }
 
                   final isPhoneValid = _formKey.currentState!.validate();
-                  if (!isPhoneValid) {
+                  if (!isPhoneValid || !_phoneController.text.isDigitsOnly) {
                     errMessage = 'Please use a valid phone';
                     errState!(() {});
                     return;
@@ -346,6 +367,7 @@ class _RegisterDialogState extends State<RegisterDialog> {
                     final _phone = phone!.replaceAll('+', '');
                     final isPhoneExist = await WooApi.checkPhoneExist(_phone);
                     if (isPhoneExist) {
+                      isLoading = false;
                       errMessage = 'Please login, Profile phone exist';
                       errState!(() {});
                       return;
@@ -354,6 +376,7 @@ class _RegisterDialogState extends State<RegisterDialog> {
                     final isEmailExist =
                         await WooApi.checkEmailExists(_emailController.text);
                     if (isEmailExist) {
+                      isLoading = false;
                       errMessage = 'Please login, Profile email exist';
                       errState!(() {});
                       return;
@@ -363,6 +386,7 @@ class _RegisterDialogState extends State<RegisterDialog> {
                     otpRequest =
                         await FirebaseAuth.instance.signInWithPhoneNumber(phone!);
                     _pageController.jumpToPage(2);
+                    isLoading = false;
                     setState(() {});
                   }
 
@@ -371,7 +395,8 @@ class _RegisterDialogState extends State<RegisterDialog> {
                 } on Exception catch (err, s) {
                   isLoading = false;
                   printRed('My ERROR: $err');
-                  errMessage = err.toString().replaceAll('Exception: ', '');
+                  errMessage = handleExceptions(null, err: err);
+                  errMessage = errMessage!.replaceAll('Exception: ', '');
                   formState!(() {});
 
                   if (errMessage == "Oops! Profile doesn't exist") {
@@ -383,7 +408,7 @@ class _RegisterDialogState extends State<RegisterDialog> {
               },
             ).center,
           ],
-        ).px(60),
+        ).px(desktopMode ? 60 : 20),
       );
     });
   }

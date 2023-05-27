@@ -28,8 +28,9 @@ var fieldTitleStyle = InputDecoration(
       borderSide: const BorderSide(color: AppColors.secondaryBlue, width: 1.5),
     ));
 
-InputDecoration fieldPromptStyle(bool isDefault) => InputDecoration(
+InputDecoration fieldPromptStyle(bool isDefault, {bool intlPhoneField = false}) => InputDecoration(
     filled: isDefault,
+    contentPadding: isDefault || intlPhoneField? null : const EdgeInsets.symmetric(horizontal: 6),
     fillColor: AppColors.greyLight.withOpacity(0.40),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(5),
@@ -45,8 +46,7 @@ InputDecoration fieldPromptStyle(bool isDefault) => InputDecoration(
     ));
 
 Widget fieldTitle(String text) => text
-    .toText(
-        medium: true, color: AppColors.greyUnavailable80, fontSize: 14)
+    .toText(medium: true, color: AppColors.greyUnavailable80, fontSize: 14)
     .py(7)
     .px(5)
     .centerLeft;

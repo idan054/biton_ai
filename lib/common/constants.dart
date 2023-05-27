@@ -31,8 +31,8 @@ const textStoreAi = 'TextStore';
 const appConfig_highlightSelection = true;
 const appConfig_horizontalSummery = true;
 
-const appConfig_fastHomeScreen = true;
-// const appConfig_fastHomeScreen = false;
+// const appConfig_fastHomeScreen = true;
+const appConfig_fastHomeScreen = false;
 
 const longDescSample =
     '''Nike Air Max 90 is a classic sneaker that has been around since the early 90s. It is one of the most iconic sneakers in the history of sportswear and is loved by people all over the world. The Nike Air Max 90 is a shoe that was created by Tinker Hatfield, who was inspired by the idea of visible air. The sneaker has a unique design and is known for its comfort and style. 
@@ -44,4 +44,4 @@ The Nike Air Max 90 is not just a stylish sneaker; it is also a durable and reli
 In conclusion, the Nike Air Max 90 is a classic sneaker that has stood the test of time. It is a comfortable and stylish shoe that can be worn for a range of activities. Its iconic design and visible Air Sole unit have made it a favorite among sneaker enthusiasts and athletes alike. Whether you are looking for a casual sneaker or a shoe to wear during athletic activities, the Nike Air Max 90 is an excellent choice. With its durability, versatility, and timeless design, this sneaker is sure to remain a favorite for years to come.
 null ''';
 
-const appVersion = 'Version 1.6';
+const appVersion = 'Version 1.4';
