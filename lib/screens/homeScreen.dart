@@ -84,9 +84,9 @@ class _HomeScreenState extends State<HomeScreen> {
       errorMessage = err.toString().replaceAll('Exception: ', '');
       setState(() {});
     });
-    print('currUser.toJson() ${currUser?.toJson()}');
     context.uniProvider.updateWooUserModel(currUser!.copyWith(token: token));
-    print('context.uniProvider.currUser ${context.uniProvider.currUser.toJson()}');
+
+    print('uniProvider.currUser.toJson() ${context.uniProvider.currUser.toJson()}');
 
     _profileLoading = false;
     setState(() {});
@@ -147,36 +147,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void showUserMenu(BuildContext context) {
-    final RenderBox button = context.findRenderObject() as RenderBox;
-    final RenderBox overlay =
-        Overlay.of(context)!.context.findRenderObject() as RenderBox;
-
-    final RelativeRect position = RelativeRect.fromRect(
-      Rect.fromPoints(
-        button.localToGlobal(button.size.topLeft(const Offset(0, 40)), ancestor: overlay),
-        button.localToGlobal(button.size.topLeft(const Offset(0, 40)), ancestor: overlay),
-      ),
-      Offset.zero & overlay.size,
-    );
-
-    showMenu(
-      context: context,
-      position: position,
-      items: [
-        PopupMenuItem(
-          onTap: _redirectWebsite,
-          child: 'Your profile'.toText(),
-        ),
-        PopupMenuItem(
-          onTap: _logoutUser,
-          child: 'Logout profile'.toText(color: AppColors.errRed),
-        ),
-      ],
-      elevation: 8,
-    ).then((value) => print('Selected: $value'));
-  }
-
   void _logoutUser() async {
     print('START: _logoutUser()');
     currUser = null;
@@ -215,10 +185,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             buildUserButton(
               context,
-              currUser,
-              onTap: currUser == null
-                  ? () async => setup(forceDialog: true)
-                  : () => showUserMenu(context),
+              onTapLogin: () async => setup(forceDialog: true),
               // : () async => _redirectWebsite()),
             ),
             const SizedBox(height: 230),
@@ -318,11 +285,52 @@ class _HomeScreenState extends State<HomeScreen> {
     _isLoading = false;
     setState(() {});
   }
+}
 
-  Widget buildUserButton(BuildContext context, WooUserModel? currUser,
-      {GestureTapCallback? onTap}) {
-    var color = AppColors.greyText.withOpacity(_profileLoading ? 0.5 : 1);
+void showUserMenu(
+  BuildContext context, {
+  required void Function() onTapYourProfile,
+  required void Function() onTapLogoutProfile,
+}) {
+  final RenderBox button = context.findRenderObject() as RenderBox;
+  final RenderBox overlay = Overlay.of(context)!.context.findRenderObject() as RenderBox;
+
+  final RelativeRect position = RelativeRect.fromRect(
+    Rect.fromPoints(
+      button.localToGlobal(button.size.topLeft(const Offset(0, 40)), ancestor: overlay),
+      button.localToGlobal(button.size.topLeft(const Offset(0, 40)), ancestor: overlay),
+    ),
+    Offset.zero & overlay.size,
+  );
+
+  showMenu(
+    context: context,
+    position: position,
+    items: [
+      PopupMenuItem(
+        onTap: onTapYourProfile,
+        child: 'Your profile'.toText(),
+      ),
+      PopupMenuItem(
+        onTap: onTapLogoutProfile,
+        child: 'Logout profile'.toText(color: AppColors.errRed),
+      ),
+    ],
+    elevation: 8,
+  ).then((value) => print('Selected: $value'));
+}
+
+Widget buildUserButton(BuildContext context, {GestureTapCallback? onTapLogin}) {
+  late bool loginMode;
+  bool? _isLoading;
+  _isLoading ??= context.uniProvider.currUser.id == null;
+
+  return StatefulBuilder(builder: (context, userStf) {
+    var currUser = context.uniProvider.currUser;
+    var color = AppColors.greyText.withOpacity(_isLoading! ? 0.5 : 1);
     var style = ''.toText(fontSize: 15, medium: true, color: color).style;
+    loginMode = currUser.id == null;
+
     return SizedBox(
       height: 50,
       child: Row(
@@ -330,19 +338,60 @@ class _HomeScreenState extends State<HomeScreen> {
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Icons.account_circle.icon(color: color, size: 24),
-            if (currUser == null || _profileLoading) ...[
-              (_profileLoading ? 'Loading...' : 'Login profile')
+            if (_isLoading! || loginMode) ...[
+              (_isLoading! ? 'Loading...' : 'Login profile')
                   .toText(style: style)
                   .pOnly(right: 10, left: 10),
             ] else ...[
               currUser.name.toString().toText(style: style).pOnly(right: 10, left: 10),
               ('| ').toText(style: style).pOnly(right: 10),
               Icons.offline_bolt.icon(color: color, size: 24).pOnly(right: 10),
-              ('10 Tokens').toText(style: style).pOnly(right: 10),
+              ('${currUser.points} Tokens').toText(style: style).pOnly(right: 10),
             ],
-          ]).px(10).onTap(onTap, radius: 5),
+          ]).px(10).onTap(
+          loginMode
+              ? onTapLogin
+              : () {
+                  showUserMenu(
+                    context,
+                    onTapYourProfile: () async {
+                      print('START: _redirectWebsite()');
+                      _isLoading = true;
+                      userStf(() {});
+
+                      final userWebToken = await WooApi.userWebToken();
+                      String url =
+                          'https://textstore.ai/my-account/?mo_jwt_token=$userWebToken';
+                      print('url $url');
+                      window.open(url, 'New Tab');
+                      // window.open(url, '_blank');
+
+                      await Future.delayed(450.milliseconds);
+                      _isLoading = false;
+                      userStf(() {});
+                    },
+                    onTapLogoutProfile: () async {
+                      print('START: _logoutUser()');
+                      // _isLoading = false;
+                      // userStf(() {});
+
+                      context.uniProvider.updateWooUserModel(const WooUserModel());
+                      currUser = context.uniProvider.currUser;
+                      appConfig_userJwt = '';
+                      userStf(() {});
+                      final box = await Hive.openBox('currUserBox');
+                      box.clear();
+
+                      // if (onTapLogin == null) {
+                      Navigator.pushReplacement(context,
+                          MaterialPageRoute(builder: (context) => const HomeScreen()));
+                      // }
+                    },
+                  );
+                },
+          radius: 5),
     ).appearOpacity.centerLeft;
-  }
+  });
 }
 
 List<WooPostModel> setSelectedList(

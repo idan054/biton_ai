@@ -10,14 +10,16 @@ _$_WooUserModel _$$_WooUserModelFromJson(Map<String, dynamic> json) =>
     _$_WooUserModel(
       id: json['id'] as int?,
       name: json['name'] as String?,
-      email: json['email'] as String?,
+      phone: json['phone'] as String?,
       token: json['token'] as String?,
+      points: json['points'] as int? ?? 0,
     );
 
 Map<String, dynamic> _$$_WooUserModelToJson(_$_WooUserModel instance) =>
     <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
-      'email': instance.email,
+      'phone': instance.phone,
       'token': instance.token,
+      'points': instance.points,
     };

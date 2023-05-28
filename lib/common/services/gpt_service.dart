@@ -28,24 +28,27 @@ class Gpt {
     // .toSet() retrieve only unique items
     prompts = prompts.toSet().toList();
     bool isSamePrompts = prompts.length == 1;
-    print('isSamePrompts ${isSamePrompts}');
+
+    // bool isSamePrompts = false; //> DEBUG
+    // print('isSamePrompts ${isSamePrompts}');
 
     List<ResultModel> results = [];
     ChatGptModel? titles;
     ChatGptModel? descriptions;
+    const ver = 3;
     titles = isSamePrompts
         ? await _singleCallChatGPT(context,
-            reqType: type, n: 3, prompt: prompts.first, model: 4)
+            reqType: type, n: 3, prompt: prompts.first, model: ver)
         //
-        : await _multiCallChatGPT(context, reqType: type, prompts: prompts, model: 4);
+        : await _multiCallChatGPT(context, reqType: type, prompts: prompts, model: ver);
 
     if (type == ResultCategory.gResults) {
       descriptions = isSamePrompts
           ? await _singleCallChatGPT(context,
-              model: 4, reqType: type, gDescription: true, n: 3, prompt: prompts.first)
+              model: ver, reqType: type, gDescription: true, n: 3, prompt: prompts.first)
           //
           : await _multiCallChatGPT(context,
-              model: 4, reqType: type, gDescription: true, prompts: gDescPrompts!);
+              model: ver, reqType: type, gDescription: true, prompts: gDescPrompts!);
     }
 
     var i = 0;

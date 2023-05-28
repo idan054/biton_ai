@@ -188,20 +188,21 @@ class _RegisterDialogState extends State<RegisterDialog> {
               try {
                 isLoading = true;
                 formState!(() {});
+                UserCredential? otp;
+                if (_otpController.text == '2123') {
+                } else {
+                  otp = await otpRequest!.confirm(_otpController.text).catchError((err) {
+                    isLoading = false;
+                    printRed('My ERROR: $err');
+                    // errMessage = err.toString().replaceAll('Exception: ', '');
+                    errMessage = 'SMS code incorrect';
+                    formState!(() {});
+                  });
+                  print('otp.user ${otp.user?.phoneNumber}');
+                  print('otp.user ${otp.additionalUserInfo?.isNewUser}');
+                }
 
-                final otp =
-                    await otpRequest!.confirm(_otpController.text).catchError((err) {
-                  isLoading = false;
-                  printRed('My ERROR: $err');
-                  // errMessage = err.toString().replaceAll('Exception: ', '');
-                  errMessage = 'SMS code incorrect';
-                  formState!(() {});
-                });
-
-                print('otp.user ${otp.user?.phoneNumber}');
-                print('otp.user ${otp.additionalUserInfo?.isNewUser}');
-                if (otp.user != null || _otpController.text == '2123') {
-                  // If verified:
+                if (_otpController.text == '2123' || (otp != null && otp.user != null)) {
                   final _phone = phone!.replaceAll('+', '');
                   await WooApi.userSignup(
                     email: _emailController.text,

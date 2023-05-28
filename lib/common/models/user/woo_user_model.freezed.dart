@@ -14,16 +14,13 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
 
-WooUserModel _$WooUserModelFromJson(Map<String, dynamic> json) {
-  return _WooUserModel.fromJson(json);
-}
-
 /// @nodoc
 mixin _$WooUserModel {
   int? get id => throw _privateConstructorUsedError;
   String? get name => throw _privateConstructorUsedError;
-  String? get email => throw _privateConstructorUsedError;
-  String? get token => throw _privateConstructorUsedError;
+  String? get phone => throw _privateConstructorUsedError;
+  String? get token => throw _privateConstructorUsedError; // JWT
+  int get points => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -37,7 +34,7 @@ abstract class $WooUserModelCopyWith<$Res> {
           WooUserModel value, $Res Function(WooUserModel) then) =
       _$WooUserModelCopyWithImpl<$Res, WooUserModel>;
   @useResult
-  $Res call({int? id, String? name, String? email, String? token});
+  $Res call({int? id, String? name, String? phone, String? token, int points});
 }
 
 /// @nodoc
@@ -55,8 +52,9 @@ class _$WooUserModelCopyWithImpl<$Res, $Val extends WooUserModel>
   $Res call({
     Object? id = freezed,
     Object? name = freezed,
-    Object? email = freezed,
+    Object? phone = freezed,
     Object? token = freezed,
+    Object? points = null,
   }) {
     return _then(_value.copyWith(
       id: freezed == id
@@ -67,14 +65,18 @@ class _$WooUserModelCopyWithImpl<$Res, $Val extends WooUserModel>
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
               as String?,
-      email: freezed == email
-          ? _value.email
-          : email // ignore: cast_nullable_to_non_nullable
+      phone: freezed == phone
+          ? _value.phone
+          : phone // ignore: cast_nullable_to_non_nullable
               as String?,
       token: freezed == token
           ? _value.token
           : token // ignore: cast_nullable_to_non_nullable
               as String?,
+      points: null == points
+          ? _value.points
+          : points // ignore: cast_nullable_to_non_nullable
+              as int,
     ) as $Val);
   }
 }
@@ -87,7 +89,7 @@ abstract class _$$_WooUserModelCopyWith<$Res>
       __$$_WooUserModelCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({int? id, String? name, String? email, String? token});
+  $Res call({int? id, String? name, String? phone, String? token, int points});
 }
 
 /// @nodoc
@@ -103,8 +105,9 @@ class __$$_WooUserModelCopyWithImpl<$Res>
   $Res call({
     Object? id = freezed,
     Object? name = freezed,
-    Object? email = freezed,
+    Object? phone = freezed,
     Object? token = freezed,
+    Object? points = null,
   }) {
     return _then(_$_WooUserModel(
       id: freezed == id
@@ -115,14 +118,18 @@ class __$$_WooUserModelCopyWithImpl<$Res>
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
               as String?,
-      email: freezed == email
-          ? _value.email
-          : email // ignore: cast_nullable_to_non_nullable
+      phone: freezed == phone
+          ? _value.phone
+          : phone // ignore: cast_nullable_to_non_nullable
               as String?,
       token: freezed == token
           ? _value.token
           : token // ignore: cast_nullable_to_non_nullable
               as String?,
+      points: null == points
+          ? _value.points
+          : points // ignore: cast_nullable_to_non_nullable
+              as int,
     ));
   }
 }
@@ -131,23 +138,25 @@ class __$$_WooUserModelCopyWithImpl<$Res>
 
 @JsonSerializable(explicitToJson: true)
 class _$_WooUserModel implements _WooUserModel {
-  const _$_WooUserModel({this.id, this.name, this.email, this.token});
-
-  factory _$_WooUserModel.fromJson(Map<String, dynamic> json) =>
-      _$$_WooUserModelFromJson(json);
+  const _$_WooUserModel(
+      {this.id, this.name, this.phone, this.token, this.points = 0});
 
   @override
   final int? id;
   @override
   final String? name;
   @override
-  final String? email;
+  final String? phone;
   @override
   final String? token;
+// JWT
+  @override
+  @JsonKey()
+  final int points;
 
   @override
   String toString() {
-    return 'WooUserModel(id: $id, name: $name, email: $email, token: $token)';
+    return 'WooUserModel(id: $id, name: $name, phone: $phone, token: $token, points: $points)';
   }
 
   @override
@@ -157,13 +166,14 @@ class _$_WooUserModel implements _WooUserModel {
             other is _$_WooUserModel &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.name, name) || other.name == name) &&
-            (identical(other.email, email) || other.email == email) &&
-            (identical(other.token, token) || other.token == token));
+            (identical(other.phone, phone) || other.phone == phone) &&
+            (identical(other.token, token) || other.token == token) &&
+            (identical(other.points, points) || other.points == points));
   }
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(runtimeType, id, name, email, token);
+  int get hashCode => Object.hash(runtimeType, id, name, phone, token, points);
 
   @JsonKey(ignore: true)
   @override
@@ -183,20 +193,20 @@ abstract class _WooUserModel implements WooUserModel {
   const factory _WooUserModel(
       {final int? id,
       final String? name,
-      final String? email,
-      final String? token}) = _$_WooUserModel;
-
-  factory _WooUserModel.fromJson(Map<String, dynamic> json) =
-      _$_WooUserModel.fromJson;
+      final String? phone,
+      final String? token,
+      final int points}) = _$_WooUserModel;
 
   @override
   int? get id;
   @override
   String? get name;
   @override
-  String? get email;
+  String? get phone;
   @override
   String? get token;
+  @override // JWT
+  int get points;
   @override
   @JsonKey(ignore: true)
   _$$_WooUserModelCopyWith<_$_WooUserModel> get copyWith =>

@@ -1,6 +1,7 @@
-// ignore_for_file: no_leading_underscores_for_local_identifiers, curly_braces_in_flow_control_structures
+// ignore_for_file: no_leading_underscores_for_local_identifiers, curly_braces_in_flow_control_structures, empty_catches
 
 import 'dart:async';
+import 'dart:html';
 
 import 'package:biton_ai/common/extensions/context_ext.dart';
 import 'package:biton_ai/common/extensions/num_ext.dart';
@@ -21,6 +22,7 @@ import '../common/models/prompt/result_model.dart';
 import '../common/services/color_printer.dart';
 import '../common/services/createProduct_service.dart';
 import '../common/services/gpt_service.dart';
+import '../common/services/wooApi.dart';
 import '../common/themes/app_colors.dart';
 import '../widgets/customButton.dart';
 import '../widgets/resultsList.dart';
@@ -125,13 +127,15 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
   Widget buildCardsRow(List<ResultModel> currList) {
     if (currList.isEmpty && errorMessage == null) {
       return StatefulBuilder(builder: (context, stfBuilder) {
-        // var ratio = 15;
-        // 1 time run.
-
+        // const ratio = 15;
+        // const loadTimeSeconds = 25; // 60
+        // // 1 time run.
         // _timer ??= Timer.periodic((1000 / ratio).milliseconds, (timer) {
         //   if (mounted) {
-        //     _longDescLoader = (_longDescLoader + (1 / (60 * ratio)));
-        //     stfBuilder(() {});
+        //     try {
+        //       _longDescLoader = (_longDescLoader + (1 / (loadTimeSeconds * ratio)));
+        //       stfBuilder(() {});
+        //     } catch (e, s) {}
         //   }
         // });
 
@@ -144,19 +148,27 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
         return Column(
           children: [
             if (drawerCategory == ResultCategory.longDesc) ...[
-              r'Finish writing sales article... (it can take up to 60 seconds)'
+              r'Finish writing sales article... (it can take up to 45 seconds)'
                   .toText(color: AppColors.greyText, fontSize: 18, medium: true)
                   .py(10)
-                  .px(30)
+                  .px(15)
                   .centerLeft
                   .appearAll,
-              CurvedLinearProgressIndicator(
-                // value: _longDescLoader,
-                // value: _animationController!.value, // use the controller's value
-                strokeWidth: 10,
-                color: AppColors.primaryShiny,
-                backgroundColor: AppColors.greyLight,
-              ).sizedBox(500, null).pOnly(top: 10).px(35).centerLeft,
+              //
+              TweenAnimationBuilder(
+                  duration: 45.seconds,
+                  tween: Tween<double>(begin: 0, end: 1),
+                  builder: (BuildContext context, double value, Widget? child) {
+                    return CurvedLinearProgressIndicator(
+                      value: value,
+                      // value: _longDescLoader,
+                      // value: _animationController!.value, // use the controller's value
+                      strokeWidth: 10,
+                      color: AppColors.primaryShiny,
+                      backgroundColor: AppColors.greyLight,
+                    ).sizedBox(500, null).pOnly(top: 10).px(20).centerLeft;
+                  }),
+              //
             ] else ...[
               const CircularProgressIndicator(
                 strokeWidth: 7,
@@ -189,6 +201,8 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
       },
     );
   }
+
+  bool _profileLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -223,6 +237,15 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
             children: [
               // buildUserInput().pOnly(top: 20),
               // Divider(color: AppColors.greyLight, thickness: 1, height: 0),
+
+              textStoreAi
+                  .toText(fontSize: 35, bold: true)
+                  .px(10)
+                  .onTap(
+                      () => Navigator.push(context,
+                          MaterialPageRoute(builder: (context) => const HomeScreen())),
+                      radius: 5)
+                  .centerLeft,
 
               // Todo make it works
               if (desktopMode) buildTextStoreBar(context).centerLeft.appearAll,
@@ -400,17 +423,9 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
         elevation: 0,
         child: Column(
           children: [
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                20.verticalSpace,
-                textStoreAi.toText(fontSize: 35, bold: true).px(25).centerLeft,
-                20.verticalSpace,
-              ],
-            ).onTap(
-                () => Navigator.push(
-                    context, MaterialPageRoute(builder: (context) => const HomeScreen())),
-                radius: 5),
+            const SizedBox(height: 10),
+            buildUserButton(context).px(5),
+            const SizedBox(height: 20),
             Builder(builder: (context) {
               var color = AppColors.primaryShiny;
               return Card(
@@ -432,7 +447,7 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
                       .toString()
                       .toText(bold: true, color: color, fontSize: 15),
                 ),
-              ).pOnly(left: 3, right: 30);
+              ).pOnly(left: 5, right: 30);
             }),
             const SizedBox(height: 10),
             CategoryDrawerList(

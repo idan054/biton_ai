@@ -48,7 +48,8 @@ class WooPostModel with _$WooPostModel {
       content: json['acf']['prompt'],
       subContent: json['acf']['googleDesc'],
       isSelected: json['acf']?['isSelected'] ?? false,
-      isAdmin: json['acf']?['isAdmin'] ?? false, // the TextStore UID
+      isAdmin: json['acf']?['isAdmin'] ?? false,
+      isDefault: json['acf']?['isDefault'] ?? false,
     );
     return post;
   }
