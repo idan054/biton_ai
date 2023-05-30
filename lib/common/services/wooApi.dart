@@ -56,7 +56,7 @@ class WooApi {
       var posts = jsonList.map((json) => WooPostModel.fromJson(json)).toList();
       print(
           "WooApi.getPosts() statusCode: ${response.statusCode} [${posts.length} prompts found]");
-      // for (var p in posts) print("${p.id} | ${p.title} | ${p.isAdmin}");
+      for (var p in posts) print("${p.id} | ${p.isAdmin} | ${p.isDefault} | ${p.title}");
       return posts;
     } else {
       printRed("response.body ${response.body}");
@@ -100,8 +100,8 @@ class WooApi {
       "acf": {
         "googleDesc": post.subContent,
         "prompt": post.content,
+        "isSelected": isSelected
       },
-      "acf": {"isSelected": isSelected},
     });
 
     final response = updateMode

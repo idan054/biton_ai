@@ -63,9 +63,9 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
 
   @override
   void dispose() {
-    _titleEditingController.dispose();
-    _contentEditingController.dispose();
-    _googleDescEditingController.dispose();
+    // _titleEditingController.dispose();
+    // _contentEditingController.dispose();
+    // _googleDescEditingController.dispose();
     super.dispose();
   }
 
@@ -89,7 +89,7 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
   Future<void> _initWooSelection() async {
     _selectedPromptList = widget.selectedPrompts;
     print('_selectedPromptList ${_selectedPromptList.length}');
-    print('_selectedPromptList ${_selectedPromptList}');
+    print('_selectedPromptList $_selectedPromptList');
     var initPrompt =
         _selectedPromptList.firstWhere((p) => p.category == categories.first.type);
     onRadioChanged(initPrompt, fromCategory: true);
@@ -461,7 +461,7 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
 
                         _createMode = false;
                         _isLoading = false;
-                        setState(() {});
+                        if(mounted) setState(() {});
                       } else {
                         _createMode ? bulbHintState!(() {}) : setState(() {});
                       }
