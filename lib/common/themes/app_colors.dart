@@ -14,6 +14,7 @@ class AppColors {
   static Color greyUnavailable80 = const Color(0xff5C5C5C).withOpacity(0.80);
   static const Color primaryShiny = Color(0xff6c0cdf);
   static const Color secondaryBlue = Color(0xff035afd);
+  static const Color googleTitleBlue = Color(0xff0A63EA);
 
   // static const Color darkOutline = Color(0xff211c2d);
   // static const Color primaryDark = Color(0xff1A1626);

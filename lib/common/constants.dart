@@ -30,6 +30,7 @@ const appConfig_hideDefault = true || !kDebugMode;
 const textStoreAi = 'TextStore';
 const appConfig_highlightSelection = true;
 const appConfig_horizontalSummery = true;
+const appConfig_collapseMode = true;
 
 // const appConfig_fastHomeScreen = true;
 const appConfig_fastHomeScreen = false;

@@ -187,10 +187,13 @@ class _HomeScreenState extends State<HomeScreen> {
               context,
               onTapLogin: () async => setup(forceDialog: true),
               // : () async => _redirectWebsite()),
-            ),
+            ).centerRight,
             const SizedBox(height: 230),
 
-            textStoreAi.toText(fontSize: 50, bold: true),
+            Hero(
+              tag: 'textStoreAi',
+                child: textStoreAi.toText(fontSize: 50, bold: true)),
+
             const SizedBox(height: 10),
             // 'Sell more by Ai Text for your store'.toText(fontSize: 20).px(25),
             // 'Fast | Create product | SEO'.toText(fontSize: 20).px(25),
@@ -330,6 +333,7 @@ Widget buildUserButton(BuildContext context, {GestureTapCallback? onTapLogin}) {
     var color = AppColors.greyText.withOpacity(_isLoading! ? 0.5 : 1);
     var style = ''.toText(fontSize: 15, medium: true, color: color).style;
     loginMode = currUser.id == null;
+    final name = currUser.name?.split('-').first ?? '';
 
     return SizedBox(
       height: 50,
@@ -343,7 +347,7 @@ Widget buildUserButton(BuildContext context, {GestureTapCallback? onTapLogin}) {
                   .toText(style: style)
                   .pOnly(right: 10, left: 10),
             ] else ...[
-              currUser.name.toString().toText(style: style).pOnly(right: 10, left: 10),
+              name.toString().toText(style: style).pOnly(right: 10, left: 10),
               ('| ').toText(style: style).pOnly(right: 10),
               Icons.offline_bolt.icon(color: color, size: 24).pOnly(right: 10),
               ('${currUser.points} Tokens').toText(style: style).pOnly(right: 10),
@@ -390,7 +394,7 @@ Widget buildUserButton(BuildContext context, {GestureTapCallback? onTapLogin}) {
                   );
                 },
           radius: 5),
-    ).appearOpacity.centerLeft;
+    ).appearOpacity;
   });
 }
 
@@ -463,6 +467,7 @@ Widget textStoreBar(
             elevation: 3,
             borderRadius: BorderRadius.circular(99),
             child: TextField(
+              autofocus: true,
               controller: searchController,
               onSubmitted: onSubmitted,
               decoration: InputDecoration(
@@ -477,7 +482,7 @@ Widget textStoreBar(
                   borderSide: BorderSide(color: AppColors.greyLight),
                   borderRadius: BorderRadius.circular(99),
                 ),
-                hintText: 'Enter full product name',
+                hintText: 'Full product name',
                 hintStyle: const TextStyle(color: Colors.grey),
                 // suffixIcon: suffixIcon,
                 prefixIcon: prefixIcon,
@@ -502,25 +507,27 @@ Widget textStoreBar(
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // Icons.insights.icon(
-                          //     size: 30,
-                          //     color: _inUsePrompts.isEmpty
-                          //         ? AppColors.primaryShiny.withOpacity(0.40)
-                          //         : AppColors.primaryShiny),
-
-                          'Create'.toText(
+                          Icons.send.icon(
+                              size: 30,
                               color: _inUsePrompts.isEmpty
                                   ? AppColors.primaryShiny.withOpacity(0.40)
-                                  : AppColors.primaryShiny,
-                              medium: true,
-                              fontSize: 14)
+                                  : AppColors.primaryShiny),
+
+                          // 'Create'.toText(
+                          //     color: _inUsePrompts.isEmpty
+                          //         ? AppColors.primaryShiny.withOpacity(0.40)
+                          //         : AppColors.primaryShiny,
+                          //     medium: true,
+                          //     fontSize: 14)
                         ],
                       )
                           .px(15)
                           .py(10)
                           // .py(15)
-                          .onTap(onStart,
-                              tapColor: AppColors.primaryShiny.withOpacity(0.1)),
+                          .onTap(
+                            onStart,
+                            // tapColor: AppColors.primaryShiny.withOpacity(0.1)
+                          ),
                     ]
                   ],
                 ),

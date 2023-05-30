@@ -18,6 +18,7 @@ import '../common/models/prompt/result_model.dart';
 import '../common/themes/app_colors.dart';
 
 class CategoryDrawerList extends StatefulWidget {
+  final bool miniMode;
   final List<String> categoriesNames;
   final List<IconData> icons;
   final List<ResultCategory> categories;
@@ -26,6 +27,7 @@ class CategoryDrawerList extends StatefulWidget {
 
   const CategoryDrawerList({
     super.key,
+    this.miniMode = false,
     required this.categoriesNames,
     required this.icons,
     required this.selectedCategory,
@@ -95,59 +97,78 @@ class _CategoryDrawerListState extends State<CategoryDrawerList> {
     );
   }
 
-  Card buildCategoryTile(int i) {
+  Widget buildCategoryTile(int i) {
     context.listenUniProvider.inUsePromptList; //? rebuilt on change
     setCustomPromptsCategories();
 
     final category = widget.categories[i];
     final selectedCategory = widget.selectedCategory;
     bool isSelected = selectedCategory == category;
+    bool miniMode = widget.miniMode;
 
     bool isCustomPrompt = customPromptCategories.contains(category);
     bool isGoogleCategory = category == ResultCategory.gResults;
-    Color categoryColor = isSelected ? AppColors.primaryShiny : AppColors.greyText;
+    Color categoryColor = isSelected ? AppColors.secondaryBlue : AppColors.greyText;
 
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      color: isSelected ? AppColors.lightShinyPrimary : AppColors.white,
-      elevation: 0,
-      child: ListTile(
-        minLeadingWidth: 10,
-        title: widget.categoriesNames[i]
-            .toString()
-            .toText(medium: true, color: categoryColor, fontSize: 16),
-        subtitle: isGoogleCategory
-            ? 'Title & Description'.toString().toText(color: categoryColor, fontSize: 14)
-            : null,
-        leading: widget.icons[i]
-            .icon(color: categoryColor, size: 22)
-            .pOnly(top: selectedCategory == ResultCategory.gResults ? 5 : 0),
-        //
-        trailing: isCustomPrompt
-            ? Icons.manage_accounts
-                .icon(color: categoryColor, size: 22)
-                .px(10)
-                .pOnly(bottom: 10, top: 10)
-                .onTap(() async {
-                await showDialog(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: (BuildContext context) {
-                    var sWooCategory = context.uniProvider.categories
-                        .firstWhere((cat) => cat.type == category);
-                    print('sWooCategory.name ${sWooCategory.name}');
+    final icon = widget.icons[i]
+        .icon(color: categoryColor, size: 24)
+        .pOnly(top: selectedCategory == ResultCategory.gResults ? 5 : 0);
 
-                    return ThreeColumnDialog(
-                      selectedCategory: sWooCategory,
-                      promptsList: context.uniProvider.fullPromptList,
-                      selectedPrompts: context.uniProvider.inUsePromptList,
-                      categories: context.uniProvider.categories,
-                    );
-                  },
-                );
-              }, radius: 5)
-            : null,
+    return SizedBox(
+      height: miniMode ? 60 : null,
+      width: miniMode ? 60 : null,
+      child: Card(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        color: isSelected ? AppColors.lightShinyPrimary : AppColors.white,
+        elevation: 0,
+        child: ListTile(
+          horizontalTitleGap: 0,
+          minLeadingWidth: miniMode ? 0 : 40,
+          contentPadding:
+              miniMode ? EdgeInsets.zero : const EdgeInsets.symmetric(horizontal: 16),
+
+          title: miniMode
+              ? icon
+              : widget.categoriesNames[i]
+                  .toString()
+                  .toText(medium: true, color: categoryColor, fontSize: 16),
+          subtitle: miniMode
+              ? null
+              : (isGoogleCategory
+                  ? 'Title & Description'
+                      .toString()
+                      .toText(color: categoryColor, fontSize: 14)
+                  : null),
+          leading: miniMode ? null : icon,
+          //
+          trailing: miniMode
+              ? null
+              : isCustomPrompt
+                  ? Icons.manage_accounts
+                      .icon(color: categoryColor, size: 22)
+                      .px(10)
+                      .pOnly(bottom: 10, top: 10)
+                      .onTap(() async {
+                      await showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (BuildContext context) {
+                          var sWooCategory = context.uniProvider.categories
+                              .firstWhere((cat) => cat.type == category);
+                          print('sWooCategory.name ${sWooCategory.name}');
+
+                          return ThreeColumnDialog(
+                            selectedCategory: sWooCategory,
+                            promptsList: context.uniProvider.fullPromptList,
+                            selectedPrompts: context.uniProvider.inUsePromptList,
+                            categories: context.uniProvider.categories,
+                          );
+                        },
+                      );
+                    }, radius: 5)
+                  : null,
+        ),
       ),
-    );
+    ).px(10);
   }
 }

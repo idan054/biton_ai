@@ -79,7 +79,7 @@ class _HtmlEditorViewerState extends State<HtmlEditorViewer>
                         style: TextStyle(color: Colors.blue),
                       ),
                     ),
-                    buildCopyButton(context, true, result)
+                    buildCopyButton(context, true, result, Icons.content_copy)
                   ],
                 )
               ],

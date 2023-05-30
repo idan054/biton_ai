@@ -74,6 +74,7 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
   // List<ResultModel> currentResults = []; // Bottom List (Add)
 
   AnimationController? _animationController;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
@@ -91,6 +92,8 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
       vsync: this,
       duration: const Duration(seconds: 10),
     );
+
+    // Future.delayed(1.seconds).then((value) => _scaffoldKey.currentState?.openDrawer());
     super.initState();
   }
 
@@ -214,6 +217,8 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
     bool desktopMode = width > 850;
 
     return Scaffold(
+      drawerScrimColor: Colors.transparent,
+      key: _scaffoldKey,
       backgroundColor: AppColors.lightPrimaryBg,
       appBar: desktopMode
           ? null
@@ -232,20 +237,33 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
       drawer: buildDrawer(),
       body: Row(
         children: [
-          if (desktopMode) buildDrawer().appearAll,
+          // if (desktopMode) buildDrawer().appearAll,
+          buildDrawer(miniMode: true).appearAll,
+
           Column(
             children: [
               // buildUserInput().pOnly(top: 20),
               // Divider(color: AppColors.greyLight, thickness: 1, height: 0),
 
-              textStoreAi
-                  .toText(fontSize: 35, bold: true)
-                  .px(10)
-                  .onTap(
-                      () => Navigator.push(context,
-                          MaterialPageRoute(builder: (context) => const HomeScreen())),
-                      radius: 5)
-                  .centerLeft,
+              Row(
+                children: [
+                  Hero(
+                    tag: 'textStoreAi',
+                    child: textStoreAi
+                        .toText(fontSize: 35, bold: true)
+                        .px(10)
+                        .onTap(
+                            () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => const HomeScreen())),
+                            radius: 5)
+                        .centerLeft,
+                  ),
+                  const Spacer(),
+                  buildUserButton(context).px(5).centerRight,
+                ],
+              ),
 
               // Todo make it works
               if (desktopMode) buildTextStoreBar(context).centerLeft.appearAll,
@@ -417,112 +435,164 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
     return url;
   }
 
-  Widget buildDrawer() {
-    return Drawer(
-        backgroundColor: AppColors.white,
-        elevation: 0,
-        child: Column(
-          children: [
-            const SizedBox(height: 10),
-            buildUserButton(context).px(5),
-            const SizedBox(height: 20),
-            Builder(builder: (context) {
-              var color = AppColors.primaryShiny;
-              return Card(
-                // color: Colors.grey[100],
-                // color: AppColors.lightShinyPrimary,
-                color: AppColors.transparent,
-                elevation: 0,
-                shape: 10.roundedShape.copyWith(
-                      side: BorderSide(color: color, width: 2),
-                    ),
-                child: ListTile(
-                  onTap: () async {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => const HomeScreen()));
+  Widget buildDrawer({bool miniMode = false}) {
+    return MouseRegion(
+      onEnter: (_) => miniMode ? _scaffoldKey.currentState?.openDrawer() : null,
+      onExit: (_) => miniMode ? null : _scaffoldKey.currentState?.closeDrawer(),
+      child: SizedBox(
+        width: miniMode ? 90 : null,
+        child: Drawer(
+            backgroundColor: AppColors.white,
+            elevation: miniMode ? 0 : 5,
+            child: Column(
+              children: [
+                const SizedBox(height: 10),
+                const SizedBox(height: 20),
+
+                // Builder(builder: (context) {
+                //   var color = AppColors.primaryShiny;
+                //   return Card(
+                //     // color: Colors.grey[100],
+                //     // color: AppColors.lightShinyPrimary,
+                //     color: AppColors.transparent,
+                //     elevation: 0,
+                //     shape: 10.roundedShape.copyWith(
+                //           side: BorderSide(color: color, width: 2),
+                //         ),
+                //     child: ListTile(
+                //       onTap: () async {
+                //         Navigator.push(context,
+                //             MaterialPageRoute(builder: (context) => const HomeScreen()));
+                //       },
+                //       horizontalTitleGap: 0,
+                //       leading: Icons.shopping_bag.icon(color: color, size: 22),
+                //       title: 'Create new product'
+                //           .toString()
+                //           .toText(bold: true, color: color, fontSize: 15),
+                //     ),
+                //   ).pOnly(left: 5, right: 30);
+                // }),
+
+                const SizedBox(height: 10),
+                CategoryDrawerList(
+                  miniMode: miniMode,
+                  categories: const [
+                    ResultCategory.gResults,
+                    ResultCategory.titles,
+                    ResultCategory.shortDesc,
+                    ResultCategory.longDesc,
+                  ],
+                  categoriesNames: const [
+                    'Google result',
+                    'Product name',
+                    'Short Description',
+                    'Long Description',
+                  ],
+                  selectedCategory: drawerCategory,
+                  icons: const [
+                    // Icons.search_rounded,
+                    Icons.travel_explore,
+                    Icons.title,
+                    Icons.notes_rounded,
+                    Icons.description_rounded, // subject_rounded
+                  ],
+                  onSelect: (category) {
+                    // Clickable category:
+                    // _changeListByCategory(category);
                   },
-                  horizontalTitleGap: 0,
-                  leading: Icons.shopping_bag.icon(color: color, size: 22),
-                  title: 'Create new product'
-                      .toString()
-                      .toText(bold: true, color: color, fontSize: 15),
                 ),
-              ).pOnly(left: 5, right: 30);
-            }),
-            const SizedBox(height: 10),
-            CategoryDrawerList(
-              categories: const [
-                ResultCategory.gResults,
-                ResultCategory.titles,
-                ResultCategory.shortDesc,
-                ResultCategory.longDesc,
+                const Spacer(),
+                _buildAdvancedButton(miniMode),
+                10.verticalSpace,
+                _buildAddButton(miniMode),
+                20.verticalSpace,
               ],
-              categoriesNames: const [
-                'Google result',
-                'Product name',
-                'Short Description',
-                'Long Description',
-              ],
-              selectedCategory: drawerCategory,
-              icons: const [
-                Icons.search_rounded,
-                Icons.title_rounded,
-                Icons.notes_rounded,
-                Icons.description_rounded, // subject_rounded
-              ],
-              onSelect: (category) {
-                // Clickable category:
-                // _changeListByCategory(category);
+            )),
+      ),
+    );
+  }
+
+  Widget _buildAddButton(bool miniMode) {
+    var color = AppColors.whiteLight;
+    final icon = Icons.send.icon(color: color, size: 24).pOnly(top: 5);
+
+    return Builder(builder: (context) {
+      return SizedBox(
+        height: miniMode ? 60 : null,
+        // width: miniMode ? 60 : null,
+        child: Card(
+          color: AppColors.secondaryBlue,
+          elevation: 0,
+          shape: 10.roundedShape,
+          child: ListTile(
+            onTap: () => Navigator.pushReplacement(
+                context, MaterialPageRoute(builder: (context) => const HomeScreen())),
+            horizontalTitleGap: 0,
+            minLeadingWidth: miniMode ? 0 : 40,
+            contentPadding:
+                miniMode ? EdgeInsets.zero : const EdgeInsets.symmetric(horizontal: 16),
+            leading: miniMode ? null : icon,
+            title: miniMode
+                ? icon
+                : 'New product'
+                    .toString()
+                    .toText(medium: true, color: color, fontSize: 15),
+            // subtitle: miniMode
+            //     ? null
+            //     : 'Try for better results'.toString().toText(color: color, fontSize: 13)
+            // onTap: () => onTap(category),
+          ),
+        ),
+      ).px(10);
+    });
+  }
+
+  Widget _buildAdvancedButton(bool miniMode) {
+    var color = isAdvancedSwitchOn ? AppColors.secondaryBlue : AppColors.greyText;
+    final icon = Icons.settings_suggest.icon(color: color, size: 24).pOnly(top: 5);
+
+    return Builder(builder: (context) {
+      return SizedBox(
+        height: miniMode ? 60 : null,
+        // width: miniMode ? 60 : null,
+        child: Card(
+          color: Colors.grey[100],
+          elevation: 0,
+          shape: 10.roundedShape,
+          child: ListTile(
+              onTap: () async {
+                await showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (BuildContext context) {
+                    return ThreeColumnDialog(
+                      promptsList: context.uniProvider.fullPromptList,
+                      selectedPrompts: context.uniProvider.inUsePromptList,
+                      categories: context.uniProvider.categories,
+                    );
+                  },
+                );
+                setState(() {}); // Update uniModel values
               },
-            ),
-            const Spacer(),
-            Builder(builder: (context) {
-              var color =
-                  isAdvancedSwitchOn ? AppColors.secondaryBlue : AppColors.greyText;
-              return Card(
-                color: Colors.grey[100],
-                elevation: 0,
-                shape: 10.roundedShape,
-                child: ListTile(
-                    onTap: () async {
-                      await showDialog(
-                        context: context,
-                        barrierDismissible: false,
-                        builder: (BuildContext context) {
-                          return ThreeColumnDialog(
-                            promptsList: context.uniProvider.fullPromptList,
-                            selectedPrompts: context.uniProvider.inUsePromptList,
-                            categories: context.uniProvider.categories,
-                          );
-                        },
-                      );
-                      setState(() {}); // Update uniModel values
-                    },
-                    horizontalTitleGap: 0,
-                    // trailing: Switch(
-                    //   value: isAdvancedSwitchOn,
-                    //   activeColor: AppColors.secondaryBlue,
-                    //   onChanged: (bool value) {
-                    //     isAdvancedSwitchOn = value;
-                    //     setState(() {});
-                    //   },
-                    // ),
-                    leading:
-                        Icons.settings_suggest.icon(color: color, size: 22).pOnly(top: 5),
-                    // title: (isAdvancedSwitchOn ? 'Custom mode' : 'Default mode')
-                    title: 'Advanced mode'
-                        .toString()
-                        .toText(medium: true, color: color, fontSize: 15),
-                    subtitle: 'Try for better results'
-                        .toString()
-                        .toText(color: color, fontSize: 13)
-                    // onTap: () => onTap(category),
-                    ),
-              ).px(10);
-            }),
-            20.verticalSpace,
-          ],
-        ));
+              horizontalTitleGap: 0,
+              minLeadingWidth: miniMode ? 0 : 40,
+              contentPadding:
+                  miniMode ? EdgeInsets.zero : const EdgeInsets.symmetric(horizontal: 16),
+              leading: miniMode ? null : icon,
+              // title: (isAdvancedSwitchOn ? 'Custom mode' : 'Default mode')
+              title: miniMode
+                  ? icon
+                  : 'Advanced mode'
+                      .toString()
+                      .toText(medium: true, color: color, fontSize: 15),
+              subtitle: miniMode
+                  ? null
+                  : 'Try for better results'.toString().toText(color: color, fontSize: 13)
+              // onTap: () => onTap(category),
+              ),
+        ),
+      ).px(10);
+    });
   }
 
   TextField buildUserInput() {
@@ -536,7 +606,7 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
             borderSide: BorderSide(color: AppColors.greyLight),
             borderRadius: BorderRadius.circular(3),
           ),
-          hintText: 'Enter full product name',
+          hintText: 'Full product name',
           // hintStyle: const
           suffixIcon: buildEditIcon().px(12).py(12)
           // .onTap(() {}),

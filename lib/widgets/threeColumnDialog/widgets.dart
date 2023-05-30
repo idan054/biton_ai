@@ -88,8 +88,8 @@ Container buildDialogCategories(
             // final categoryType = CategoryType.values[i];
             final category = categories[i];
             List<IconData> icons = [
-              Icons.search_rounded,
-              Icons.title_rounded,
+              Icons.travel_explore,
+              Icons.title,
               Icons.notes_rounded,
               Icons.description_rounded,
               Icons.tag,
