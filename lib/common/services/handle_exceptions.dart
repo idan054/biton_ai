@@ -17,7 +17,7 @@ String? handleExceptions(Response? resp, {Exception? err}) {
   if (message == 'Expired token') return 'Oops! Please re-login your account';
 
   if (message.toString().contains('that username already exists!')) {
-    return 'Please login, Profile email exists';
+    return 'Please login, Email exists';
   }
 
   if (message.toString().contains('password you entered')) {
@@ -25,7 +25,8 @@ String? handleExceptions(Response? resp, {Exception? err}) {
   }
 
   if (message.toString().contains('Unknown email address')) {
-    return "Oops! Profile doesn't exist";
+    // return "Oops! Profile doesn't exist";
+    return "Email not found, please signup";
   }
 
   if (message.toString().contains('invalid-phone-number')) {
