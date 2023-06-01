@@ -63,9 +63,9 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
 
   @override
   void dispose() {
-    // _titleEditingController.dispose();
-    // _contentEditingController.dispose();
-    // _googleDescEditingController.dispose();
+    _titleEditingController.dispose();
+    _contentEditingController.dispose();
+    _googleDescEditingController.dispose();
     super.dispose();
   }
 
@@ -167,6 +167,7 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
 
     List<Widget> children = [
       buildDialogCategories(
+        context,
         categorySize,
         categories,
         selectedCategory,
@@ -326,8 +327,7 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
 
   Widget buildPromptForm() {
     bool isGoogleCategory = selectedCategory!.type == ResultCategory.gResults;
-    bool isAdmin =
-        (sRadioPost != null && sRadioPost!.isAdmin) && appConfig_hideDefault;
+    bool isAdmin = (sRadioPost != null && sRadioPost!.isAdmin) && appConfig_hideDefault;
 
     // "TextStore team prompt: Great for most sellers, can't be edited"
     String defaultHint = "Great for most sellers, can't be edited";
@@ -461,7 +461,7 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
 
                         _createMode = false;
                         _isLoading = false;
-                        if(mounted) setState(() {});
+                        if (mounted) setState(() {});
                       } else {
                         _createMode ? bulbHintState!(() {}) : setState(() {});
                       }
@@ -498,6 +498,7 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
       if (!_createMode) _fullPromptList.removeWhere((post) => post.id == sRadioPost?.id);
 
       var newPost = WooPostModel(
+        id: sRadioPost?.id,
         author: sRadioPost?.author ?? currUser.id!,
         // author: sRadioPost!.author,
         title: title,
@@ -506,6 +507,8 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
         category: selectedCategory!.type,
         categories: [selectedCategory!.id],
         isSelected: true,
+        isDefault: sRadioPost?.isDefault ?? false,
+        isAdmin: sRadioPost?.isAdmin ?? false,
       );
       _deselectOtherPrompts(newPost, currUser);
 

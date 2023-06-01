@@ -188,11 +188,9 @@ class _HomeScreenState extends State<HomeScreen> {
               onTapLogin: () async => setup(forceDialog: true),
               // : () async => _redirectWebsite()),
             ).centerRight,
-            const SizedBox(height: 230),
-
-            Hero(
-              tag: 'textStoreAi',
-                child: textStoreAi.toText(fontSize: 50, bold: true)),
+            // const SizedBox(height: 230),
+            const Spacer(),
+            Hero(tag: 'textStoreAi', child: textStoreAi.toText(fontSize: 50, bold: true)),
 
             const SizedBox(height: 10),
             // 'Sell more by Ai Text for your store'.toText(fontSize: 20).px(25),
@@ -200,7 +198,7 @@ class _HomeScreenState extends State<HomeScreen> {
             // 'Ai that make sales'.toText(fontSize: 20).px(25),
             'Sell more with Ai text for your store'.toText(fontSize: 20).px(25),
             const SizedBox(height: 20),
-            //~ Search TextField
+            // region Search TextField
             textStoreBar(
               context,
               isLoading: _isLoading,
@@ -265,6 +263,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     .px(30)
                     .appearAll,
               ),
+            // endregion Search TextField
             const Spacer(),
             appVersion.toText(fontSize: 12).pad(10).centerLeft,
           ],
@@ -300,8 +299,10 @@ void showUserMenu(
 
   final RelativeRect position = RelativeRect.fromRect(
     Rect.fromPoints(
-      button.localToGlobal(button.size.topLeft(const Offset(0, 40)), ancestor: overlay),
-      button.localToGlobal(button.size.topLeft(const Offset(0, 40)), ancestor: overlay),
+      button.localToGlobal(button.size.topRight(const Offset(-10, 40)),
+          ancestor: overlay),
+      button.localToGlobal(button.size.topRight(const Offset(-10, 40)),
+          ancestor: overlay),
     ),
     Offset.zero & overlay.size,
   );
@@ -312,11 +313,11 @@ void showUserMenu(
     items: [
       PopupMenuItem(
         onTap: onTapYourProfile,
-        child: 'Your profile'.toText(),
+        child: 'Your profile'.toText(medium: true),
       ),
       PopupMenuItem(
         onTap: onTapLogoutProfile,
-        child: 'Logout profile'.toText(color: AppColors.errRed),
+        child: 'Logout profile'.toText(medium: true, color: AppColors.errRed),
       ),
     ],
     elevation: 8,
@@ -353,46 +354,50 @@ Widget buildUserButton(BuildContext context, {GestureTapCallback? onTapLogin}) {
               ('${currUser.points} Tokens').toText(style: style).pOnly(right: 10),
             ],
           ]).px(10).onTap(
-          loginMode
-              ? onTapLogin
-              : () {
-                  showUserMenu(
-                    context,
-                    onTapYourProfile: () async {
-                      print('START: _redirectWebsite()');
-                      _isLoading = true;
-                      userStf(() {});
+          _isLoading!
+              ? null
+              : (loginMode
+                  ? onTapLogin
+                  : () {
+                      showUserMenu(
+                        context,
+                        onTapYourProfile: () async {
+                          print('START: _redirectWebsite()');
+                          _isLoading = true;
+                          userStf(() {});
 
-                      final userWebToken = await WooApi.userWebToken();
-                      String url =
-                          'https://textstore.ai/my-account/?mo_jwt_token=$userWebToken';
-                      print('url $url');
-                      window.open(url, 'New Tab');
-                      // window.open(url, '_blank');
+                          final userWebToken = await WooApi.userWebToken();
+                          String url =
+                              'https://textstore.ai/my-account/?mo_jwt_token=$userWebToken';
+                          print('url $url');
+                          window.open(url, 'New Tab');
+                          // window.open(url, '_blank');
 
-                      await Future.delayed(450.milliseconds);
-                      _isLoading = false;
-                      userStf(() {});
-                    },
-                    onTapLogoutProfile: () async {
-                      print('START: _logoutUser()');
-                      // _isLoading = false;
-                      // userStf(() {});
+                          await Future.delayed(450.milliseconds);
+                          _isLoading = false;
+                          userStf(() {});
+                        },
+                        onTapLogoutProfile: () async {
+                          print('START: _logoutUser()');
+                          // _isLoading = false;
+                          // userStf(() {});
 
-                      context.uniProvider.updateWooUserModel(const WooUserModel());
-                      currUser = context.uniProvider.currUser;
-                      appConfig_userJwt = '';
-                      userStf(() {});
-                      final box = await Hive.openBox('currUserBox');
-                      box.clear();
+                          context.uniProvider.updateWooUserModel(const WooUserModel());
+                          currUser = context.uniProvider.currUser;
+                          appConfig_userJwt = '';
+                          userStf(() {});
+                          final box = await Hive.openBox('currUserBox');
+                          box.clear();
 
-                      // if (onTapLogin == null) {
-                      Navigator.pushReplacement(context,
-                          MaterialPageRoute(builder: (context) => const HomeScreen()));
-                      // }
-                    },
-                  );
-                },
+                          // if (onTapLogin == null) {
+                          Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const HomeScreen()));
+                          // }
+                        },
+                      );
+                    }),
           radius: 5),
     ).appearOpacity;
   });
@@ -448,6 +453,14 @@ Widget textStoreBar(
   var hLoaderRatio = 1.2;
   var width = 800.0;
 
+  // borderRadius: BorderRadius.circular(99),
+  var radius = BorderRadius.only(
+    bottomLeft: 99.circular,
+    topLeft: 99.circular,
+    topRight: 20.circular,
+    bottomRight: 20.circular,
+  );
+
   return Hero(
     tag: 'buildMainBar',
     child: Stack(
@@ -458,83 +471,106 @@ Widget textStoreBar(
             height: 50 + (10 * hLoaderRatio),
             child: const LinearProgressIndicator(
               color: AppColors.lightShinyPrimary,
-              backgroundColor: Colors.transparent,
+              backgroundColor: AppColors.transparent,
             ),
           ).roundedFull.offset(7, -5 * hLoaderRatio),
         SizedBox(
           width: width,
           child: Material(
-            elevation: 3,
+            color: AppColors.transparent,
+            // elevation: 3,
             borderRadius: BorderRadius.circular(99),
-            child: TextField(
-              autofocus: true,
-              controller: searchController,
-              onSubmitted: onSubmitted,
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: AppColors.white,
-                hoverColor: AppColors.greyLight.withOpacity(0.1),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide.none,
-                  borderRadius: BorderRadius.circular(99),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: AppColors.greyLight),
-                  borderRadius: BorderRadius.circular(99),
-                ),
-                hintText: 'Full product name',
-                hintStyle: const TextStyle(color: Colors.grey),
-                // suffixIcon: suffixIcon,
-                prefixIcon: prefixIcon,
-                suffixIcon: Stack(
-                  // Use Stack to overlay prefixIcon and CircularProgressIndicator
-                  alignment: Alignment.center,
-                  children: [
-                    if ((isLoading || _inUsePrompts.isEmpty) && token != null) ...[
-                      CurvedCircularProgressIndicator(
-                        value: _inUsePrompts.isEmpty
-                            ? null
-                            : context.listenUniProvider.textstoreBarLoader,
-                        color: AppColors.primaryShiny,
-                        strokeWidth: 6,
-                        backgroundColor: AppColors.greyLight,
-                        animationDuration: 1500.milliseconds,
-                      ).sizedBox(30, 30).px(10).py(5),
-                    ] else ...[
-                      // if (!isLoading && _inUsePrompts.isNotEmpty)
-
-                      // Icons.search_rounded.icon(color: Colors.blueAccent, size: 30)
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icons.send.icon(
-                              size: 30,
-                              color: _inUsePrompts.isEmpty
-                                  ? AppColors.primaryShiny.withOpacity(0.40)
-                                  : AppColors.primaryShiny),
-
-                          // 'Create'.toText(
-                          //     color: _inUsePrompts.isEmpty
-                          //         ? AppColors.primaryShiny.withOpacity(0.40)
-                          //         : AppColors.primaryShiny,
-                          //     medium: true,
-                          //     fontSize: 14)
-                        ],
-                      )
-                          .px(15)
-                          .py(10)
-                          // .py(15)
-                          .onTap(
-                            onStart,
-                            // tapColor: AppColors.primaryShiny.withOpacity(0.1)
-                          ),
-                    ]
-                  ],
-                ),
-              ),
+            child: Row(
+              children: [
+                TextField(
+                  autofocus: true,
+                  controller: searchController,
+                  onSubmitted: onSubmitted,
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: AppColors.white,
+                    hoverColor: AppColors.greyLight.withOpacity(0.1),
+                    enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide.none, borderRadius: radius),
+                    focusedBorder: OutlineInputBorder(
+                        // borderSide: BorderSide(color: AppColors.greyLight),
+                        borderSide: BorderSide.none,
+                        borderRadius: radius),
+                    hintText: 'Full product name',
+                    hintStyle: const TextStyle(color: Colors.grey),
+                    // suffixIcon: suffixIcon,
+                    prefixIcon: prefixIcon,
+                    // suffixIcon: _buildCreateButton(isLoading, _inUsePrompts, token, context, onStart),
+                  ),
+                ).expanded(),
+                const SizedBox(width: 10),
+                _buildCreateButton(isLoading, _inUsePrompts, token, context, onStart),
+              ],
             ),
           ).px(15),
         ),
+      ],
+    ),
+  );
+}
+
+Widget _buildCreateButton(bool isLoading, List<WooPostModel> _inUsePrompts, String? token,
+    BuildContext context, GestureTapCallback? onStart) {
+  return Container(
+    decoration: BoxDecoration(
+      color: AppColors.secondaryBlue,
+      borderRadius: BorderRadius.only(
+        bottomLeft: 20.circular,
+        topLeft: 20.circular,
+        topRight: 99.circular,
+        bottomRight: 99.circular,
+      ),
+    ),
+    width: 60,
+    height: 50,
+    child: Stack(
+      // Use Stack to overlay prefixIcon and CircularProgressIndicator
+      alignment: Alignment.center,
+      children: [
+        if ((isLoading || _inUsePrompts.isEmpty) && token != null) ...[
+          CurvedCircularProgressIndicator(
+            value: _inUsePrompts.isEmpty
+                ? null
+                : context.listenUniProvider.textstoreBarLoader,
+            color: AppColors.lightShinyPrimary,
+            strokeWidth: 6,
+            backgroundColor: AppColors.secondaryBlue,
+            animationDuration: 1500.milliseconds,
+          ).sizedBox(30, 30).px(10).py(5),
+        ] else ...[
+          // if (!isLoading && _inUsePrompts.isNotEmpty)
+
+          // Icons.search_rounded.icon(color: Colors.blueAccent, size: 30)
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icons.send.icon(
+                  size: 30,
+                  color: _inUsePrompts.isEmpty
+                      ? AppColors.white.withOpacity(0.40)
+                      : AppColors.white),
+
+              // 'Create'.toText(
+              //     color: _inUsePrompts.isEmpty
+              //         ? AppColors.primaryShiny.withOpacity(0.40)
+              //         : AppColors.primaryShiny,
+              //     medium: true,
+              //     fontSize: 14)
+            ],
+          )
+              .px(15)
+              .py(10)
+              // .py(15)
+              .onTap(
+                onStart,
+                // tapColor: AppColors.primaryShiny.withOpacity(0.1)
+              ),
+        ]
       ],
     ),
   );

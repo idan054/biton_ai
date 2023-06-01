@@ -17,6 +17,15 @@ import '../common/constants.dart';
 import '../common/models/prompt/result_model.dart';
 import '../common/themes/app_colors.dart';
 
+List<ResultCategory> setCustomPromptsCategories(BuildContext context) {
+  List<ResultCategory> _customPromptCategories = [];
+  final selectedPrompts = context.uniProvider.inUsePromptList;
+  for (var prompt in selectedPrompts) {
+    prompt.isAdmin ? null : _customPromptCategories.add(prompt.category);
+  }
+  return _customPromptCategories;
+}
+
 class CategoryDrawerList extends StatefulWidget {
   final bool miniMode;
   final List<String> categoriesNames;
@@ -44,16 +53,8 @@ class _CategoryDrawerListState extends State<CategoryDrawerList> {
 
   @override
   void initState() {
-    setCustomPromptsCategories();
+    customPromptCategories = setCustomPromptsCategories(context);
     super.initState();
-  }
-
-  void setCustomPromptsCategories() {
-    customPromptCategories = [];
-    final selectedPrompts = context.uniProvider.inUsePromptList;
-    for (var prompt in selectedPrompts) {
-      prompt.isAdmin ? null : customPromptCategories.add(prompt.category);
-    }
   }
 
   @override
@@ -73,24 +74,24 @@ class _CategoryDrawerListState extends State<CategoryDrawerList> {
             bool isSelected = selectedCategory == category;
             return buildCategoryTile(i);
 
-            return ChoiceChip(
-              backgroundColor: AppColors.white,
-              selectedColor: AppColors.white,
-              pressElevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              label: buildCategoryTile(i),
-              selected: isSelected,
-              onSelected: (bool selected) {
-                var _selectedCategory = category;
-                // if (selected) {
-                //   selectedCategory = _selectedCategory;
-                // }
-                // else {selectedResult = null;}
-                // print('_selectedCategory $_selectedCategory');
-                widget.onSelect(_selectedCategory);
-                setState(() {});
-              },
-            );
+            // return ChoiceChip(
+            //   backgroundColor: AppColors.white,
+            //   selectedColor: AppColors.white,
+            //   pressElevation: 0,
+            //   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            //   label: buildCategoryTile(i),
+            //   selected: isSelected,
+            //   onSelected: (bool selected) {
+            //     var _selectedCategory = category;
+            //     // if (selected) {
+            //     //   selectedCategory = _selectedCategory;
+            //     // }
+            //     // else {selectedResult = null;}
+            //     // print('_selectedCategory $_selectedCategory');
+            //     widget.onSelect(_selectedCategory);
+            //     setState(() {});
+            //   },
+            // );
           },
         ),
       ],
@@ -99,7 +100,7 @@ class _CategoryDrawerListState extends State<CategoryDrawerList> {
 
   Widget buildCategoryTile(int i) {
     context.listenUniProvider.inUsePromptList; //? rebuilt on change
-    setCustomPromptsCategories();
+    customPromptCategories = setCustomPromptsCategories(context);
 
     final category = widget.categories[i];
     final selectedCategory = widget.selectedCategory;

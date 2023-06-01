@@ -17,6 +17,7 @@ import '../../common/extensions/widget_ext.dart';
 import '../../common/models/category/woo_category_model.dart';
 import '../../common/models/prompt/result_model.dart';
 import '../customButton.dart';
+import '../resultsCategoriesList.dart';
 
 Widget buildCloseButton(BuildContext context, {required VoidCallback onPressed}) {
   return SizedBox(
@@ -66,6 +67,7 @@ Widget buildTextstoreButton({
 }
 
 Container buildDialogCategories(
+  BuildContext context,
   double categorySize,
   List<WooCategoryModel> categories,
   WooCategoryModel? selectedCategory, {
@@ -73,7 +75,7 @@ Container buildDialogCategories(
 }) {
   return Container(
     width: categorySize,
-    padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 30),
+    padding: const EdgeInsets.only(top: 15, bottom: 15, left: 10, right: 10),
     decoration: BoxDecoration(
       color: AppColors.lightPrimaryBg,
       borderRadius: BorderRadius.only(topLeft: 15.circular, bottomLeft: 15.circular),
@@ -100,6 +102,10 @@ Container buildDialogCategories(
             final isGoogleCategory = categories.first == categories[i];
             final color = isSelected ? AppColors.secondaryBlue : AppColors.greyText;
 
+            List<ResultCategory> customPromptCategories =
+                setCustomPromptsCategories(context);
+            bool isCustomPrompt = customPromptCategories.contains(category.type);
+
             return Card(
               color: isSelected ? AppColors.lightShinyPrimary : AppColors.lightPrimaryBg,
               elevation: 0,
@@ -109,6 +115,9 @@ Container buildDialogCategories(
                 leading: sIcon
                     .icon(color: color, size: 22)
                     .pOnly(top: isGoogleCategory ? 5 : 0),
+                trailing: isCustomPrompt
+                    ? Icons.manage_accounts.icon(color: color, size: 22)
+                    : null,
                 title: category.name.toString().toText(
                       medium: true,
                       color: color,
