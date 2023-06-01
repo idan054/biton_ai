@@ -13,6 +13,7 @@ import 'package:collection/collection.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart';
 import 'package:intl_phone_field/country_picker_dialog.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
@@ -59,7 +60,7 @@ class _RegisterDialogState extends State<RegisterDialog> {
     double width = MediaQuery.of(context).size.width;
     bool desktopMode = width > 500;
 
-    final dialogHeight = loginMode ? 390.0 : 410.0;
+    final dialogHeight = loginMode ? 500.0 : 410.0;
     // (loginMode
     //     ? 390.0
     //     : _pageController.page == 1
@@ -270,7 +271,10 @@ class _RegisterDialogState extends State<RegisterDialog> {
                           password: _passController.text,
                           phone: _phone,
                         );
-                        _handleLogin();
+                        await _handleLogin(
+                          email: _emailController.text,
+                          password: _passController.text,
+                        );
                       }
                     } on Exception catch (err, s) {
                       isLoading = false;
@@ -308,12 +312,65 @@ class _RegisterDialogState extends State<RegisterDialog> {
                 bold: true,
               )
               .center,
+          const SizedBox(height: 20.0),
+          if (loginMode) ...[
+            buildTextstoreButton(
+              width: 200,
+              invert: true,
+              // backgroundColor: Colors.transparent,
+              // icon: 'G'.toText(bold: true, color: AppColors.secondaryBlue, fontSize: 18),
+              // titleStyle: ''.toText(color: AppColors.greyText).style,
+              title: 'Continue with Google',
+              onPressed: () async {
+                try {
+                  isLoading = true;
+                  setState(() {});
+
+                  final googleUser = await GoogleSignIn(
+                          scopes: ['email'],
+                          clientId:
+                              '1070132561841-0jsc02r1h3s7bi42hr97bjsk7hvfur02.apps.googleusercontent.com' // Firebase
+                          // '1070132561841-70mrtk2u2k5pj06s8mmuhqpmsq5uhdcj.apps.googleusercontent.com'
+                          )
+                      .signIn();
+                  await googleUser!.authentication;
+                  print('Continue with Google!');
+                  print('Email: ${googleUser.email}');
+                  print('Id: ${googleUser.id}');
+
+                  final isEmailExist = await WooApi.checkEmailExists(googleUser.email);
+                  if (isEmailExist) {
+                    await _handleLogin(email: googleUser.email, password: googleUser.id);
+                  } else {
+                    // OTP on 1st time
+                    _pageController.jumpToPage(2);
+                    isLoading = false;
+                    setState(() {});
+                  }
+                } catch (err) {
+                  isLoading = false;
+                  printRed('My ERROR: $err');
+                  errMessage =
+                      err.toString().replaceAll('Exception: ', '').replaceAll('_', ' ');
+                  setState(() {});
+                }
+              },
+            ),
+            const SizedBox(height: 20.0),
+            Row(
+              children: [
+                Divider(thickness: 1.5, color: AppColors.greyLight).expanded(),
+                'or'.toText(color: AppColors.greyUnavailable80, medium: true).px(10),
+                Divider(thickness: 1.5, color: AppColors.greyLight).expanded(),
+              ],
+            ),
+          ],
           const SizedBox(height: 10.0),
           fieldTitle('Email'),
           SizedBox(
             height: desktopMode ? 50 : 40,
             child: TextField(
-              autofocus: true,
+              // autofocus: true,
               maxLines: null,
               expands: true,
               style: const TextStyle(color: Colors.black),
@@ -420,7 +477,11 @@ class _RegisterDialogState extends State<RegisterDialog> {
                 }
 
                 if (errMessage != null) return;
-                if (loginMode) await _handleLogin();
+                if (loginMode)
+                  await _handleLogin(
+                    email: _emailController.text,
+                    password: _passController.text,
+                  );
               } on Exception catch (err, s) {
                 isLoading = false;
                 printRed('My ERROR: $err');
@@ -435,7 +496,7 @@ class _RegisterDialogState extends State<RegisterDialog> {
     });
   }
 
-  Future _handleLogin() async {
+  Future _handleLogin({String? email, String? password}) async {
     //~ Login:
     var token = await WooApi.userLogin(
       email: _emailController.text,

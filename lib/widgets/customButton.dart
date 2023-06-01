@@ -99,6 +99,7 @@ class CustomButton extends StatelessWidget {
                       ],
                       if (title != null)
                         title!.toText(
+                          style: titleStyle,
                           medium: invert,
                           color: invert ? backgroundColor : Colors.white,
                           fontSize: 15,

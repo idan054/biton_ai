@@ -47,6 +47,7 @@ Widget buildTextstoreButton({
   bool isLoading = false,
   bool createMode = true,
   bool invert = false,
+  double? width,
   required String title,
   bool isUnavailable = false,
   VoidCallback? onPressed,
@@ -55,7 +56,7 @@ Widget buildTextstoreButton({
   // if (defaultSelected) return const Offstage();
 
   return CustomButton(
-    width: 105,
+    width: width ?? 105,
     height: 45,
     invert: invert,
     title: isLoading ? 'Loading...' : title,

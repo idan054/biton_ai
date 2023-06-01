@@ -13,7 +13,8 @@ dependencies:
 
   cupertino_icons: ^1.0.2
   cloud_firestore: ^4.4.3
-  intl: ^0.18.0
+  intl: 0.17.0
+  firebase_ui_auth:
   google_fonts: ^4.0.3
   omni_datetime_picker: ^0.1.4
   http: ^0.13.5
@@ -48,6 +49,7 @@ dependencies:
   firebase_auth: ^4.6.1
   sentry_flutter: ^7.6.2
   characters: ^1.2.1
+  google_sign_in: ^6.1.3
 #  text_selection_controls: ^0.0.2
 
 
