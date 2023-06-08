@@ -10,12 +10,13 @@ import 'package:flutter/foundation.dart';
 // POST https://textstore.ai/wp-json/jwt-auth/v1/token
 // BODY { "username": "",  "password": "" }
 // Might need to update expiration to Never
-const adminJwt =
-    'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3d3dy50ZXh0c3RvcmUuYWkiLCJpYXQiOjE2ODQ5MTQ1NzgsIm5iZiI6MTY4NDkxNDU3OCwiZXhwIjoxNjg1NTE5Mzc4LCJkYXRhIjp7InVzZXIiOnsiaWQiOiIxIn19fQ.IQmC28dLMUuJ6n9zEnYKJJNroAp_FwSAP59VgUl-sL8';
+// const adminJwt =
+//     'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3d3dy50ZXh0c3RvcmUuYWkiLCJpYXQiOjE2ODU2MzAyMjUsIm5iZiI6MTY4NTYzMDIyNSwiZXhwIjoxNjg2MjM1MDI1LCJkYXRhIjp7InVzZXIiOnsiaWQiOiIxIn19fQ.l4TWSgHiHnDgL13u-24McMYgP1u-rhOrOiYAG0p_RjY';
 
 // My Working Wordpress php request:  https://gist.github.com/idan054/a02143ad92cf65ce090f8dfe697c6419
 const appCategoryId = 27; // only subCategories of it will appear
-const baseUrl = 'https://textstore.ai/wp-json';
+const baseUrl = 'https://www.textstore.ai/wp-json';
+// const baseUrl = 'https://wordpress-665866-3576746.cloudwaysapps.com/wp-json';
 
 // DEFAULT POSTS:
 // - Google 1685
@@ -32,7 +33,7 @@ const appConfig_highlightSelection = true;
 const appConfig_horizontalSummery = true;
 const appConfig_collapseMode = true;
 
-// const appConfig_fastHomeScreen = true;
+// const appConfig_fastHomeScreen = true && kDebugMode;
 const appConfig_fastHomeScreen = false;
 
 const longDescSample =
@@ -45,4 +46,4 @@ The Nike Air Max 90 is not just a stylish sneaker; it is also a durable and reli
 In conclusion, the Nike Air Max 90 is a classic sneaker that has stood the test of time. It is a comfortable and stylish shoe that can be worn for a range of activities. Its iconic design and visible Air Sole unit have made it a favorite among sneaker enthusiasts and athletes alike. Whether you are looking for a casual sneaker or a shoe to wear during athletic activities, the Nike Air Max 90 is an excellent choice. With its durability, versatility, and timeless design, this sneaker is sure to remain a favorite for years to come.
 null ''';
 
-const appVersion = 'Version 2.0.1';
+const appVersion = 'Version 2.1.1';

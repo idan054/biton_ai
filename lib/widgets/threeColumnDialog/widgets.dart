@@ -10,6 +10,7 @@ import 'package:biton_ai/common/themes/app_colors.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:http/http.dart';
 
 import '../../common/constants.dart';
@@ -47,6 +48,7 @@ Widget buildTextstoreButton({
   bool isLoading = false,
   bool createMode = true,
   bool invert = false,
+  Widget? icon,
   double? width,
   required String title,
   bool isUnavailable = false,
@@ -59,6 +61,7 @@ Widget buildTextstoreButton({
     width: width ?? 105,
     height: 45,
     invert: invert,
+    icon: icon,
     title: isLoading ? 'Loading...' : title,
     backgroundColor: isLoading
         ? AppColors.greyUnavailable80

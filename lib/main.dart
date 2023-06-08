@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:biton_ai/common/extensions/context_ext.dart';
 import 'package:biton_ai/common/extensions/widget_ext.dart';
 import 'package:biton_ai/common/services/color_printer.dart';
+import 'package:biton_ai/common/services/wooApi.dart';
 import 'package:biton_ai/screens/resultsScreen.dart';
 import 'package:biton_ai/screens/wordpress/auth_screen.dart';
 import 'package:biton_ai/screens/wordpress/woo_posts_screen.dart';
@@ -18,29 +21,34 @@ import 'dart:html' as html;
 import 'package:hive/hive.dart';
 import 'common/models/uniModel.dart';
 import 'common/models/user/woo_user_model.dart';
+import 'common/services/gpt_service.dart';
 import 'firebase_options.dart';
 import 'screens/homeScreen.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  // await dotenv.load();
-  await Hive.initFlutter();
-  final token = await setUserToken();
+  runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
 
-  const sentryUrl =
-      'https://58ec3c5acddb489c8bcbc70d51dbb1c4@o1148186.ingest.sentry.io/4505254606864384';
-  await SentryFlutter.init(
-    (options) {
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    dotenv.load();
+    await Hive.initFlutter();
+    final token = await setUserToken();
+
+    const sentryUrl =
+        'https://58ec3c5acddb489c8bcbc70d51dbb1c4@o1148186.ingest.sentry.io/4505254606864384';
+    await SentryFlutter.init((options) {
       options.dsn = sentryUrl;
       options.tracesSampleRate = 1.0; // 1.0 = capture 100%
-    },
-    appRunner: () => runApp(MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => UniProvider())],
-      child: MyApp(token),
-    )),
-  );
+    });
+    // --
+    runApp(MultiProvider(providers: [
+      ChangeNotifierProvider(create: (_) => UniProvider()),
+    ], child: MyApp(token)));
+    // --
+  },
+          (exception, stackTrace) async =>
+      await Sentry.captureException(exception, stackTrace: stackTrace));
 }
 
 class MyApp extends StatelessWidget {
@@ -60,8 +68,8 @@ class MyApp extends StatelessWidget {
           title: 'TextStore.AI',
           theme: ThemeData(primarySwatch: Colors.blue),
           home: const HomeScreen()
-          // home: ResultsScreen()
-          ),
+        // home: ResultsScreen()
+      ),
     );
   }
 }

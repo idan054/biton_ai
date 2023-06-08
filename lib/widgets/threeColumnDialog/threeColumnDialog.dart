@@ -519,7 +519,7 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
         postId: _createMode ? null : sRadioPost!.id,
         isSelected: true,
       ).catchError((err) {
-        printRed('My ERROR: $err');
+        printRed('My ERROR updatePost: $err');
         _isLoading = false;
         errMessage = err.toString().replaceAll('Exception: ', '');
         setState(() {});

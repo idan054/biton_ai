@@ -1,7 +1,8 @@
 // ignore_for_file: curly_braces_in_flow_control_structures, non_constant_identifier_names, prefer_final_fields, no_leading_underscores_for_local_identifiers
 
 import 'dart:developer';
-
+import 'dart:html';
+import 'dart:io' show Platform;
 import 'package:biton_ai/common/extensions/context_ext.dart';
 import 'package:biton_ai/common/extensions/num_ext.dart';
 import 'package:biton_ai/common/extensions/string_ext.dart';
@@ -13,6 +14,7 @@ import 'package:collection/collection.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart';
 import 'package:intl_phone_field/country_picker_dialog.dart';
@@ -29,8 +31,31 @@ import '../../main.dart';
 import '../../screens/homeScreen.dart';
 import '../customButton.dart';
 import 'package:flutter/material.dart';
-
+import 'package:encrypt/encrypt.dart' as en;
 import '../threeColumnDialog/design.dart';
+
+void deleteCookies() {
+  final cookies = (document.cookie ?? '').split(';');
+  final expiredDate = DateTime.now().subtract(1.seconds).toUtc().toString();
+
+  for (var cookie in cookies) {
+    final cookieParts = cookie.split('=');
+    final cookieName = cookieParts[0].trim();
+    document.cookie = '$cookieName=; expires=$expiredDate; path=/';
+    window.location.reload();
+  }
+
+  print('Cookies deleted');
+}
+
+void clearAuthCacheIfPossible(GoogleSignInAccount? account) async {
+  print('START: clearAuthCacheIfPossible()');
+  if (account == null) throw 'Cant clearAuthCache';
+  // await account.clearAuthCache();
+  account.clearAuthCache();
+  print('document.cookie');
+  print(document.cookie);
+}
 
 class RegisterDialog extends StatefulWidget {
   const RegisterDialog({Key? key}) : super(key: key);
@@ -53,6 +78,59 @@ class _RegisterDialogState extends State<RegisterDialog> {
   bool _isPasswordVisible = false; // Track the password visibility state
   bool loginMode = true;
   bool isLoading = false;
+
+  final GoogleSignIn googleSignIn = GoogleSignIn(scopes: ['email']);
+  GoogleSignInAccount? account;
+
+  Future<List> _handleGoogleSignIn() async {
+    // if ((document.cookie ?? '').contains('g_state') && isLoading == false) {
+    //   deleteCookies();
+    // }
+    print('A account ${account?.email}');
+    try {
+      await googleSignIn.signOut();
+      await googleSignIn.disconnect();
+    } on Exception catch (e, s) {
+      print(s);
+    }
+
+    // isMobileDevice
+    print('B account ${account?.email}');
+    if (kIsWeb && !kDebugMode) {
+      print('START: .signInSilently()');
+      account = await googleSignIn.signInSilently();
+      clearAuthCacheIfPossible(account);
+    }
+
+    print('C account ${account?.email}');
+    if(account == null){
+      print('START: .signIn()()');
+      account = await googleSignIn.signIn();
+      clearAuthCacheIfPossible(account);
+    }
+
+    print('D account ${account?.email}');
+    if (account != null) {
+      print('User Email: ${account!.email}');
+      print('User ID: ${account!.id}');
+
+      //!  NOT SECURE! SHOULD BE ON SERVER SIDE
+      final key = en.Key.fromUtf8('my 32 length key................');
+      final encrypter = en.Encrypter(en.AES(key));
+      var pass = encrypter
+          .encrypt(account!.email, iv: en.IV.fromLength(16))
+          .base16
+          .substring(1, 10);
+      // print('User pass $pass');
+
+      _emailController.text = account!.email;
+      _passController.text = pass;
+
+      return [account!.email, pass];
+    } else {
+      throw 'Something went wrong. please try again';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -149,7 +227,7 @@ class _RegisterDialogState extends State<RegisterDialog> {
       // reCAPTCHA & send SMS code.
     } on Exception catch (err, s) {
       isLoading = false;
-      printRed('My ERROR: $err');
+      printRed('My ERROR sendSmsAction: $err');
       errMessage = handleExceptions(null, err: err);
       errMessage = errMessage!.replaceAll('Exception: ', '');
       setState(() {});
@@ -254,7 +332,7 @@ class _RegisterDialogState extends State<RegisterDialog> {
                             .confirm(_otpController.text)
                             .catchError((err) {
                           isLoading = false;
-                          printRed('My ERROR: $err');
+                          printRed('My ERROR else sendSmsAction: $err');
                           // errMessage = err.toString().replaceAll('Exception: ', '');
                           errMessage = 'SMS code incorrect';
                           formState!(() {});
@@ -278,7 +356,7 @@ class _RegisterDialogState extends State<RegisterDialog> {
                       }
                     } on Exception catch (err, s) {
                       isLoading = false;
-                      printRed('My ERROR: $err');
+                      printRed('My ERROR else 2 sendSmsAction: $err');
                       errMessage = err.toString().replaceAll('Exception: ', '');
                       formState!(() {});
                     }
@@ -315,44 +393,76 @@ class _RegisterDialogState extends State<RegisterDialog> {
           const SizedBox(height: 20.0),
           if (loginMode) ...[
             buildTextstoreButton(
-              width: 200,
+              width: desktopMode ? 210 : 220,
               invert: true,
+              isLoading: isLoading,
+              icon: SvgPicture.asset('assets/svg/G-logo-icon.svg', height: 24),
               // backgroundColor: Colors.transparent,
               // icon: 'G'.toText(bold: true, color: AppColors.secondaryBlue, fontSize: 18),
               // titleStyle: ''.toText(color: AppColors.greyText).style,
               title: 'Continue with Google',
               onPressed: () async {
+                void _handleError(err, trace) {
+                  print('START: _handleError()');
+                  isLoading = false;
+                  printRed('My ERROR GoogleSignIn: $err');
+                  errMessage =
+                      err.toString().replaceAll('Exception: ', '').replaceAll('_', ' ');
+                  if ((errMessage ?? '').contains('Login with Email & Password')) {
+                    _passController.text = '';
+                    // _emailController.text = FirebaseAuth.instance.currentUser?.email ?? '';
+                  }
+                  setState(() {});
+                }
+
                 try {
                   isLoading = true;
+                  errMessage = null;
                   setState(() {});
 
-                  final googleUser = await GoogleSignIn(
-                          scopes: ['email'],
-                          clientId:
-                              '1070132561841-0jsc02r1h3s7bi42hr97bjsk7hvfur02.apps.googleusercontent.com' // Firebase
-                          // '1070132561841-70mrtk2u2k5pj06s8mmuhqpmsq5uhdcj.apps.googleusercontent.com'
-                          )
-                      .signIn();
-                  await googleUser!.authentication;
-                  print('Continue with Google!');
-                  print('Email: ${googleUser.email}');
-                  print('Id: ${googleUser.id}');
+                  // final googleSignIn = GoogleSignIn(
+                  //   clientId:
+                  //       '1070132561841-0jsc02r1h3s7bi42hr97bjsk7hvfur02.apps.googleusercontent.com',
+                  // );
+                  //
+                  // GoogleSignInAccount? googleSignInAccount;
+                  // // if (kIsWeb && !kDebugMode) {
+                  // googleSignInAccount = await googleSignIn.signInSilently();
+                  // // } else {
+                  // //   googleSignInAccount = await googleSignIn.signIn();
+                  // // }
+                  //
+                  // final auth = await googleSignInAccount?.authentication.catchSentryError(onError: _handleError);
+                  //
+                  // final authResult = await FirebaseAuth.instance
+                  //     .signInWithCredential(GoogleAuthProvider.credential(
+                  //         accessToken: auth?.accessToken, idToken: auth?.idToken))
+                  //     .catchSentryError(onError: _handleError);
+                  // final user = authResult.user!;
 
-                  final isEmailExist = await WooApi.checkEmailExists(googleUser.email);
+                  final userData = await _handleGoogleSignIn();
+                  final email = userData[0];
+                  final password = userData[1];
+
+
+                  // You can also try login instead
+                  final isEmailExist = await WooApi.checkEmailExists(email)
+                      .catchSentryError(onError: _handleError);
+
                   if (isEmailExist) {
-                    await _handleLogin(email: googleUser.email, password: googleUser.id);
+                    await _handleLogin(
+                      googleSignIn: true,
+                      email: email,
+                      password: password,
+                    ).catchSentryError(onError: _handleError);
                   } else {
                     // OTP on 1st time
                     _pageController.jumpToPage(2);
                     isLoading = false;
                     setState(() {});
                   }
-                } catch (err) {
-                  isLoading = false;
-                  printRed('My ERROR: $err');
-                  errMessage =
-                      err.toString().replaceAll('Exception: ', '').replaceAll('_', ' ');
-                  setState(() {});
+                } catch (err, trace) {
+                  _handleError(err, trace);
                 }
               },
             ),
@@ -463,6 +573,7 @@ class _RegisterDialogState extends State<RegisterDialog> {
                 if (!loginMode) {
                   final isEmailExist =
                       await WooApi.checkEmailExists(_emailController.text);
+
                   if (isEmailExist) {
                     isLoading = false;
                     errMessage = 'Please login, Email exist';
@@ -484,7 +595,7 @@ class _RegisterDialogState extends State<RegisterDialog> {
                   );
               } on Exception catch (err, s) {
                 isLoading = false;
-                printRed('My ERROR: $err');
+                printRed('My ERROR TextstoreButton: $err');
                 errMessage = handleExceptions(null, err: err);
                 errMessage = errMessage!.replaceAll('Exception: ', '');
                 formState!(() {});
@@ -496,12 +607,11 @@ class _RegisterDialogState extends State<RegisterDialog> {
     });
   }
 
-  Future _handleLogin({String? email, String? password}) async {
+  Future _handleLogin(
+      {String? email, String? password, bool googleSignIn = false}) async {
     //~ Login:
     var token = await WooApi.userLogin(
-      email: _emailController.text,
-      password: _passController.text,
-    );
+        googleSignIn: googleSignIn, email: email!, password: password!);
     setUserToken(
         token: token, userEmail: _emailController.text, userPass: _passController.text);
     context.uniProvider

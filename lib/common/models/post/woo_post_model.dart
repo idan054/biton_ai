@@ -32,6 +32,11 @@ class WooPostModel with _$WooPostModel {
 
   // factory WooPostModel.fromJson(Map<String, dynamic> json) => _$WooPostModelFromJson(json);
   factory WooPostModel.fromJson(Map<String, dynamic> json) {
+
+    // Server bug fix:
+    var isSelected = json['acf']?['isSelected'];
+    if (isSelected == null || isSelected.runtimeType == String) isSelected = false;
+
     // var content = json['content']['rendered'].toString().replaceAll('<p>', '').replaceAll('</p>', '').trim();
     // var mainContent = fetchContentFromJson(content, isSubContent: false);
     // var subContent = fetchContentFromJson(content, isSubContent: true);
@@ -45,11 +50,12 @@ class WooPostModel with _$WooPostModel {
       id: json['id'],
       author: json['author'],
       title: json['title']['rendered'],
-      content: json['acf']['prompt'],
-      subContent: json['acf']['googleDesc'],
-      isSelected: json['acf']?['isSelected'] ?? false,
-      isAdmin: json['acf']?['isAdmin'] ?? false,
-      isDefault: json['acf']?['isDefault'] ?? false,
+      // Must Add ?? for ['acf'] params
+      content: json['acf']['prompt'] ?? '',
+      subContent: json['acf']['googleDesc'] ?? '',
+      isSelected: isSelected,
+      isAdmin: json['acf']['isAdmin'] ?? false,
+      isDefault: json['acf']['isDefault'] ?? false,
     );
     return post;
   }

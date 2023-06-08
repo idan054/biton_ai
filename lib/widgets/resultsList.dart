@@ -180,20 +180,28 @@ class _ResultsListState extends State<ResultsList> {
                   // height: cardHeight,
                   child: buildCardResult(
                       isSelected, result, mainTitleController, gDescController)),
-              buildCopyButton(
-                context,
-                isHovered,
-                '${mainTitleController.text}'
-                '${gDescController.text.isNotEmpty ? '\n${gDescController.text}' : ''} ',
-                Icons.content_copy,
+              Positioned(
+                bottom: 15,
+                right: 45,
+                child: buildCopyButton(
+                    context,
+                    isHovered,
+                    '${mainTitleController.text}'
+                    '${gDescController.text.isNotEmpty ? '\n${gDescController.text}' : ''} ',
+                    Icons.create,
+                    onEditTap: () => mainNode.requestFocus()),
               ),
-              buildCopyButton(
+              Positioned(
+                bottom: 15,
+                right: 5,
+                child: buildCopyButton(
                   context,
                   isHovered,
                   '${mainTitleController.text}'
                   '${gDescController.text.isNotEmpty ? '\n${gDescController.text}' : ''} ',
-                  Icons.create,
-                  onEditTap: () => mainNode.requestFocus()),
+                  Icons.content_copy,
+                ),
+              ),
             ],
           ),
         );
@@ -311,7 +319,7 @@ class _ResultsListState extends State<ResultsList> {
               controller: mainTitleController,
               style: TextStyle(
                 height: 1.4, //line spacing
-                fontSize: isProductTitle || isGoogleItem ? 19 : 15,
+                fontSize: isProductTitle || isGoogleItem ? 18 : 15,
                 fontWeight: isProductTitle || isGoogleItem ? FontWeight.bold : null,
                 color: isGoogleItem
                     ? (selectedResult == null || isSelected
@@ -359,38 +367,38 @@ class _ResultsListState extends State<ResultsList> {
 // onEnter: (_) => setState(() => isHovered = true),
 // onExit: (_) => setState(() => isHovered = false),
 // child:
-Positioned buildCopyButton(
-    BuildContext context, bool showButton, String text, IconData icon,
-    {VoidCallback? onEditTap}) {
-  return Positioned(
-      bottom: 15,
-      right: icon == Icons.content_copy ? 5 : 45,
-      child: AnimatedOpacity(
-        opacity: showButton ? 1.0 : 1.0,
-        duration: const Duration(milliseconds: 150),
-        child: TextButton(
-          style: TextButton.styleFrom(
-            elevation: 0,
-            backgroundColor: Colors.white60,
-            foregroundColor: AppColors.transparent,
-            surfaceTintColor: AppColors.transparent,
-            shadowColor: AppColors.transparent,
-            disabledBackgroundColor: AppColors.transparent,
-            disabledForegroundColor: AppColors.transparent,
-            shape: 5.roundedShape,
-            padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 5),
-          ),
-          onPressed: icon == Icons.content_copy
-              ? () {
-                  Clipboard.setData(ClipboardData(text: text)).then((_) {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                        content: Text("Data successfully copied to clipboard")));
-                  });
-                }
-              : onEditTap,
-          child: icon.icon(size: 21, color: Colors.black.withOpacity(0.60)),
-          // label: 'Copy'.toText(color: AppColors.greyText, medium: true),
-          // label: ''.toText(),
-        ),
-      ));
+Widget buildCopyButton(BuildContext context, bool showButton, String text, IconData icon,
+    {VoidCallback? onEditTap, String? label}) {
+  Color txtColor = label == null ? Colors.black.withOpacity(0.60) : AppColors.greyText;
+
+  return AnimatedOpacity(
+    opacity: showButton ? 1.0 : 1.0,
+    duration: const Duration(milliseconds: 150),
+    child: TextButton.icon(
+      style: TextButton.styleFrom(
+        elevation: 0,
+        backgroundColor: label != null ? AppColors.lightShinyPrimary : Colors.white60,
+        foregroundColor: AppColors.transparent,
+        surfaceTintColor: AppColors.transparent,
+        shadowColor: AppColors.transparent,
+        disabledBackgroundColor: AppColors.transparent,
+        disabledForegroundColor: AppColors.transparent,
+        shape: 5.roundedShape,
+        padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 5),
+      ),
+      onPressed: icon == Icons.content_copy
+          ? () {
+              Clipboard.setData(ClipboardData(text: text)).then((_) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                    content: Text("Data successfully copied to clipboard")));
+              });
+            }
+          : onEditTap,
+      icon: icon.icon(size: 21, color: txtColor),
+      // label: const Offstage(),
+      label:
+          label == null ? const Offstage() : label.toText(color: txtColor, medium: true),
+      // label: ''.toText(),
+    ),
+  );
 }

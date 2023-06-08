@@ -57,6 +57,8 @@ class _HtmlEditorViewerState extends State<HtmlEditorViewer>
         Expanded(
           child: Material(
             elevation: 3,
+            // elevation: 0,
+            color: Colors.white,
             shape: roundShape,
             child: TabBarView(
               controller: _tabController,
@@ -64,7 +66,8 @@ class _HtmlEditorViewerState extends State<HtmlEditorViewer>
               children: [
                 //~ Html editor:
                 Card(
-                  margin: EdgeInsets.zero,
+                  elevation: 0,
+                  margin: EdgeInsets.all(15),
                   shape: roundShape,
                   child: buildHtmlEditor(),
                 ),
@@ -72,14 +75,20 @@ class _HtmlEditorViewerState extends State<HtmlEditorViewer>
                 Stack(
                   children: [
                     Card(
+                      elevation: 0,
+                      color: Colors.transparent,
                       shape: roundShape,
-                      margin: EdgeInsets.zero,
+                      margin: EdgeInsets.all(30),
                       child: SelectableText(
                         result,
                         style: TextStyle(color: Colors.blue),
                       ),
                     ),
-                    buildCopyButton(context, true, result, Icons.content_copy)
+                    Positioned(
+                        top: 15,
+                        left: 15,
+                        child: buildCopyButton(context, true, result, Icons.content_copy,
+                            label: 'Copy'))
                   ],
                 )
               ],
@@ -165,6 +174,7 @@ class _HtmlEditorViewerState extends State<HtmlEditorViewer>
       width: 200,
       child: Material(
         elevation: 3,
+        // elevation: 0,
         // shape: 10.roundedShape,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.only(

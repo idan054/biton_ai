@@ -109,7 +109,7 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
       prompts: _promptList,
       gDescPrompts: _promptList,
     ).catchError((err) {
-      printRed('My ERROR: $err');
+      printRed('My ERROR getResults: $err');
       errorMessage = err.toString().replaceAll('Exception: ', '');
       setState(() {});
     });
@@ -155,6 +155,7 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
                   .toText(color: AppColors.greyText, fontSize: 18, medium: true)
                   .py(10)
                   .px(15)
+                  .pOnly(top: 10)
                   .centerLeft
                   .appearAll,
               //
@@ -167,7 +168,8 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
                       // value: _longDescLoader,
                       // value: _animationController!.value, // use the controller's value
                       strokeWidth: 10,
-                      color: AppColors.primaryShiny,
+                      // color: AppColors.primaryShiny,
+                      color: AppColors.secondaryBlue,
                       backgroundColor: AppColors.greyLight,
                     ).sizedBox(500, null).pOnly(top: 10).px(20).centerLeft;
                   }),
@@ -213,27 +215,26 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
         selectedResults.map((item) => item.category).toList(growable: true);
     double width = MediaQuery.of(context).size.width;
     print('width > 600 ${width > 600}');
-
     bool desktopMode = width > 850;
 
     return Scaffold(
       drawerScrimColor: Colors.transparent,
       key: _scaffoldKey,
       backgroundColor: AppColors.lightPrimaryBg,
-      appBar: desktopMode
-          ? null
-          : AppBar(
-              elevation: 0,
-              backgroundColor: Colors.transparent,
-              toolbarHeight: 70,
-              titleSpacing: 0,
-              title: buildTextStoreBar(context).pOnly(top: 10).appearAll,
-              leading: Builder(
-                  builder: (context) => Icons.menu
-                      .icon(color: AppColors.greyText, size: 24)
-                      .pOnly(top: 10, left: 10)
-                      .onTap(() => Scaffold.of(context).openDrawer(), radius: 10)),
-            ),
+      // appBar: desktopMode
+      //     ? null
+      //     : AppBar(
+      //         elevation: 0,
+      //         backgroundColor: Colors.transparent,
+      //         toolbarHeight: 70,
+      //         titleSpacing: 0,
+      //         title: buildTextStoreBar(context).pOnly(top: 10).appearAll,
+      //         leading: Builder(
+      //             builder: (context) => Icons.menu
+      //                 .icon(color: AppColors.greyText, size: 24)
+      //                 .pOnly(top: 10, left: 10)
+      //                 .onTap(() => Scaffold.of(context).openDrawer(), radius: 10)),
+      //       ),
       drawer: buildDrawer(),
       body: Row(
         children: [
@@ -261,7 +262,8 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
                         .centerLeft,
                   ),
                   const Spacer(),
-                  buildUserButton(context).px(5).centerRight,
+                  if (desktopMode)
+                    buildUserButton(context, isAlignLeft: false).px(5).centerRight,
                 ],
               ),
 
@@ -339,7 +341,7 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
     setState(() {});
     // startLoader(inputController.text);
     await createProductAction(context, inputController).catchError((err) {
-      printRed('My ERROR: $err');
+      printRed('My ERROR createProductAction 2: $err');
       errorMessage = err.toString().replaceAll('Exception: ', '');
     });
     _isLoading = false;
@@ -436,6 +438,10 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
   }
 
   Widget buildDrawer({bool miniMode = false}) {
+    double width = MediaQuery.of(context).size.width;
+    print('width > 600 ${width > 600}');
+    bool desktopMode = width > 850;
+
     return MouseRegion(
       onEnter: (_) => miniMode ? _scaffoldKey.currentState?.openDrawer() : null,
       onExit: (_) => miniMode ? null : _scaffoldKey.currentState?.closeDrawer(),
@@ -447,31 +453,9 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
             child: Column(
               children: [
                 const SizedBox(height: 10),
+                if (!desktopMode && !miniMode)
+                  buildUserButton(context, isAlignLeft: true).px(5).centerLeft,
                 const SizedBox(height: 20),
-
-                // Builder(builder: (context) {
-                //   var color = AppColors.primaryShiny;
-                //   return Card(
-                //     // color: Colors.grey[100],
-                //     // color: AppColors.lightShinyPrimary,
-                //     color: AppColors.transparent,
-                //     elevation: 0,
-                //     shape: 10.roundedShape.copyWith(
-                //           side: BorderSide(color: color, width: 2),
-                //         ),
-                //     child: ListTile(
-                //       onTap: () async {
-                //         Navigator.push(context,
-                //             MaterialPageRoute(builder: (context) => const HomeScreen()));
-                //       },
-                //       horizontalTitleGap: 0,
-                //       leading: Icons.shopping_bag.icon(color: color, size: 22),
-                //       title: 'Create new product'
-                //           .toString()
-                //           .toText(bold: true, color: color, fontSize: 15),
-                //     ),
-                //   ).pOnly(left: 5, right: 30);
-                // }),
 
                 const SizedBox(height: 10),
                 CategoryDrawerList(

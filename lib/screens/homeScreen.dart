@@ -19,7 +19,6 @@ import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:url_launcher/url_launcher.dart';
-
 import '../common/constants.dart';
 import '../common/models/category/woo_category_model.dart';
 import '../common/models/post/woo_post_model.dart';
@@ -30,6 +29,11 @@ import '../common/services/gpt_service.dart';
 import '../widgets/registerDialog/register_dialog.dart';
 import '../widgets/threeColumnDialog/actions.dart';
 import '../widgets/threeColumnDialog/threeColumnDialog.dart';
+
+bool get isMobileDevice {
+  final userAgent = window.navigator.userAgent.toLowerCase();
+  return userAgent.contains('android') || userAgent.contains('iphone');
+}
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -56,16 +60,39 @@ class _HomeScreenState extends State<HomeScreen> {
   void setup({bool forceDialog = false}) async {
     print('START: setup()');
     final initToken = context.uniProvider.currUser.token;
+    print('initToken $initToken');
     getCategories();
 
+    print('initToken == null ${initToken == null}');
+    print('isMobileDevice $isMobileDevice');
     if (initToken == null || forceDialog) {
-      await showDialog(
-        context: context,
-        barrierDismissible: initToken != null,
-        builder: (BuildContext context) {
-          return const RegisterDialog();
-        },
-      );
+      if (isMobileDevice) {
+        print('START: await Navigator.pushReplacement(()');
+        await Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (context) => Scaffold(
+                      backgroundColor: AppColors.lightPrimaryBg,
+                      body: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Spacer(),
+                          const RegisterDialog(),
+                          const Spacer(),
+                          appVersion.toText(fontSize: 12).pad(10).center,
+                        ],
+                      ),
+                    )));
+      } else {
+        print('START:  await showDialog(()');
+        await showDialog(
+          context: context,
+          barrierDismissible: initToken != null,
+          builder: (BuildContext context) {
+            return const RegisterDialog();
+          },
+        );
+      }
     }
 
     final updatedToken = context.uniProvider.currUser.token;
@@ -80,7 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {});
 
     currUser = await WooApi.getUserByToken(token).catchError((err) {
-      printRed('My ERROR: $err');
+      printRed('My ERROR getUserByToken: $err');
       errorMessage = err.toString().replaceAll('Exception: ', '');
       setState(() {});
     });
@@ -98,7 +125,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {});
 
     _promptsList = await getAllUserPrompts(currUser!);
-    _inUsePrompts = setSelectedList(context, _promptsList);
+    _inUsePrompts = await setSelectedList(context, _promptsList).catchSentryError();
 
     context.uniProvider.updateFullPromptList(_promptsList);
     context.uniProvider.updateInUsePromptList(_inUsePrompts);
@@ -157,21 +184,21 @@ class _HomeScreenState extends State<HomeScreen> {
     box.clear();
   }
 
-  void _redirectWebsite() async {
-    print('START: _redirectWebsite()');
-
-    _profileLoading = true;
-    setState(() {});
-    final userWebToken = await WooApi.userWebToken();
-    String url = 'https://textstore.ai/my-account/?mo_jwt_token=$userWebToken';
-    print('url ${url}');
-    await Future.delayed(350.milliseconds);
-    _profileLoading = false;
-    setState(() {});
-
-    // window.open(url, '_blank');
-    window.open(url, 'New Tab');
-  }
+  // void _redirectWebsite() async {
+  //   print('START: _redirectWebsite()');
+  //
+  //   _profileLoading = true;
+  //   setState(() {});
+  //   final userWebToken = await WooApi.userWebToken();
+  //   String url = 'https://textstore.ai/my-account/?mo_jwt_token=$userWebToken';
+  //   print('url ${url}');
+  //   await Future.delayed(350.milliseconds);
+  //   _profileLoading = false;
+  //   setState(() {});
+  //
+  //   // window.open(url, '_blank');
+  //   window.open(url, 'New Tab');
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -185,9 +212,10 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             buildUserButton(
               context,
+              isAlignLeft: true,
               onTapLogin: () async => setup(forceDialog: true),
               // : () async => _redirectWebsite()),
-            ).centerRight,
+            ).centerLeft,
             // const SizedBox(height: 230),
             const Spacer(),
             Hero(tag: 'textStoreAi', child: textStoreAi.toText(fontSize: 50, bold: true)),
@@ -280,8 +308,8 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {});
     startLoader(searchController.text);
 
-    await createProductAction(context, searchController).catchError((err) {
-      printRed('My ERROR: $err');
+    await createProductAction(context, searchController).catchError((err, s) {
+      printRed('My ERROR createProductAction: $err S: $s');
       errorMessage = err.toString().replaceAll('Exception: ', '');
     });
     _isLoading = false;
@@ -291,18 +319,22 @@ class _HomeScreenState extends State<HomeScreen> {
 
 void showUserMenu(
   BuildContext context, {
+  required bool isHomeScreen,
   required void Function() onTapYourProfile,
   required void Function() onTapLogoutProfile,
 }) {
   final RenderBox button = context.findRenderObject() as RenderBox;
-  final RenderBox overlay = Overlay.of(context)!.context.findRenderObject() as RenderBox;
+  final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+  final positionData = button.localToGlobal(
+      isHomeScreen
+          ? button.size.topLeft(const Offset(-10, 40))
+          : button.size.topRight(const Offset(-10, 40)),
+      ancestor: overlay);
 
   final RelativeRect position = RelativeRect.fromRect(
     Rect.fromPoints(
-      button.localToGlobal(button.size.topRight(const Offset(-10, 40)),
-          ancestor: overlay),
-      button.localToGlobal(button.size.topRight(const Offset(-10, 40)),
-          ancestor: overlay),
+      positionData,
+      positionData,
     ),
     Offset.zero & overlay.size,
   );
@@ -324,7 +356,8 @@ void showUserMenu(
   ).then((value) => print('Selected: $value'));
 }
 
-Widget buildUserButton(BuildContext context, {GestureTapCallback? onTapLogin}) {
+Widget buildUserButton(BuildContext context,
+    {GestureTapCallback? onTapLogin, required bool isAlignLeft}) {
   late bool loginMode;
   bool? _isLoading;
   _isLoading ??= context.uniProvider.currUser.id == null;
@@ -361,14 +394,17 @@ Widget buildUserButton(BuildContext context, {GestureTapCallback? onTapLogin}) {
                   : () {
                       showUserMenu(
                         context,
+                        isHomeScreen: isAlignLeft,
                         onTapYourProfile: () async {
                           print('START: _redirectWebsite()');
                           _isLoading = true;
                           userStf(() {});
 
-                          final userWebToken = await WooApi.userWebToken();
+                          // final userWebToken = await WooApi.userWebToken();
+                          // String url = 'https://textstore.ai/my-account/?mo_jwt_token=$userWebToken';
+
                           String url =
-                              'https://textstore.ai/my-account/?mo_jwt_token=$userWebToken';
+                              'https://www.textstore.ai/wp-json/simple-jwt-login/v1/autologin?JWT=$appConfig_userJwt';
                           print('url $url');
                           window.open(url, 'New Tab');
                           // window.open(url, '_blank');
@@ -403,15 +439,23 @@ Widget buildUserButton(BuildContext context, {GestureTapCallback? onTapLogin}) {
   });
 }
 
-List<WooPostModel> setSelectedList(
-    BuildContext context, List<WooPostModel> _fullPromptList) {
+Future<List<WooPostModel>> setSelectedList(
+    BuildContext context, List<WooPostModel> _fullPromptList) async {
   List<WooPostModel> _selectedPromptList = [];
+  int isDefaultCounter = 0;
 
   //1) Add user selected prompts
   for (var prompt in _fullPromptList) {
+    if (prompt.isDefault) isDefaultCounter++;
     if (prompt.isSelected && prompt.author == context.uniProvider.currUser.id) {
       _selectedPromptList.add(prompt);
     }
+  }
+
+  if (isDefaultCounter != 4) {
+    throw '[$isDefaultCounter/4 isDefault prompts found!]'
+        '\n Server should return only 4 isDefault (1 for each type).'
+        '\n Get full info with GET v2/posts?_fields=acf, id';
   }
 
   //2) Add default ONLY where needed

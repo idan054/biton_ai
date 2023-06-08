@@ -14,9 +14,9 @@ import "../../screens/wordpress/woo_posts_screen.dart";
 import "../models/category/woo_category_model.dart";
 import "../models/user/woo_user_model.dart";
 
+//~ For security reasons, use --web-port=2123 to use Wordpress API
 class WooApi {
-  static String _wooApiKey = dotenv.env["API_KEY"]!;
-  static String _wooApiSecret = dotenv.env["API_SECRET"]!;
+  static String userMakerJwt = dotenv.env["USER_MAKER_JWT"]!;
 
   static Future<List<WooCategoryModel>> getCategories() async {
     printWhite("START: WooApi.getCategories()");
@@ -49,13 +49,21 @@ class WooApi {
         catIds.toString().replaceAll(" ", "").replaceAll("[", "").replaceAll("]", "");
     url += "&categories=$catIdsEncoded";
 
-    final response = await http.get(Uri.parse(url));
+    final headers = {
+      "Content-Type": "application/json",
+      // "Authorization": "Bearer $appConfig_userJwt",
+    };
+
+    final response = await http.get(Uri.parse(url), headers: headers);
 
     if (response.statusCode == 200) {
       final List<dynamic> jsonList = json.decode(response.body);
       var posts = jsonList.map((json) => WooPostModel.fromJson(json)).toList();
       print(
           "WooApi.getPosts() statusCode: ${response.statusCode} [${posts.length} prompts found]");
+      // print("response.body ${response.body}");
+
+      printWhite(r" ID | isAdmin | isDefault | title");
       for (var p in posts) print("${p.id} | ${p.isAdmin} | ${p.isDefault} | ${p.title}");
       return posts;
     } else {
@@ -169,6 +177,7 @@ class WooApi {
       print("WooApi.checkEmailExists() statusCode: ${response.statusCode}");
 
       final List<dynamic> users = json.decode(response.body);
+      print('users.isNotEmpty ${users.isNotEmpty}');
       return users.isNotEmpty;
     } else {
       printRed("response.body ${response.body}");
@@ -183,13 +192,15 @@ class WooApi {
     required String phone,
   }) async {
     print("START: WooApi.userSignup()");
-    var url = "$baseUrl/wp/v2/users/";
+    var url = "$baseUrl/wp/v2/users";
     var username =
         '${email.split("@").first}${UniqueKey().toString().replaceAll('[', '').replaceAll(']', '').replaceAll('#', '-')}';
 
     var headers = {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       "Content-Type": "application/json",
-      "Authorization": "Bearer $adminJwt",
+      "Authorization": "Bearer $userMakerJwt",
     };
     var body = jsonEncode({
       "username": username,
@@ -206,6 +217,7 @@ class WooApi {
 
     if (response.statusCode == 201) {
     } else {
+      printRed("request body $body\n");
       printRed("response.body ${response.body}");
       var exception = handleExceptions(response);
       throw Exception(exception ?? "Failed to get user, please try again");
@@ -214,19 +226,24 @@ class WooApi {
 
 // AKA Generate App Token
   static Future<String> userLogin({
+    bool googleSignIn = false,
     required String email,
     required String password,
   }) async {
     print("START: WooApi.userLogin()");
-    var url = "$baseUrl/jwt-auth/v1/token/";
+
+    // var url = "$baseUrl/jwt-auth/v1/token/";
+    var url = "$baseUrl/simple-jwt-login/v1/auth";
 
     var headers = {
       "Content-Type": "application/json",
-      // "Authorization": "Bearer $adminJwt",
+      // "X-WP-Nonce" : "a2318a6e32",
+      // "Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE2ODU3OTg4NTYsImVtYWlsIjoiZXlhbDEwYml0QGdtYWlsLmNvbSIsImlkIjoiMSIsInVzZXJuYW1lIjoiZXlhbDEwYml0QGdtYWlsLmNvbSJ9.g60z-DweicYuDj0DMVuRTn07dftT9L8NBoETlkiUfbU",
     };
 
     var body = jsonEncode({
-      "username": email,
+      "email": email,
+      // "username": email,
       "password": password,
     });
 
@@ -234,10 +251,20 @@ class WooApi {
     print("response.statusCode ${response.statusCode}");
 
     if (response.statusCode == 200) {
-      return json.decode(response.body)["token"];
+      // var token = json.decode(response.body)["token"];
+      var token = json.decode(response.body)["data"]['jwt'];
+      return token;
     } else {
       printRed("response.body ${response.body}");
-      var exception = handleExceptions(response);
+
+      var isEmailExist =
+          json.decode(response.body)["data"]['message'] == 'Wrong user credentials.';
+
+      print('isEmailExist X $isEmailExist');
+          //. ? '$email exist!\nLogin with Email & Password'
+      String? exception = (googleSignIn && isEmailExist)
+          ? 'User exist!\nLogin with Email & Password'
+          : handleExceptions(response);
       throw Exception(exception ?? "Failed to get user, please try again");
     }
   }
@@ -282,7 +309,7 @@ class WooApi {
     }
   }
 
-  // Sign and redirect the App Website
+  //! REPLACE WITH AUTO LOGIN
   static Future<String> userWebToken() async {
     print("START: WooApi.webSignIn()");
 
@@ -292,6 +319,7 @@ class WooApi {
 
     var headers = {
       "Content-Type": "application/json",
+      // "Authorization": "Bearer $userMakerJwt",
     };
 
     var body = jsonEncode({

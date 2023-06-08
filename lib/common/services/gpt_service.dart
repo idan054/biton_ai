@@ -1,5 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'dart:async';
 import 'dart:convert';
 import 'package:biton_ai/common/extensions/context_ext.dart';
 import 'package:biton_ai/common/models/post/woo_post_model.dart';
@@ -9,6 +10,10 @@ import 'package:http/http.dart' as http;
 import '../constants.dart';
 import '../models/gpt/chat_gpt_model.dart';
 import 'color_printer.dart';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:async';
+import 'dart:convert';
 
 class Gpt {
   static Future<List<ResultModel>> getResults(
@@ -155,6 +160,7 @@ class Gpt {
       printGreen('($type) Single response.statusCode ${response.statusCode} [GPT$model]');
 
       final jsonResponse = json.decode(response.body);
+      print('jsonResponse ${jsonResponse}');
       var gptModel = ChatGptModel.fromJson(jsonResponse);
       print('gptModel.tokenUsage ${gptModel.tokenUsage}');
       return gptModel;
@@ -162,4 +168,63 @@ class Gpt {
       throw Exception('Failed to call API');
     }
   }
+
+  // static Stream chatGptStreamRequest() async* {
+  //   print('START: chatGptStreamRequest()');
+  //
+  //   var headers = {
+  //     'Content-Type': 'application/json',
+  //     'Authorization': 'Bearer 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'
+  //   };
+  //   var request =
+  //       http.Request('POST', Uri.parse('https://api.openai.com/v1/chat/completions'));
+  //   request.body = json.encode({
+  //     "n": 1,
+  //     "model": "gpt-3.5-turbo",
+  //     "max_tokens": 100,
+  //     "stream": true,
+  //     "messages": [
+  //       {
+  //         "role": "user",
+  //         "content":
+  //             "Create HTML file of a selling article about dogs, add titles and sub titles"
+  //       }
+  //     ]
+  //   });
+  //   request.headers.addAll(headers);
+  //
+  //   // http.StreamedResponse response = await request.send();
+  //   // yield request
+  //   //     .send()
+  //   //     .asStream()
+  //   //     .map((event) async => await event.stream.bytesToString());
+  //
+  //   // var streamedResponse = await request.send();
+  //
+  //   var streamedResponse = Stream.fromFuture(request.send()); //.send().asStream();
+  //   final streamController = StreamController();
+  //   // final responseStream = streamedResponse.stream.transform(utf8.decoder);
+  //   final responseStream = streamedResponse.map((event) => event);
+  //   // .transform(utf8.decoder);
+  //   await for (final chunk in responseStream) {
+  //     print('Stream: $chunk');
+  //     // yield chunk;
+  //     // if (chunk.contains('[DONE]')) {
+  //     //   await streamController.close();
+  //     // } else {
+  //     // final jsonResponse = json.decode(chunk);
+  //     // final gptModel = ChatGptModel.fromJson(jsonResponse);
+  //     streamController.add(chunk);
+  //     // }
+  //   }
+  //
+  //   // print('response ${response}');
+  //   //
+  //   // if (response.statusCode == 200) {
+  //   //   print('START: response.statusCode == 200()');
+  //   //   yield response.stream.bytesToString();
+  //   // } else {
+  //   //   print(response.reasonPhrase);
+  //   // }
+  // }
 }
