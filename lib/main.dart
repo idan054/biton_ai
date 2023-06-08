@@ -31,7 +31,7 @@ Future<void> main() async {
     WidgetsFlutterBinding.ensureInitialized();
 
     await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-    dotenv.load();
+    await dotenv.load();
     await Hive.initFlutter();
     final token = await setUserToken();
 

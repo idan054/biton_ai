@@ -20,6 +20,7 @@ mixin _$WooUserModel {
   String? get name => throw _privateConstructorUsedError;
   String? get phone => throw _privateConstructorUsedError;
   String? get token => throw _privateConstructorUsedError; // JWT
+  bool get isGoogleAuth => throw _privateConstructorUsedError;
   int get points => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -34,7 +35,13 @@ abstract class $WooUserModelCopyWith<$Res> {
           WooUserModel value, $Res Function(WooUserModel) then) =
       _$WooUserModelCopyWithImpl<$Res, WooUserModel>;
   @useResult
-  $Res call({int? id, String? name, String? phone, String? token, int points});
+  $Res call(
+      {int? id,
+      String? name,
+      String? phone,
+      String? token,
+      bool isGoogleAuth,
+      int points});
 }
 
 /// @nodoc
@@ -54,6 +61,7 @@ class _$WooUserModelCopyWithImpl<$Res, $Val extends WooUserModel>
     Object? name = freezed,
     Object? phone = freezed,
     Object? token = freezed,
+    Object? isGoogleAuth = null,
     Object? points = null,
   }) {
     return _then(_value.copyWith(
@@ -73,6 +81,10 @@ class _$WooUserModelCopyWithImpl<$Res, $Val extends WooUserModel>
           ? _value.token
           : token // ignore: cast_nullable_to_non_nullable
               as String?,
+      isGoogleAuth: null == isGoogleAuth
+          ? _value.isGoogleAuth
+          : isGoogleAuth // ignore: cast_nullable_to_non_nullable
+              as bool,
       points: null == points
           ? _value.points
           : points // ignore: cast_nullable_to_non_nullable
@@ -89,7 +101,13 @@ abstract class _$$_WooUserModelCopyWith<$Res>
       __$$_WooUserModelCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({int? id, String? name, String? phone, String? token, int points});
+  $Res call(
+      {int? id,
+      String? name,
+      String? phone,
+      String? token,
+      bool isGoogleAuth,
+      int points});
 }
 
 /// @nodoc
@@ -107,6 +125,7 @@ class __$$_WooUserModelCopyWithImpl<$Res>
     Object? name = freezed,
     Object? phone = freezed,
     Object? token = freezed,
+    Object? isGoogleAuth = null,
     Object? points = null,
   }) {
     return _then(_$_WooUserModel(
@@ -126,6 +145,10 @@ class __$$_WooUserModelCopyWithImpl<$Res>
           ? _value.token
           : token // ignore: cast_nullable_to_non_nullable
               as String?,
+      isGoogleAuth: null == isGoogleAuth
+          ? _value.isGoogleAuth
+          : isGoogleAuth // ignore: cast_nullable_to_non_nullable
+              as bool,
       points: null == points
           ? _value.points
           : points // ignore: cast_nullable_to_non_nullable
@@ -139,7 +162,12 @@ class __$$_WooUserModelCopyWithImpl<$Res>
 @JsonSerializable(explicitToJson: true)
 class _$_WooUserModel implements _WooUserModel {
   const _$_WooUserModel(
-      {this.id, this.name, this.phone, this.token, this.points = 0});
+      {this.id,
+      this.name,
+      this.phone,
+      this.token,
+      this.isGoogleAuth = false,
+      this.points = 0});
 
   @override
   final int? id;
@@ -152,11 +180,14 @@ class _$_WooUserModel implements _WooUserModel {
 // JWT
   @override
   @JsonKey()
+  final bool isGoogleAuth;
+  @override
+  @JsonKey()
   final int points;
 
   @override
   String toString() {
-    return 'WooUserModel(id: $id, name: $name, phone: $phone, token: $token, points: $points)';
+    return 'WooUserModel(id: $id, name: $name, phone: $phone, token: $token, isGoogleAuth: $isGoogleAuth, points: $points)';
   }
 
   @override
@@ -168,12 +199,15 @@ class _$_WooUserModel implements _WooUserModel {
             (identical(other.name, name) || other.name == name) &&
             (identical(other.phone, phone) || other.phone == phone) &&
             (identical(other.token, token) || other.token == token) &&
+            (identical(other.isGoogleAuth, isGoogleAuth) ||
+                other.isGoogleAuth == isGoogleAuth) &&
             (identical(other.points, points) || other.points == points));
   }
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(runtimeType, id, name, phone, token, points);
+  int get hashCode =>
+      Object.hash(runtimeType, id, name, phone, token, isGoogleAuth, points);
 
   @JsonKey(ignore: true)
   @override
@@ -195,6 +229,7 @@ abstract class _WooUserModel implements WooUserModel {
       final String? name,
       final String? phone,
       final String? token,
+      final bool isGoogleAuth,
       final int points}) = _$_WooUserModel;
 
   @override
@@ -206,6 +241,8 @@ abstract class _WooUserModel implements WooUserModel {
   @override
   String? get token;
   @override // JWT
+  bool get isGoogleAuth;
+  @override
   int get points;
   @override
   @JsonKey(ignore: true)

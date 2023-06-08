@@ -12,6 +12,7 @@ _$_WooUserModel _$$_WooUserModelFromJson(Map<String, dynamic> json) =>
       name: json['name'] as String?,
       phone: json['phone'] as String?,
       token: json['token'] as String?,
+      isGoogleAuth: json['isGoogleAuth'] as bool? ?? false,
       points: json['points'] as int? ?? 0,
     );
 
@@ -21,5 +22,6 @@ Map<String, dynamic> _$$_WooUserModelToJson(_$_WooUserModel instance) =>
       'name': instance.name,
       'phone': instance.phone,
       'token': instance.token,
+      'isGoogleAuth': instance.isGoogleAuth,
       'points': instance.points,
     };

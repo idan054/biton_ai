@@ -82,12 +82,10 @@ class _RegisterDialogState extends State<RegisterDialog> {
   final GoogleSignIn googleSignIn = GoogleSignIn(scopes: ['email']);
   GoogleSignInAccount? account;
 
-  Future<List> _handleGoogleSignIn() async {
-    // if ((document.cookie ?? '').contains('g_state') && isLoading == false) {
-    //   deleteCookies();
-    // }
+  Future _handleGoogleSignIn() async {
     print('A account ${account?.email}');
     try {
+      account = null;
       await googleSignIn.signOut();
       await googleSignIn.disconnect();
     } on Exception catch (e, s) {
@@ -96,14 +94,12 @@ class _RegisterDialogState extends State<RegisterDialog> {
 
     // isMobileDevice
     print('B account ${account?.email}');
-    if (kIsWeb && !kDebugMode) {
-      print('START: .signInSilently()');
-      account = await googleSignIn.signInSilently();
-      clearAuthCacheIfPossible(account);
-    }
+    print('START: .signInSilently()');
+    if (!kDebugMode) account = await googleSignIn.signInSilently(); // Make bugs & issues
+    clearAuthCacheIfPossible(account);
 
     print('C account ${account?.email}');
-    if(account == null){
+    if (account == null) {
       print('START: .signIn()()');
       account = await googleSignIn.signIn();
       clearAuthCacheIfPossible(account);
@@ -121,12 +117,12 @@ class _RegisterDialogState extends State<RegisterDialog> {
           .encrypt(account!.email, iv: en.IV.fromLength(16))
           .base16
           .substring(1, 10);
-      // print('User pass $pass');
+      print('User pass $pass');
 
       _emailController.text = account!.email;
       _passController.text = pass;
 
-      return [account!.email, pass];
+      // return [account!.email, pass];
     } else {
       throw 'Something went wrong. please try again';
     }
@@ -147,34 +143,26 @@ class _RegisterDialogState extends State<RegisterDialog> {
 
     return Form(
       key: _formKey,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (token != null || (_pageController.hasClients && _pageController.page == 1))
-            const CircleAvatar(
-              backgroundColor: Colors.white,
-              child: Icon(Icons.arrow_back, color: AppColors.secondaryBlue),
-            )
-                .onTap(
-                    _pageController.page == 0
-                        ? () => Navigator.pop(context)
-                        : () {
-                            if (_pageController.hasClients)
-                              _pageController
-                                  .jumpToPage((_pageController.page! - 1).toInt());
-                            setState(() {});
-                          },
-                    tapColor: Colors.blue)
-                .center
-                .pOnly(right: 400, bottom: 10),
-          //
-          Dialog(
-            backgroundColor: AppColors.white,
-            shape: 15.roundedShape,
-            insetPadding: EdgeInsets.symmetric(horizontal: desktopMode ? 40 : 25),
-            child: SizedBox(
+      child: Dialog(
+        backgroundColor: AppColors.white,
+        shape: 15.roundedShape,
+        insetPadding: EdgeInsets.symmetric(horizontal: desktopMode ? 40 : 25),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (token != null ||
+                (_pageController.hasClients && _pageController.page == 1))
+              CircleAvatar(
+                backgroundColor: AppColors.greyLight,
+                child: Icon(Icons.arrow_back, color: AppColors.secondaryBlue),
+              ).onTap(() {
+                print('_pageController.page ${_pageController.page}');
+                if (_pageController.hasClients) _pageController.jumpToPage(0);
+                setState(() {});
+              }, tapColor: Colors.blue).pad(10),
+            SizedBox(
               width: 450,
               height: errMessage == null ? dialogHeight : (dialogHeight + 25.0),
               // On sign up
@@ -186,8 +174,8 @@ class _RegisterDialogState extends State<RegisterDialog> {
                     buildOtpSection(),
                   ]),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -210,10 +198,11 @@ class _RegisterDialogState extends State<RegisterDialog> {
       print('START: WooApi.checkPhoneExist()');
       final _phone = phone!.replaceAll('+', '');
       print('_phone ${_phone}');
-      final isPhoneExist = await WooApi.checkPhoneExist(_phone);
-      if (isPhoneExist) {
+      final userEmailBasedPhone = await WooApi.checkPhoneExist(_phone);
+      if (userEmailBasedPhone != null) {
         isLoading = false;
-        errMessage = 'Please login, Phone exist';
+        errMessage = 'Phone linked, Use $userEmailBasedPhone to login';
+        // errMessage = 'Phone linked, Login with $userEmailBasedPhone';
         setState(() {});
         return;
       }
@@ -333,7 +322,6 @@ class _RegisterDialogState extends State<RegisterDialog> {
                             .catchError((err) {
                           isLoading = false;
                           printRed('My ERROR else sendSmsAction: $err');
-                          // errMessage = err.toString().replaceAll('Exception: ', '');
                           errMessage = 'SMS code incorrect';
                           formState!(() {});
                         });
@@ -348,7 +336,9 @@ class _RegisterDialogState extends State<RegisterDialog> {
                           email: _emailController.text,
                           password: _passController.text,
                           phone: _phone,
+                          isGoogleAuth: isGoogleSignUp!,
                         );
+
                         await _handleLogin(
                           email: _emailController.text,
                           password: _passController.text,
@@ -357,7 +347,7 @@ class _RegisterDialogState extends State<RegisterDialog> {
                     } on Exception catch (err, s) {
                       isLoading = false;
                       printRed('My ERROR else 2 sendSmsAction: $err');
-                      errMessage = err.toString().replaceAll('Exception: ', '');
+                      errMessage = '$err'.replaceAll('Exception: ', '');
                       formState!(() {});
                     }
                   },
@@ -367,6 +357,8 @@ class _RegisterDialogState extends State<RegisterDialog> {
       ).px(desktopMode ? 60 : 20);
     });
   }
+
+  bool? isGoogleSignUp;
 
   Widget buildSignupForm() {
     double width = MediaQuery.of(context).size.width;
@@ -383,12 +375,9 @@ class _RegisterDialogState extends State<RegisterDialog> {
         mainAxisSize: MainAxisSize.min,
         children: [
           const SizedBox(height: 20.0),
+          // Image.network('https://www.textstore.ai/wp-content/uploads/2023/06/AI-Product-Description-Generator.png').center,
           'TextStore'
-              .toText(
-                color: Colors.black,
-                fontSize: desktopMode ? 44 : 35,
-                bold: true,
-              )
+              .toText(color: Colors.black, fontSize: desktopMode ? 44 : 35, bold: true)
               .center,
           const SizedBox(height: 20.0),
           if (loginMode) ...[
@@ -406,13 +395,13 @@ class _RegisterDialogState extends State<RegisterDialog> {
                   print('START: _handleError()');
                   isLoading = false;
                   printRed('My ERROR GoogleSignIn: $err');
-                  errMessage =
-                      err.toString().replaceAll('Exception: ', '').replaceAll('_', ' ');
+                  errMessage = '$err'.replaceAll('Exception: ', '').replaceAll('_', ' ');
                   if ((errMessage ?? '').contains('Login with Email & Password')) {
                     _passController.text = '';
                     // _emailController.text = FirebaseAuth.instance.currentUser?.email ?? '';
                   }
                   setState(() {});
+                  return;
                 }
 
                 try {
@@ -420,48 +409,34 @@ class _RegisterDialogState extends State<RegisterDialog> {
                   errMessage = null;
                   setState(() {});
 
-                  // final googleSignIn = GoogleSignIn(
-                  //   clientId:
-                  //       '1070132561841-0jsc02r1h3s7bi42hr97bjsk7hvfur02.apps.googleusercontent.com',
-                  // );
-                  //
-                  // GoogleSignInAccount? googleSignInAccount;
-                  // // if (kIsWeb && !kDebugMode) {
-                  // googleSignInAccount = await googleSignIn.signInSilently();
-                  // // } else {
-                  // //   googleSignInAccount = await googleSignIn.signIn();
-                  // // }
-                  //
-                  // final auth = await googleSignInAccount?.authentication.catchSentryError(onError: _handleError);
-                  //
-                  // final authResult = await FirebaseAuth.instance
-                  //     .signInWithCredential(GoogleAuthProvider.credential(
-                  //         accessToken: auth?.accessToken, idToken: auth?.idToken))
-                  //     .catchSentryError(onError: _handleError);
-                  // final user = authResult.user!;
+                  print('START: _handleGoogleSignIn();()');
+                  await _handleGoogleSignIn();
+                  final userData = await WooApi.userByEmail(_emailController.text);
 
-                  final userData = await _handleGoogleSignIn();
-                  final email = userData[0];
-                  final password = userData[1];
+                  //~ When user exist & signed with email: Err
+                  if (userData != null && userData.isGoogleAuth == false) {
+                    _handleError('User exist!\nLogin with Email & Password', null);
+                    return;
+                  }
 
-
-                  // You can also try login instead
-                  final isEmailExist = await WooApi.checkEmailExists(email)
-                      .catchSentryError(onError: _handleError);
-
-                  if (isEmailExist) {
+                  //~ When user exist & signed with google:
+                  if (userData != null && userData.isGoogleAuth) {
+                    print('START:  _handleLogin(()');
                     await _handleLogin(
-                      googleSignIn: true,
-                      email: email,
-                      password: password,
-                    ).catchSentryError(onError: _handleError);
+                            email: _emailController.text, password: _passController.text)
+                        .catchSentryError(onError: _handleError);
+
+                    //~ When user not exist:
                   } else {
                     // OTP on 1st time
+                    isGoogleSignUp = true;
                     _pageController.jumpToPage(2);
                     isLoading = false;
                     setState(() {});
                   }
                 } catch (err, trace) {
+                  print('START: catch (err, trace) {()');
+                  print('trace $trace');
                   _handleError(err, trace);
                 }
               },
@@ -533,7 +508,7 @@ class _RegisterDialogState extends State<RegisterDialog> {
               .toText(
                 color: AppColors.secondaryBlue,
                 underline: true,
-                fontSize: desktopMode ? 14 : 11,
+                fontSize: desktopMode ? 14 : 12,
               )
               .pOnly(bottom: 5)
               .onTap(() {
@@ -569,30 +544,30 @@ class _RegisterDialogState extends State<RegisterDialog> {
                 isLoading = true;
                 formState!(() {});
 
-                //~ SignUp if needed:
-                if (!loginMode) {
-                  final isEmailExist =
-                      await WooApi.checkEmailExists(_emailController.text);
-
-                  if (isEmailExist) {
-                    isLoading = false;
-                    errMessage = 'Please login, Email exist';
-                    // errState!(() {});
-                    formState!(() {});
-                    return;
-                  }
-
-                  _pageController.jumpToPage(2);
-                  isLoading = false;
-                  setState(() {});
-                }
-
-                if (errMessage != null) return;
-                if (loginMode)
+                if (loginMode) {
                   await _handleLogin(
                     email: _emailController.text,
                     password: _passController.text,
                   );
+                } else {
+                  // AKA signup:
+
+                  // (STOP) return if user exist
+                  final userData = await WooApi.userByEmail(_emailController.text);
+                  if (userData != null) {
+                    isLoading = false;
+                    errMessage = userData.isGoogleAuth
+                        ? 'Please login with google, User exist'
+                        : 'Please login, User exist';
+                    formState!(() {});
+                    return; // <<---
+                  }
+
+                  isGoogleSignUp = false;
+                  _pageController.jumpToPage(2);
+                  isLoading = false;
+                  setState(() {});
+                }
               } on Exception catch (err, s) {
                 isLoading = false;
                 printRed('My ERROR TextstoreButton: $err');
@@ -607,11 +582,9 @@ class _RegisterDialogState extends State<RegisterDialog> {
     });
   }
 
-  Future _handleLogin(
-      {String? email, String? password, bool googleSignIn = false}) async {
+  Future _handleLogin({String? email, String? password}) async {
     //~ Login:
-    var token = await WooApi.userLogin(
-        googleSignIn: googleSignIn, email: email!, password: password!);
+    var token = await WooApi.userLogin(email: email!, password: password!);
     setUserToken(
         token: token, userEmail: _emailController.text, userPass: _passController.text);
     context.uniProvider

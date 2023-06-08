@@ -26,6 +26,7 @@ const baseUrl = 'https://www.textstore.ai/wp-json';
 const promptsCategoryIds = [28, 29, 30, 31];
 const textStoreUid = 1; // Admin user
 var appConfig_userJwt = ''; // Set on main() main.dart
+var appConfig_userMaker_Jwt = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE2ODYyNTIzNzUsImVtYWlsIjoidXNlck1ha2VyQHVzZXJNYWtlci5jb20iLCJpZCI6Ijk1Iiwic2l0ZSI6Imh0dHBzOlwvXC93d3cudGV4dHN0b3JlLmFpIiwidXNlcm5hbWUiOiJ1c2VyTWFrZXIifQ.gMyR1ROS4dp8t7beefZLJmGAjS4Z143LhDJcKwnSSTs'; // Set on main() main.dart
 
 const appConfig_hideDefault = true || !kDebugMode;
 const textStoreAi = 'TextStore';
@@ -46,4 +47,4 @@ The Nike Air Max 90 is not just a stylish sneaker; it is also a durable and reli
 In conclusion, the Nike Air Max 90 is a classic sneaker that has stood the test of time. It is a comfortable and stylish shoe that can be worn for a range of activities. Its iconic design and visible Air Sole unit have made it a favorite among sneaker enthusiasts and athletes alike. Whether you are looking for a casual sneaker or a shoe to wear during athletic activities, the Nike Air Max 90 is an excellent choice. With its durability, versatility, and timeless design, this sneaker is sure to remain a favorite for years to come.
 null ''';
 
-const appVersion = 'Version 2.1.1';
+const appVersion = 'Version 2.0.12';

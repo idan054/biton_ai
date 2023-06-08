@@ -16,7 +16,8 @@ import "../models/user/woo_user_model.dart";
 
 //~ For security reasons, use --web-port=2123 to use Wordpress API
 class WooApi {
-  static String userMakerJwt = dotenv.env["USER_MAKER_JWT"]!;
+  // static String userMakerJwt = dotenv.env["USER_MAKER_JWT"]!;
+  static String userMakerJwt = appConfig_userMaker_Jwt;
 
   static Future<List<WooCategoryModel>> getCategories() async {
     printWhite("START: WooApi.getCategories()");
@@ -152,7 +153,7 @@ class WooApi {
     }
   }
 
-  static Future<bool> checkPhoneExist(String phone) async {
+  static Future<String?> checkPhoneExist(String phone) async {
     print("START: WooApi.checkPhoneExist()");
 
     final response =
@@ -162,7 +163,7 @@ class WooApi {
     if (response.statusCode == 200) {
       final List<dynamic> jsonList = json.decode(response.body);
       print('jsonList $jsonList');
-      return jsonList.isNotEmpty;
+      return jsonList.isNotEmpty ? jsonList.first['email'] : null;
     } else {
       printRed("response.body ${response.body}");
       var exception = handleExceptions(response);
@@ -170,15 +171,27 @@ class WooApi {
     }
   }
 
-  static Future<bool> checkEmailExists(String email) async {
-    final response = await http.get(Uri.parse('$baseUrl/wp/v2/users?search=$email'));
+  static Future<WooUserModel?> userByEmail(String email) async {
+    print('START: userByEmail() X');
+    final url = '$baseUrl/wp/v2/users?search=$email';
+    print('url ${url}');
+    // print('userMakerJwt ${userMakerJwt}');
+    final headers = {
+      // 'Access-Control-Allow-Origin': '*',
+      // 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $userMakerJwt",
+    };
+    final response = await http.get(headers: headers, Uri.parse(url));
 
+    print("WooApi.userByEmail() statusCode: ${response.statusCode}");
     if (response.statusCode == 200) {
-      print("WooApi.checkEmailExists() statusCode: ${response.statusCode}");
+      final List<dynamic> jsonList = json.decode(response.body);
+      var users = jsonList.map((json) => WooUserModel.fromJson(json)).toList();
+      print('users.length ${users.length}');
+      if (users.isNotEmpty) print('users.first.toJson() ${users.first.toJson()}');
 
-      final List<dynamic> users = json.decode(response.body);
-      print('users.isNotEmpty ${users.isNotEmpty}');
-      return users.isNotEmpty;
+      return users.isEmpty ? null : users.first;
     } else {
       printRed("response.body ${response.body}");
       var exception = handleExceptions(response);
@@ -190,6 +203,7 @@ class WooApi {
     required String email,
     required String password,
     required String phone,
+    required bool isGoogleAuth,
   }) async {
     print("START: WooApi.userSignup()");
     var url = "$baseUrl/wp/v2/users";
@@ -197,8 +211,8 @@ class WooApi {
         '${email.split("@").first}${UniqueKey().toString().replaceAll('[', '').replaceAll(']', '').replaceAll('#', '-')}';
 
     var headers = {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      // 'Access-Control-Allow-Origin': '*',
+      // 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       "Content-Type": "application/json",
       "Authorization": "Bearer $userMakerJwt",
     };
@@ -209,24 +223,27 @@ class WooApi {
       // author = Create / edit his posts
       // Editor = Create / edit Everyone posts
       "roles": ["author"],
-      "meta": {"phone": phone},
+      "meta": {"phone": phone}, // Needed for .checkPhoneExist()
+      "acf": {
+        "isGoogleAuth": isGoogleAuth,
+        "phone": phone,
+      },
     });
 
     final response = await http.post(Uri.parse(url), headers: headers, body: body);
-    print("response.statusCode ${response.statusCode}");
+    print("WooApi.userSignup() response.statusCode ${response.statusCode}");
 
     if (response.statusCode == 201) {
     } else {
       printRed("request body $body\n");
       printRed("response.body ${response.body}");
       var exception = handleExceptions(response);
-      throw Exception(exception ?? "Failed to get user, please try again");
+      throw Exception(exception ?? "Something went wrong, Can't sign up");
     }
   }
 
 // AKA Generate App Token
   static Future<String> userLogin({
-    bool googleSignIn = false,
     required String email,
     required String password,
   }) async {
@@ -257,15 +274,13 @@ class WooApi {
     } else {
       printRed("response.body ${response.body}");
 
-      var isEmailExist =
-          json.decode(response.body)["data"]['message'] == 'Wrong user credentials.';
+      // var isEmailExist = json.decode(response.body)["data"]['message'] == 'Wrong user credentials.';
+      //. ? '$email exist!\nLogin with Email & Password'
+      // String? exception = (googleSignIn && isEmailExist) ? 'User exist!\nLogin with Email & Password' :
 
-      print('isEmailExist X $isEmailExist');
-          //. ? '$email exist!\nLogin with Email & Password'
-      String? exception = (googleSignIn && isEmailExist)
-          ? 'User exist!\nLogin with Email & Password'
-          : handleExceptions(response);
-      throw Exception(exception ?? "Failed to get user, please try again");
+      String? exception = handleExceptions(response);
+      // throw Exception(exception  ?? "Something wen wrong, User not found");
+      throw Exception(exception ?? "signup or try different password");
     }
   }
 
@@ -288,7 +303,7 @@ class WooApi {
     } else {
       printRed("response.body ${response.body}");
       var exception = handleExceptions(response);
-      throw Exception(exception ?? "Failed to get user, please try again");
+      throw Exception(exception ?? "Something wen wrong, User not found");
     }
   }
 

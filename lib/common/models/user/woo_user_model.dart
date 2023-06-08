@@ -15,6 +15,7 @@ class WooUserModel with _$WooUserModel {
     String? name,
     String? phone,
     String? token, // JWT
+    @Default(false) bool isGoogleAuth,
     @Default(0) int points,
   }) = _WooUserModel;
 
@@ -26,6 +27,7 @@ class WooUserModel with _$WooUserModel {
       id: json['id'],
       name: json['name'],
       phone: json['meta']['phone'],
+      isGoogleAuth: json['acf']['isGoogleAuth'],
       token: null,
       points: points,
     );
