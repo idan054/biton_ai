@@ -26,6 +26,8 @@ const baseUrl = 'https://www.textstore.ai/wp-json';
 const promptsCategoryIds = [28, 29, 30, 31];
 const textStoreUid = 1; // Admin user
 var appConfig_userJwt = ''; // Set on main() main.dart
+
+//! This JWT Must be secure!
 var appConfig_userMaker_Jwt =
     'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE2ODYyNTIzNzUsImVtYWlsIjoidXNlck1ha2VyQHVzZXJNYWtlci5jb20iLCJpZCI6Ijk1Iiwic2l0ZSI6Imh0dHBzOlwvXC93d3cudGV4dHN0b3JlLmFpIiwidXNlcm5hbWUiOiJ1c2VyTWFrZXIifQ.gMyR1ROS4dp8t7beefZLJmGAjS4Z143LhDJcKwnSSTs'; // Set on main() main.dart
 
