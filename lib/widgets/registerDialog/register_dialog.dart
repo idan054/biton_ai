@@ -583,12 +583,19 @@ class _RegisterDialogState extends State<RegisterDialog> {
   }
 
   Future _handleLogin({String? email, String? password}) async {
+    double width = MediaQuery.of(context).size.width;
+    bool desktopMode = width > 500;
+
     //~ Login:
     var token = await WooApi.userLogin(email: email!, password: password!);
     setUserToken(
         token: token, userEmail: _emailController.text, userPass: _passController.text);
     context.uniProvider
         .updateWooUserModel(context.uniProvider.currUser.copyWith(token: token));
-    Navigator.pop(context);
+
+    desktopMode
+        ? Navigator.pop(context)
+        : Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (context) => HomeScreen()));
   }
 }

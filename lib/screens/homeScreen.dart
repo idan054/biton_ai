@@ -581,7 +581,8 @@ Widget _buildCreateButton(bool isLoading, List<WooPostModel> _inUsePrompts, Stri
             value: _inUsePrompts.isEmpty
                 ? null
                 : context.listenUniProvider.textstoreBarLoader,
-            color: AppColors.lightShinyPrimary,
+            // color: AppColors.lightShinyPrimary,
+            color: AppColors.white,
             strokeWidth: 6,
             backgroundColor: AppColors.secondaryBlue,
             animationDuration: 1500.milliseconds,

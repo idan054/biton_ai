@@ -22,7 +22,7 @@ class WooUserModel with _$WooUserModel {
   // factory WooUserModel.fromJson(Map<String, dynamic> json) => _$WooUserModelFromJson(json);
   factory WooUserModel.fromJson(Map<String, dynamic> json) {
 
-    final points = int.tryParse(json['description'].toString()) ?? 404;
+    final points = int.tryParse((json['description']??'').toString()) ?? 404;
     final user = WooUserModel(
       id: json['id'],
       name: json['name'],

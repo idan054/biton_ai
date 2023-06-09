@@ -369,7 +369,7 @@ class _ResultsListState extends State<ResultsList> {
 // child:
 Widget buildCopyButton(BuildContext context, bool showButton, String text, IconData icon,
     {VoidCallback? onEditTap, String? label}) {
-  Color txtColor = label == null ? Colors.black.withOpacity(0.60) : AppColors.greyText;
+  Color txtColor = label == null ? Colors.black.withOpacity(0.60) : AppColors.secondaryBlue;
 
   return AnimatedOpacity(
     opacity: showButton ? 1.0 : 1.0,

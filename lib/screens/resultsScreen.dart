@@ -79,6 +79,8 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
   @override
   void initState() {
     googleResults = [...widget.googleResults];
+    setState(() {}); // Might be unnecessary
+
     // currentResults = googleResults;
     // autoFetchResults(ResultCategory.gResults);
     autoFetchResults(ResultCategory.longDesc);
@@ -99,7 +101,7 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
 
   void autoFetchResults(ResultCategory type) async {
     // var n = type == ResultCategory.longDesc ? 1 : 3;
-    print('START: autoFetchResults() ${type.name}');
+    printWhite('START: autoFetchResults() ${type.name}');
 
     var _promptList = promptsByType(type, widget.input, widget.promptsBase);
     final results = await Gpt.getResults(
@@ -112,6 +114,7 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
       printRed('My ERROR getResults: $err');
       errorMessage = err.toString().replaceAll('Exception: ', '');
       setState(() {});
+      return <ResultModel>[];
     });
 
     // if (type == ResultCategory.gResults) googleResults = [...googleResults, ...results];
@@ -128,31 +131,17 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
   double _longDescLoader = 0.0;
 
   Widget buildCardsRow(List<ResultModel> currList) {
+    double width = MediaQuery.of(context).size.width;
+    bool desktopMode = width > 850;
+
     if (currList.isEmpty && errorMessage == null) {
       return StatefulBuilder(builder: (context, stfBuilder) {
-        // const ratio = 15;
-        // const loadTimeSeconds = 25; // 60
-        // // 1 time run.
-        // _timer ??= Timer.periodic((1000 / ratio).milliseconds, (timer) {
-        //   if (mounted) {
-        //     try {
-        //       _longDescLoader = (_longDescLoader + (1 / (loadTimeSeconds * ratio)));
-        //       stfBuilder(() {});
-        //     } catch (e, s) {}
-        //   }
-        // });
-
-        // if (drawerCategory == ResultCategory.longDesc) {
-        //   print('START: Future.delayed(1.sec()');
-        //   Future.delayed(1.seconds).then((_) => _animationController!.forward());
-        //   print('_animationController ${_animationController}');
-        // }
-
         return Column(
           children: [
             if (drawerCategory == ResultCategory.longDesc) ...[
-              r'Finish writing sales article... (it can take up to 45 seconds)'
-                  .toText(color: AppColors.greyText, fontSize: 18, medium: true)
+              r'Finish writing sales article will take 1-2 minutes..'
+                  .toText(
+                      color: AppColors.greyText, fontSize: 18, medium: true, maxLines: 4)
                   .py(10)
                   .px(15)
                   .pOnly(top: 10)
@@ -160,7 +149,7 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
                   .appearAll,
               //
               TweenAnimationBuilder(
-                  duration: 45.seconds,
+                  duration: 120.seconds,
                   tween: Tween<double>(begin: 0, end: 1),
                   builder: (BuildContext context, double value, Widget? child) {
                     return CurvedLinearProgressIndicator(
@@ -177,7 +166,8 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
             ] else ...[
               const CircularProgressIndicator(
                 strokeWidth: 7,
-                color: AppColors.primaryShiny,
+                // color: AppColors.primaryShiny,
+                color: AppColors.secondaryBlue,
               ).pOnly(top: 100).center,
             ]
           ],
@@ -185,13 +175,33 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
       });
     }
 
-    if (currList.first.category == ResultCategory.longDesc) {
+    // When currList.isNotEmpty
+    if (errorMessage == null && currList.first.category == ResultCategory.longDesc) {
+      print('currList ${currList}');
+      print('currList.first.category ${currList.first.category}');
+      String article;
+      try {
+        print('START: article = longDescResults.first.title;()');
+        article = longDescResults.first.title;
+      } catch (e, s) {
+        print('ERR: String? article()');
+        print('e ${e}');
+        print('s ${s}');
+        article = "Sorry, we couldn't create your sale article: \n $longDescResults";
+      }
+      print('article ${article}');
       return SizedBox(
         height: 600,
-        child: HtmlEditorViewer(kDebugMode && appConfig_fastHomeScreen
-            ? googleResults.first.title
-            : longDescResults.first.title),
-      ).pOnly(left: 20, right: 40, top: 20);
+        child: HtmlEditorViewer(
+          kDebugMode && appConfig_fastHomeScreen
+              ? googleResults.first.title // Quick Debug
+              : article, // Real debug / release
+        ),
+      ).pOnly(
+        left: desktopMode ? 20 : 10,
+        right: desktopMode ? 40 : 10,
+        top: 20,
+      );
     }
 
     return ResultsList(
@@ -276,6 +286,13 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
                 buildCardsRow(titlesResults),
               if (sCategoryItems.contains(ResultCategory.titles))
                 buildCardsRow(shortDescResults),
+
+              if (errorMessage != null)
+                errorMessage
+                    .toString()
+                    .toText(color: AppColors.errRed, fontSize: 16, maxLines: 3)
+                    .py(5)
+                    .px(20),
               if (sCategoryItems.contains(ResultCategory.shortDesc))
                 buildCardsRow(longDescResults),
               const SizedBox(height: 20)
@@ -456,7 +473,6 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
                 if (!desktopMode && !miniMode)
                   buildUserButton(context, isAlignLeft: true).px(5).centerLeft,
                 const SizedBox(height: 20),
-
                 const SizedBox(height: 10),
                 CategoryDrawerList(
                   miniMode: miniMode,

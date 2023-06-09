@@ -35,9 +35,18 @@ Future<String?> createProductAction(
   String? errMessage = _checkWordsLimit(input);
   if (errMessage != null) throw Exception(errMessage);
 
-  final results = await _getGptResult(context, input);
-
-  _navigateToSearchResults(context, input, results);
+  final results = await _getGptResult(context, input).catchSentryError(
+    onError: (err, trace) {
+      print('ERR: _getGptResult()');
+      print('err ${err}');
+      print('trace ${trace}');
+    },
+  );
+  _navigateToSearchResults(
+    context,
+    input,
+    results,
+  );
   return errMessage;
 }
 
@@ -67,7 +76,12 @@ void _navigateToSearchResults(
 
   Navigator.push(
     context,
-    MaterialPageRoute(builder: (context) => ResultsScreen(input, results, _inUsePrompts)),
+    MaterialPageRoute(
+        builder: (context) => ResultsScreen(
+              input,
+              results,
+              _inUsePrompts,
+            )),
   );
 }
 

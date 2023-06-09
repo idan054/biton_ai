@@ -165,7 +165,10 @@ class Gpt {
       print('gptModel.tokenUsage ${gptModel.tokenUsage}');
       return gptModel;
     } else {
-      throw Exception('Failed to call API');
+      // throw Exception('Failed to call API');
+
+      //! This will also expose default PROMPTS!
+      throw Exception('Failed to call $reqType prompt\n$prompt');
     }
   }
 

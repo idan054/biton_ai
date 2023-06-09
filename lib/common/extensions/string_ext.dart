@@ -10,7 +10,6 @@ extension StringNullX on String? {
 }
 
 extension StringX on String {
-
   bool get isDigitsOnly {
     for (var char in codeUnits) if (char < 48 || char > 57) return false;
     return true;
