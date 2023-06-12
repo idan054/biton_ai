@@ -53,7 +53,7 @@ Future<String?> createProductAction(
 String? _checkWordsLimit(String text) {
   String? errorMessage;
   var wordsCounter = text.trim().split(' ').length;
-  if (wordsCounter <= 3) {
+  if (wordsCounter <= 2) { // 3+ words
     errorMessage = '''For great results, we need details like:
 - iPhone 14 Pro 128GB Black
 - Men's Solid Polo blue Shirt Short with Collar Zipper

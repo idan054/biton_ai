@@ -199,7 +199,7 @@ class _ResultsListState extends State<ResultsList> {
                   isHovered,
                   '${mainTitleController.text}'
                   '${gDescController.text.isNotEmpty ? '\n${gDescController.text}' : ''} ',
-                  Icons.content_copy,
+                  Icons.content_copy_rounded,
                 ),
               ),
             ],
@@ -369,7 +369,8 @@ class _ResultsListState extends State<ResultsList> {
 // child:
 Widget buildCopyButton(BuildContext context, bool showButton, String text, IconData icon,
     {VoidCallback? onEditTap, String? label}) {
-  Color txtColor = label == null ? Colors.black.withOpacity(0.60) : AppColors.secondaryBlue;
+  Color txtColor =
+      label == null ? Colors.black.withOpacity(0.60) : AppColors.secondaryBlue;
 
   return AnimatedOpacity(
     opacity: showButton ? 1.0 : 1.0,
@@ -384,9 +385,11 @@ Widget buildCopyButton(BuildContext context, bool showButton, String text, IconD
         disabledBackgroundColor: AppColors.transparent,
         disabledForegroundColor: AppColors.transparent,
         shape: 5.roundedShape,
-        padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 5),
+        padding: label == null
+            ? const EdgeInsets.symmetric(vertical: 15, horizontal: 5)
+            : const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
       ),
-      onPressed: icon == Icons.content_copy
+      onPressed: icon == Icons.content_copy_rounded
           ? () {
               Clipboard.setData(ClipboardData(text: text)).then((_) {
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -396,8 +399,7 @@ Widget buildCopyButton(BuildContext context, bool showButton, String text, IconD
           : onEditTap,
       icon: icon.icon(size: 21, color: txtColor),
       // label: const Offstage(),
-      label:
-          label == null ? const Offstage() : label.toText(color: txtColor, medium: true),
+      label: label == null ? const Offstage() : label.toText(color: txtColor, medium: true),
       // label: ''.toText(),
     ),
   );

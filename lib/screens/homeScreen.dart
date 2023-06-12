@@ -204,6 +204,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     // var loader = context.listenUniProvider.textstoreBarLoader;
     _isLoading = _isLoading && errorMessage == null;
+    double width = MediaQuery.of(context).size.width;
+    bool desktopMode = width > 850;
 
     return Scaffold(
         backgroundColor: AppColors.lightPrimaryBg,
@@ -224,7 +226,12 @@ class _HomeScreenState extends State<HomeScreen> {
             // 'Sell more by Ai Text for your store'.toText(fontSize: 20).px(25),
             // 'Fast | Create product | SEO'.toText(fontSize: 20).px(25),
             // 'Ai that make sales'.toText(fontSize: 20).px(25),
-            'Sell more with Ai text for your store'.toText(fontSize: 20).px(25),
+            'Sell more with Ai text for your store'
+                .toText(
+                  fontSize: desktopMode ? 20 : 17,
+                  textAlign: TextAlign.center,
+                )
+                .px(25),
             const SizedBox(height: 20),
             // region Search TextField
             textStoreBar(
@@ -495,7 +502,10 @@ Widget textStoreBar(
   String? token = context.uniProvider.currUser.token;
   var _inUsePrompts = context.uniProvider.inUsePromptList;
   var hLoaderRatio = 1.2;
-  var width = 800.0;
+  var loaderWidth = 800.0;
+
+  // double width = MediaQuery.of(context).size.width;
+  // bool desktopMode = width > 850;
 
   // borderRadius: BorderRadius.circular(99),
   var radius = BorderRadius.only(
@@ -511,15 +521,15 @@ Widget textStoreBar(
       children: [
         if (isLoading)
           SizedBox(
-            width: width - 14,
+            width: loaderWidth - 14,
             height: 50 + (10 * hLoaderRatio),
             child: const LinearProgressIndicator(
               color: AppColors.lightShinyPrimary,
               backgroundColor: AppColors.transparent,
             ),
-          ).roundedFull.offset(7, -5 * hLoaderRatio),
+          ).roundedFull.offset(7, -5 * hLoaderRatio).pOnly(right: 15),
         SizedBox(
-          width: width,
+          width: loaderWidth,
           child: Material(
             color: AppColors.transparent,
             // elevation: 3,
@@ -582,7 +592,7 @@ Widget _buildCreateButton(bool isLoading, List<WooPostModel> _inUsePrompts, Stri
                 ? null
                 : context.listenUniProvider.textstoreBarLoader,
             // color: AppColors.lightShinyPrimary,
-            color: AppColors.white,
+            color: AppColors.lightShinyPrimary,
             strokeWidth: 6,
             backgroundColor: AppColors.secondaryBlue,
             animationDuration: 1500.milliseconds,

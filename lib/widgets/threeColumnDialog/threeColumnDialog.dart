@@ -366,8 +366,10 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
                 maxLines: null,
                 expands: true,
                 onChanged: (value) {
-                  _isSaveActive = true;
-                  setState(() {});
+                  if (!_isSaveActive) {
+                    _isSaveActive = true;
+                    setState(() {});
+                  }
                 },
                 style: TextStyle(
                     color: isAdmin ? AppColors.greyUnavailable80 : Colors.black),
@@ -385,8 +387,10 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
                 child: TextField(
                   enabled: !isAdmin,
                   onChanged: (value) {
-                    _isSaveActive = true;
-                    setState(() {});
+                    if (!_isSaveActive) {
+                      _isSaveActive = true;
+                      setState(() {});
+                    }
                   },
                   maxLines: null,
                   expands: true,
@@ -529,6 +533,7 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
       _fullPromptList = setDefaultPromptFirst(_fullPromptList);
       _fullPromptList.insert(1, newPost); // Start of  list
 
+      context.showSnackbar(message: 'Update Saved successfully');
     }
   }
 

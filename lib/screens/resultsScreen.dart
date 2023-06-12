@@ -227,6 +227,12 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
     print('width > 600 ${width > 600}');
     bool desktopMode = width > 850;
 
+    Widget inputAsTitle = SelectableText(widget.input,
+            style: ''.toText(fontSize: 35, bold: true).style)
+        // .onTap(() => Navigator.push( context, MaterialPageRoute(builder: (context) => const HomeScreen())), radius: 5)
+        .px(10)
+        .centerLeft;
+
     return Scaffold(
       drawerScrimColor: Colors.transparent,
       key: _scaffoldKey,
@@ -256,26 +262,29 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
               // buildUserInput().pOnly(top: 20),
               // Divider(color: AppColors.greyLight, thickness: 1, height: 0),
 
-              Row(
-                children: [
-                  Hero(
-                    tag: 'textStoreAi',
-                    child: textStoreAi
-                        .toText(fontSize: 35, bold: true)
-                        .px(10)
-                        .onTap(
-                            () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => const HomeScreen())),
-                            radius: 5)
-                        .centerLeft,
-                  ),
-                  const Spacer(),
-                  if (desktopMode)
-                    buildUserButton(context, isAlignLeft: false).px(5).centerRight,
-                ],
-              ),
+              // if (!desktopMode)
+              'Product page for:'
+                  .toText(color: AppColors.greyText, fontSize: 18, medium: true)
+                  .px(10)
+                  .pOnly(
+                    top: desktopMode ? 0 : 15,
+                    bottom: 5,
+                  )
+                  .topLeft,
+
+              if (desktopMode) ...[
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Hero(tag: 'textStoreAi', child: inputAsTitle),
+                    const Spacer(),
+                    if (desktopMode)
+                      buildUserButton(context, isAlignLeft: false).px(5).centerRight,
+                  ],
+                ),
+              ] else ...[
+                inputAsTitle
+              ],
 
               // Todo make it works
               if (desktopMode) buildTextStoreBar(context).centerLeft.appearAll,
@@ -464,57 +473,70 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
       onExit: (_) => miniMode ? null : _scaffoldKey.currentState?.closeDrawer(),
       child: SizedBox(
         width: miniMode ? 90 : null,
-        child: Drawer(
-            backgroundColor: AppColors.white,
-            elevation: miniMode ? 0 : 5,
-            child: Column(
-              children: [
-                const SizedBox(height: 10),
-                if (!desktopMode && !miniMode)
-                  buildUserButton(context, isAlignLeft: true).px(5).centerLeft,
-                const SizedBox(height: 20),
-                const SizedBox(height: 10),
-                CategoryDrawerList(
-                  miniMode: miniMode,
-                  categories: const [
-                    ResultCategory.gResults,
-                    ResultCategory.titles,
-                    ResultCategory.shortDesc,
-                    ResultCategory.longDesc,
-                  ],
-                  categoriesNames: const [
-                    'Google result',
-                    'Product name',
-                    'Short Description',
-                    'Long Description',
-                  ],
-                  selectedCategory: drawerCategory,
-                  icons: const [
-                    // Icons.search_rounded,
-                    Icons.travel_explore,
-                    Icons.title,
-                    Icons.notes_rounded,
-                    Icons.description_rounded, // subject_rounded
-                  ],
-                  onSelect: (category) {
-                    // Clickable category:
-                    // _changeListByCategory(category);
-                  },
-                ),
-                const Spacer(),
-                _buildAdvancedButton(miniMode),
-                10.verticalSpace,
-                _buildAddButton(miniMode),
-                20.verticalSpace,
-              ],
-            )),
+        child: GestureDetector(
+          onTap: () {
+            // if (miniMode) {
+            //   _scaffoldKey.currentState?.openDrawer();
+            // } else {
+            //   _scaffoldKey.currentState?.closeDrawer();
+            // }
+          },
+          child: Drawer(
+              backgroundColor: AppColors.white,
+              elevation: miniMode ? 0 : 5,
+              child: Column(
+                children: [
+                  const SizedBox(height: 10),
+                  if (!desktopMode && !miniMode)
+                    buildUserButton(context, isAlignLeft: true).px(5).centerLeft,
+                  const SizedBox(height: 20),
+                  const SizedBox(height: 10),
+                  CategoryDrawerList(
+                    miniMode: miniMode,
+                    categories: const [
+                      ResultCategory.gResults,
+                      ResultCategory.titles,
+                      ResultCategory.shortDesc,
+                      ResultCategory.longDesc,
+                    ],
+                    categoriesNames: const [
+                      'Google result',
+                      'Product name',
+                      'Short Description',
+                      'Long Description',
+                    ],
+                    selectedCategory: drawerCategory,
+                    icons: const [
+                      // Icons.search_rounded,
+                      Icons.travel_explore,
+                      Icons.title,
+                      Icons.notes_rounded,
+                      Icons.description_rounded, // subject_rounded
+                    ],
+                    onSelect: (category) {
+                      // Clickable category:
+                      // _changeListByCategory(category);
+                    },
+                  ),
+                  const Spacer(),
+                  _buildAdvancedButton(miniMode),
+                  10.verticalSpace,
+                  _buildAddButton(miniMode),
+                  20.verticalSpace,
+                ],
+              )),
+        ),
       ),
     );
   }
 
   Widget _buildAddButton(bool miniMode) {
     var color = AppColors.whiteLight;
-    final icon = Icons.send.icon(color: color, size: 24).pOnly(top: 5);
+    double width = MediaQuery.of(context).size.width;
+    bool desktopMode = width > 850;
+    final icon = Icons.send
+        .icon(color: color, size: 24)
+        .pOnly(top: desktopMode ? 5 : 0, bottom: desktopMode ? 0 : 2);
 
     return Builder(builder: (context) {
       return SizedBox(
@@ -548,8 +570,12 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
   }
 
   Widget _buildAdvancedButton(bool miniMode) {
+    double width = MediaQuery.of(context).size.width;
+    bool desktopMode = width > 850;
     var color = isAdvancedSwitchOn ? AppColors.secondaryBlue : AppColors.greyText;
-    final icon = Icons.settings_suggest.icon(color: color, size: 24).pOnly(top: 5);
+    final icon = Icons.settings_suggest
+        .icon(color: color, size: 24)
+        .pOnly(top: desktopMode ? 5 : 0, bottom: desktopMode ? 0 : 2);
 
     return Builder(builder: (context) {
       return SizedBox(
@@ -595,31 +621,31 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
     });
   }
 
-  TextField buildUserInput() {
-    return TextField(
-      controller: inputController,
-      style:
-          const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 22),
-      decoration: InputDecoration(
-          enabledBorder: const OutlineInputBorder(borderSide: BorderSide.none),
-          focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: AppColors.greyLight),
-            borderRadius: BorderRadius.circular(3),
-          ),
-          hintText: 'Full product name',
-          // hintStyle: const
-          suffixIcon: buildEditIcon().px(12).py(12)
-          // .onTap(() {}),
-          ),
-    );
-  }
+// TextField _buildUserInput() {
+//   return TextField(
+//     controller: inputController,
+//     style:
+//         const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 22),
+//     decoration: InputDecoration(
+//         enabledBorder: const OutlineInputBorder(borderSide: BorderSide.none),
+//         focusedBorder: OutlineInputBorder(
+//           borderSide: BorderSide(color: AppColors.greyLight),
+//           borderRadius: BorderRadius.circular(3),
+//         ),
+//         hintText: 'Full product name',
+//         // hintStyle: const
+//         suffixIcon: buildEditIcon().px(12).py(12)
+//         // .onTap(() {}),
+//         ),
+//   );
+// }
 }
 
-CircleAvatar buildEditIcon() {
-  return CircleAvatar(
-      radius: 20,
-      backgroundColor: Colors.transparent,
-      child: Icons.border_color_rounded
-          .icon(color: AppColors.primaryShiny, size: 20)
-          .center);
-}
+// CircleAvatar buildEditIcon() {
+//   return CircleAvatar(
+//       radius: 20,
+//       backgroundColor: Colors.transparent,
+//       child: Icons.border_color_rounded
+//           .icon(color: AppColors.primaryShiny, size: 20)
+//           .center);
+// }

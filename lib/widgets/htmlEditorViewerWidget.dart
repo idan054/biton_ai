@@ -87,7 +87,7 @@ class _HtmlEditorViewerState extends State<HtmlEditorViewer>
                     Positioned(
                         top: 15,
                         left: 15,
-                        child: buildCopyButton(context, true, result, Icons.content_copy,
+                        child: buildCopyButton(context, true, result, Icons.content_copy_rounded,
                             label: 'Copy'))
                   ],
                 )
@@ -197,7 +197,8 @@ class _HtmlEditorViewerState extends State<HtmlEditorViewer>
                 fontWeight: FontWeight.bold),
             unselectedLabelStyle:
                 const TextStyle(fontSize: 15, color: AppColors.greyUnavailable),
-            indicatorColor: AppColors.primaryShiny,
+            // indicatorColor: AppColors.primaryShiny,
+            indicatorColor: AppColors.secondaryBlue,
             controller: _tabController,
             tabs: [
               Tab(child: 'Editor'.toText()),

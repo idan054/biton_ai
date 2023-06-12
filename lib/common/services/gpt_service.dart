@@ -40,7 +40,7 @@ class Gpt {
     List<ResultModel> results = [];
     ChatGptModel? titles;
     ChatGptModel? descriptions;
-    const ver = 3;
+    const ver = 4;
     titles = isSamePrompts
         ? await _singleCallChatGPT(context,
             reqType: type, n: 3, prompt: prompts.first, model: ver)
