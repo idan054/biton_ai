@@ -16,6 +16,7 @@ import 'package:curved_progress_bar/curved_progress_bar.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:html_editor_enhanced/html_editor.dart';
 
 import '../common/constants.dart';
 import '../common/models/prompt/result_model.dart';
@@ -129,6 +130,7 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
 
   Timer? _timer; // 1 time run.
   double _longDescLoader = 0.0;
+  bool useTranslatedResult = false;
 
   Widget buildCardsRow(List<ResultModel> currList) {
     double width = MediaQuery.of(context).size.width;
@@ -177,34 +179,49 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
 
     // When currList.isNotEmpty
     if (errorMessage == null && currList.first.category == ResultCategory.longDesc) {
-      print('currList ${currList}');
-      print('currList.first.category ${currList.first.category}');
+      // print('currList $currList');
+      // print('currList.first.category ${currList.first.category}');
       String article;
       try {
         print('START: article = longDescResults.first.title;()');
-        article = longDescResults.first.title;
+        article = (kDebugMode && appConfig_fastHomeScreen)
+            ? googleResults.first.title
+            : (useTranslatedResult
+                ? longDescResults.first.translatedTitle
+                : longDescResults.first.title);
+
+        // print('article ${article}');
       } catch (e, s) {
         print('ERR: String? article()');
         print('e ${e}');
         print('s ${s}');
         article = "Sorry, we couldn't create your sale article: \n $longDescResults";
       }
-      print('article ${article}');
-      return SizedBox(
-        height: 600,
-        child: HtmlEditorViewer(
-          kDebugMode && appConfig_fastHomeScreen
-              ? googleResults.first.title // Quick Debug
-              : article, // Real debug / release
-        ),
-      ).pOnly(
-        left: desktopMode ? 20 : 10,
-        right: desktopMode ? 40 : 10,
-        top: 20,
-      );
+
+      print('useTranslatedResult $useTranslatedResult');
+      return useTranslatedResult
+          ? SizedBox(
+              key: UniqueKey(),
+              height: 700,
+              child: HtmlEditorViewer(longDescResults.first.translatedTitle),
+            ).pOnly(
+              left: desktopMode ? 20 : 10,
+              right: desktopMode ? 40 : 10,
+              top: 20,
+            )
+          : SizedBox(
+                  key: UniqueKey(),
+                  height: 700,
+                  child: HtmlEditorViewer(longDescResults.first.title))
+              .pOnly(
+              left: desktopMode ? 20 : 10,
+              right: desktopMode ? 40 : 10,
+              top: 20,
+            );
     }
 
     return ResultsList(
+      useTranslatedResult: useTranslatedResult,
       exampleUrl: exampleUrl,
       results: currList,
       onChange: (results, sResult) {
@@ -224,7 +241,7 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
     var sCategoryItems =
         selectedResults.map((item) => item.category).toList(growable: true);
     double width = MediaQuery.of(context).size.width;
-    print('width > 600 ${width > 600}');
+    // print('width > 600 ${width > 600}');
     bool desktopMode = width > 850;
 
     Widget inputAsTitle = SelectableText(widget.input,
@@ -276,6 +293,19 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    if (googleResults.first.title != googleResults.first.translatedTitle)
+                      Icons.g_translate
+                          .icon(
+                              color: useTranslatedResult
+                                  ? AppColors.secondaryBlue
+                                  : AppColors.secondaryBlue.withOpacity(0.65),
+                              size: 28)
+                          .px(10)
+                          .py(5)
+                          .onTap(() {
+                        useTranslatedResult = !useTranslatedResult;
+                        setState(() {});
+                      }, radius: 10),
                     Hero(tag: 'textStoreAi', child: inputAsTitle),
                     const Spacer(),
                     if (desktopMode)
@@ -465,7 +495,7 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
 
   Widget buildDrawer({bool miniMode = false}) {
     double width = MediaQuery.of(context).size.width;
-    print('width > 600 ${width > 600}');
+    // print('width > 600 ${width > 600}');
     bool desktopMode = width > 850;
 
     return MouseRegion(

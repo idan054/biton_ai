@@ -45,12 +45,14 @@ String titleByCategory(ResultCategory resultsCategory) {
 
 class ResultsList extends StatefulWidget {
   final String exampleUrl;
+  final bool useTranslatedResult; // AKA var
   final List<ResultModel> results;
   final void Function(ResultModel result) onSelect;
   final void Function(List<ResultModel> results, ResultModel sResult) onChange;
 
   const ResultsList({
     super.key,
+    this.useTranslatedResult = false,
     required this.exampleUrl,
     required this.results,
     required this.onSelect,
@@ -63,12 +65,14 @@ class ResultsList extends StatefulWidget {
 
 class _ResultsListState extends State<ResultsList> {
   ResultModel? selectedResult; // AKA var
+  bool useTranslatedResult = false;
   List<ResultModel> results = [];
   final mainNode = FocusNode();
 
   @override
   void initState() {
     results = widget.results;
+    setState(() {});
     super.initState();
   }
 
@@ -131,7 +135,6 @@ class _ResultsListState extends State<ResultsList> {
                 .onTap(() {
               // Deselect:
               selectedResult = null;
-
               widget.onSelect(result); // ?
               setState(() {});
             }).px(10),
@@ -146,10 +149,19 @@ class _ResultsListState extends State<ResultsList> {
   Widget buildChoiceChip(bool isSelected, ResultModel result) {
     double width = MediaQuery.of(context).size.width;
     bool desktopMode = width > 850;
+    TextEditingController? mainTitleController;
+    TextEditingController? gDescController;
+    useTranslatedResult = widget.useTranslatedResult;
 
     // This rebuild when user select choiceship()
-    var mainTitleController = TextEditingController(text: result.title.toString());
-    var gDescController = TextEditingController(text: result.desc.toString());
+    if (useTranslatedResult) {
+      mainTitleController =
+          TextEditingController(text: result.translatedTitle.toString());
+      gDescController = TextEditingController(text: result.translatedDesc.toString());
+    } else {
+      mainTitleController = TextEditingController(text: result.title.toString());
+      gDescController = TextEditingController(text: result.desc.toString());
+    }
     // var wDrawer = 250;
     var wDrawer = desktopMode ? 50 : 0;
     bool isHovered = false;
@@ -167,28 +179,23 @@ class _ResultsListState extends State<ResultsList> {
     }
 
     // print('cardHeight ${cardHeight} - isSelected ${isSelected}');
-
     if (isSelected) {
-      return StatefulBuilder(builder: (context, setState) {
+      return StatefulBuilder(builder: (context, stfState) {
         return MouseRegion(
-          onEnter: (_) => setState(() => isHovered = true),
-          onExit: (_) => setState(() => isHovered = false),
+          onEnter: (_) => stfState(() => isHovered = true),
+          onExit: (_) => stfState(() => isHovered = false),
           child: Stack(
             children: [
               SizedBox(
                   width: cardWidth,
                   // height: cardHeight,
                   child: buildCardResult(
-                      isSelected, result, mainTitleController, gDescController)),
+                      isSelected, result, mainTitleController!, gDescController!)),
               Positioned(
                 bottom: 15,
                 right: 45,
-                child: buildCopyButton(
-                    context,
-                    isHovered,
-                    '${mainTitleController.text}'
-                    '${gDescController.text.isNotEmpty ? '\n${gDescController.text}' : ''} ',
-                    Icons.create,
+                // right: result.translatedTitle.isEmpty ? 45 : 85,
+                child: buildCopyButton(context, isHovered, '', Icons.create,
                     onEditTap: () => mainNode.requestFocus()),
               ),
               Positioned(
@@ -313,24 +320,29 @@ class _ResultsListState extends State<ResultsList> {
             //   ),
 
             const SizedBox(height: 5),
-            TextField(
-              focusNode: mainNode,
-              enabled: isSelected,
-              controller: mainTitleController,
-              style: TextStyle(
-                height: 1.4, //line spacing
-                fontSize: isProductTitle || isGoogleItem ? 18 : 15,
-                fontWeight: isProductTitle || isGoogleItem ? FontWeight.bold : null,
-                color: isGoogleItem
-                    ? (selectedResult == null || isSelected
-                        ? AppColors.googleTitleBlue
-                        : AppColors.googleTitleBlue.withOpacity(opacity))
-                    : txtColor,
+            Directionality(
+              textDirection: mainTitleController.text.isHebrew
+                  ? TextDirection.rtl
+                  : TextDirection.ltr,
+              child: TextField(
+                focusNode: mainNode,
+                enabled: isSelected,
+                controller: mainTitleController,
+                style: TextStyle(
+                  height: 1.4, //line spacing
+                  fontSize: isProductTitle || isGoogleItem ? 18 : 15,
+                  fontWeight: isProductTitle || isGoogleItem ? FontWeight.bold : null,
+                  color: isGoogleItem
+                      ? (selectedResult == null || isSelected
+                          ? AppColors.googleTitleBlue
+                          : AppColors.googleTitleBlue.withOpacity(opacity))
+                      : txtColor,
+                ),
+                minLines: 1,
+                maxLines: isShortDesc ? 20 : 3,
+                decoration: const InputDecoration(border: InputBorder.none),
+                onChanged: (value) => onTextFieldChange(),
               ),
-              minLines: 1,
-              maxLines: isShortDesc ? 20 : 3,
-              decoration: const InputDecoration(border: InputBorder.none),
-              onChanged: (value) => onTextFieldChange(),
             ),
             // .pOnly(right: isLongDesc ? width * 0.25 : 0),
           ],
@@ -339,18 +351,24 @@ class _ResultsListState extends State<ResultsList> {
             ? Column(
                 // mainAxisSize: MainAxisSize.min,
                 children: [
-                  TextField(
-                    enabled: isSelected,
-                    controller: gDescController,
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: txtColor,
-                      height: 1.2, //line spacing
+                  Directionality(
+                    textDirection: gDescController.text.isHebrew
+                        ? TextDirection.rtl
+                        : TextDirection.ltr,
+                    // : TextDirection.ltr,
+                    child: TextField(
+                      enabled: isSelected,
+                      controller: gDescController,
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: txtColor,
+                        height: 1.2, //line spacing
+                      ),
+                      minLines: 1,
+                      maxLines: 10,
+                      decoration: const InputDecoration(border: InputBorder.none),
+                      onChanged: (value) => onTextFieldChange(),
                     ),
-                    minLines: 1,
-                    maxLines: 10,
-                    decoration: const InputDecoration(border: InputBorder.none),
-                    onChanged: (value) => onTextFieldChange(),
                   ),
                   // if (isGoogleItem) const Spacer(),
                 ],
@@ -399,7 +417,8 @@ Widget buildCopyButton(BuildContext context, bool showButton, String text, IconD
           : onEditTap,
       icon: icon.icon(size: 21, color: txtColor),
       // label: const Offstage(),
-      label: label == null ? const Offstage() : label.toText(color: txtColor, medium: true),
+      label:
+          label == null ? const Offstage() : label.toText(color: txtColor, medium: true),
       // label: ''.toText(),
     ),
   );

@@ -59,7 +59,7 @@ class _CategoryDrawerListState extends State<CategoryDrawerList> {
 
   @override
   Widget build(BuildContext context) {
-    print('START: CategoryDrawerList()');
+    // print('START: CategoryDrawerList()');
 
     return Column(
       mainAxisSize: MainAxisSize.min,

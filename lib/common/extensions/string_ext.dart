@@ -109,6 +109,14 @@ extension StringX on String {
   //   style: AppStyles.text18PxSemiBold.white,
   // );
 
+
+  bool get isEnglish {
+    // 'Hello' // true
+    // 'Hello אני עידן' // false
+    final regex = RegExp(r"^[A-Za-z0-9\s\.,!?':\-]+$");
+    return regex.hasMatch(this);
+  }
+
   bool get isHebrew {
     var heb = [
       'א',

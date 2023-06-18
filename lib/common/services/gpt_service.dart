@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
 import 'dart:convert';
+import 'package:google_cloud_translation/google_cloud_translation.dart' as cloud;
 
 class Gpt {
   static Future<List<ResultModel>> getResults(
@@ -40,7 +41,7 @@ class Gpt {
     List<ResultModel> results = [];
     ChatGptModel? titles;
     ChatGptModel? descriptions;
-    const ver = 4;
+    const ver = 3;
     titles = isSamePrompts
         ? await _singleCallChatGPT(context,
             reqType: type, n: 3, prompt: prompts.first, model: ver)
@@ -57,15 +58,30 @@ class Gpt {
     }
 
     var i = 0;
+
+    cloud.Translation translator =
+        cloud.Translation(apiKey: 'AIzaSyDr_BqVcBI36gQDaQZMQQbUrpk_DGWN0xE');
+    final tValue = await translator.translate(text: input, to: 'en');
+    final sourceLangCode = tValue.detectedSourceLanguage;
+
     for (var _ in titles.choices) {
       var result = ResultModel(
         category: type,
         title: titles.choices[i].toString().trim(),
         desc: descriptions?.choices[i].toString().trim(),
       );
+      final tTitle = await translator.translate(
+          text: titles.choices[i].toString().trim(), to: sourceLangCode);
+      result = result.copyWith(translatedTitle: tTitle.translatedText);
+      if (descriptions != null) {
+        final tDesc = await translator.translate(
+            text: descriptions.choices[i].toString().trim(), to: sourceLangCode);
+        result = result.copyWith(translatedDesc: tDesc.translatedText);
+      }
       results.add(result);
       i++;
     }
+
     return results;
   }
 
@@ -160,7 +176,7 @@ class Gpt {
       printGreen('($type) Single response.statusCode ${response.statusCode} [GPT$model]');
 
       final jsonResponse = json.decode(response.body);
-      print('jsonResponse ${jsonResponse}');
+      // print('jsonResponse ${jsonResponse}');
       var gptModel = ChatGptModel.fromJson(jsonResponse);
       print('gptModel.tokenUsage ${gptModel.tokenUsage}');
       return gptModel;
@@ -172,62 +188,62 @@ class Gpt {
     }
   }
 
-  // static Stream chatGptStreamRequest() async* {
-  //   print('START: chatGptStreamRequest()');
-  //
-  //   var headers = {
-  //     'Content-Type': 'application/json',
-  //     'Authorization': 'Bearer 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'
-  //   };
-  //   var request =
-  //       http.Request('POST', Uri.parse('https://api.openai.com/v1/chat/completions'));
-  //   request.body = json.encode({
-  //     "n": 1,
-  //     "model": "gpt-3.5-turbo",
-  //     "max_tokens": 100,
-  //     "stream": true,
-  //     "messages": [
-  //       {
-  //         "role": "user",
-  //         "content":
-  //             "Create HTML file of a selling article about dogs, add titles and sub titles"
-  //       }
-  //     ]
-  //   });
-  //   request.headers.addAll(headers);
-  //
-  //   // http.StreamedResponse response = await request.send();
-  //   // yield request
-  //   //     .send()
-  //   //     .asStream()
-  //   //     .map((event) async => await event.stream.bytesToString());
-  //
-  //   // var streamedResponse = await request.send();
-  //
-  //   var streamedResponse = Stream.fromFuture(request.send()); //.send().asStream();
-  //   final streamController = StreamController();
-  //   // final responseStream = streamedResponse.stream.transform(utf8.decoder);
-  //   final responseStream = streamedResponse.map((event) => event);
-  //   // .transform(utf8.decoder);
-  //   await for (final chunk in responseStream) {
-  //     print('Stream: $chunk');
-  //     // yield chunk;
-  //     // if (chunk.contains('[DONE]')) {
-  //     //   await streamController.close();
-  //     // } else {
-  //     // final jsonResponse = json.decode(chunk);
-  //     // final gptModel = ChatGptModel.fromJson(jsonResponse);
-  //     streamController.add(chunk);
-  //     // }
-  //   }
-  //
-  //   // print('response ${response}');
-  //   //
-  //   // if (response.statusCode == 200) {
-  //   //   print('START: response.statusCode == 200()');
-  //   //   yield response.stream.bytesToString();
-  //   // } else {
-  //   //   print(response.reasonPhrase);
-  //   // }
-  // }
+// static Stream chatGptStreamRequest() async* {
+//   print('START: chatGptStreamRequest()');
+//
+//   var headers = {
+//     'Content-Type': 'application/json',
+//     'Authorization': 'Bearer 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'
+//   };
+//   var request =
+//       http.Request('POST', Uri.parse('https://api.openai.com/v1/chat/completions'));
+//   request.body = json.encode({
+//     "n": 1,
+//     "model": "gpt-3.5-turbo",
+//     "max_tokens": 100,
+//     "stream": true,
+//     "messages": [
+//       {
+//         "role": "user",
+//         "content":
+//             "Create HTML file of a selling article about dogs, add titles and sub titles"
+//       }
+//     ]
+//   });
+//   request.headers.addAll(headers);
+//
+//   // http.StreamedResponse response = await request.send();
+//   // yield request
+//   //     .send()
+//   //     .asStream()
+//   //     .map((event) async => await event.stream.bytesToString());
+//
+//   // var streamedResponse = await request.send();
+//
+//   var streamedResponse = Stream.fromFuture(request.send()); //.send().asStream();
+//   final streamController = StreamController();
+//   // final responseStream = streamedResponse.stream.transform(utf8.decoder);
+//   final responseStream = streamedResponse.map((event) => event);
+//   // .transform(utf8.decoder);
+//   await for (final chunk in responseStream) {
+//     print('Stream: $chunk');
+//     // yield chunk;
+//     // if (chunk.contains('[DONE]')) {
+//     //   await streamController.close();
+//     // } else {
+//     // final jsonResponse = json.decode(chunk);
+//     // final gptModel = ChatGptModel.fromJson(jsonResponse);
+//     streamController.add(chunk);
+//     // }
+//   }
+//
+//   // print('response ${response}');
+//   //
+//   // if (response.statusCode == 200) {
+//   //   print('START: response.statusCode == 200()');
+//   //   yield response.stream.bytesToString();
+//   // } else {
+//   //   print(response.reasonPhrase);
+//   // }
+// }
 }

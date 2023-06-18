@@ -536,27 +536,30 @@ Widget textStoreBar(
             borderRadius: BorderRadius.circular(99),
             child: Row(
               children: [
-                TextField(
-                  autofocus: true,
-                  controller: searchController,
-                  onSubmitted: onSubmitted,
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: AppColors.white,
-                    hoverColor: AppColors.greyLight.withOpacity(0.1),
-                    enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide.none, borderRadius: radius),
-                    focusedBorder: OutlineInputBorder(
-                        // borderSide: BorderSide(color: AppColors.greyLight),
-                        borderSide: BorderSide.none,
-                        borderRadius: radius),
-                    hintText: 'Full product name',
-                    hintStyle: const TextStyle(color: Colors.grey),
-                    // suffixIcon: suffixIcon,
-                    prefixIcon: prefixIcon,
-                    // suffixIcon: _buildCreateButton(isLoading, _inUsePrompts, token, context, onStart),
-                  ),
-                ).expanded(),
+                Directionality(
+                  textDirection: searchController.text.isHebrew ? TextDirection.rtl : TextDirection.ltr,
+                  child: TextField(
+                    autofocus: true,
+                    controller: searchController,
+                    onSubmitted: onSubmitted,
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: AppColors.white,
+                      hoverColor: AppColors.greyLight.withOpacity(0.1),
+                      enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide.none, borderRadius: radius),
+                      focusedBorder: OutlineInputBorder(
+                          // borderSide: BorderSide(color: AppColors.greyLight),
+                          borderSide: BorderSide.none,
+                          borderRadius: radius),
+                      hintText: 'Full product name',
+                      hintStyle: const TextStyle(color: Colors.grey),
+                      // suffixIcon: suffixIcon,
+                      prefixIcon: prefixIcon,
+                      // suffixIcon: _buildCreateButton(isLoading, _inUsePrompts, token, context, onStart),
+                    ),
+                  ).expanded(),
+                ),
                 const SizedBox(width: 10),
                 _buildCreateButton(isLoading, _inUsePrompts, token, context, onStart),
               ],

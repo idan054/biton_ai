@@ -1,5 +1,7 @@
 // ignore_for_file: prefer_const_constructors
 
+import 'dart:async';
+
 import 'package:biton_ai/common/extensions/num_ext.dart';
 import 'package:biton_ai/common/extensions/string_ext.dart';
 import 'package:biton_ai/common/extensions/widget_ext.dart';
@@ -13,7 +15,6 @@ import '../common/themes/app_colors.dart';
 
 class HtmlEditorViewer extends StatefulWidget {
   const HtmlEditorViewer(this.html, {Key? key}) : super(key: key);
-
   final String html;
 
   @override
@@ -30,8 +31,6 @@ class _HtmlEditorViewerState extends State<HtmlEditorViewer>
   @override
   void initState() {
     super.initState();
-    print('START: widget.text()');
-    print('widget.text ${widget.html}');
     _tabController = TabController(length: 2, vsync: this);
   }
 
@@ -69,7 +68,7 @@ class _HtmlEditorViewerState extends State<HtmlEditorViewer>
                   elevation: 0,
                   margin: EdgeInsets.all(15),
                   shape: roundShape,
-                  child: buildHtmlEditor(),
+                  child: buildHtmlEditor(controller),
                 ),
                 //~ Code viewer:
                 Stack(
@@ -87,7 +86,8 @@ class _HtmlEditorViewerState extends State<HtmlEditorViewer>
                     Positioned(
                         top: 15,
                         left: 15,
-                        child: buildCopyButton(context, true, result, Icons.content_copy_rounded,
+                        child: buildCopyButton(
+                            context, true, result, Icons.content_copy_rounded,
                             label: 'Copy'))
                   ],
                 )
@@ -99,7 +99,8 @@ class _HtmlEditorViewerState extends State<HtmlEditorViewer>
     );
   }
 
-  HtmlEditor buildHtmlEditor() {
+  HtmlEditor buildHtmlEditor(controller) {
+    print('START: buildHtmlEditor()');
     return HtmlEditor(
       controller: controller,
       htmlEditorOptions: HtmlEditorOptions(

@@ -16,6 +16,7 @@ import 'package:curved_progress_bar/curved_progress_bar.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:translator/translator.dart';
 import 'dart:convert';
 
 import '../../screens/homeScreen.dart';
@@ -23,37 +24,82 @@ import '../constants.dart';
 import '../models/post/woo_post_model.dart';
 import '../models/prompt/result_model.dart';
 import 'package:flutter/material.dart';
-
+import 'package:google_cloud_translation/google_cloud_translation.dart' as cloud;
 import 'gpt_service.dart';
 
 Future<String?> createProductAction(
   BuildContext context,
   TextEditingController searchController,
 ) async {
+  // final translator = GoogleTranslator(); // Free, but lower quality
+  cloud.Translation translator =
+      cloud.Translation(apiKey: 'AIzaSyDr_BqVcBI36gQDaQZMQQbUrpk_DGWN0xE');
   var _inUsePrompts = context.uniProvider.inUsePromptList;
   String input = searchController.text;
+  String englishInput = input;
+  String? sourceLangCode;
   String? errMessage = _checkWordsLimit(input);
   if (errMessage != null) throw Exception(errMessage);
 
-  final results = await _getGptResult(context, input).catchSentryError(
+  print('input.isEnglish ${input.isEnglish}');
+  if (input.isEnglish) {
+    printLightBlue('[PASS] Original input: $input');
+  } else {
+    // Prompt will be English
+    final tValue = await translator.translate(text: input, to: 'en');
+    englishInput = tValue.translatedText;
+    sourceLangCode = tValue.detectedSourceLanguage;
+    printYellow('Translated from $sourceLangCode to EN');
+    print('Original: $input');
+    print('Translated: $englishInput');
+  }
+
+  var results = await _getGptResult(
+    context,
+    englishInput,
+    translateTo: sourceLangCode,
+  ).catchSentryError(
     onError: (err, trace) {
       print('ERR: _getGptResult()');
       print('err ${err}');
       print('trace ${trace}');
     },
   );
-  _navigateToSearchResults(
-    context,
-    input,
-    results,
-  );
+
+  List<ResultModel> translatedResults = [];
+  for (var res in results) {
+    final cleanResult = res.title.replaceAll('"', '').replaceAll("'", "");
+    final cleanSubResult = (res.desc ?? '').replaceAll('"', '').replaceAll("'", "");
+    if (input.isEnglish) {
+      printLightBlue('[PASS] Original result:\n$cleanResult\n');
+    } else {
+      final tValue =
+          await translator.translate(text: cleanResult, to: sourceLangCode ?? 'en');
+      cloud.TranslationModel? tSubValue;
+      // Translation? tSubValue;
+      if (res.desc != null) {
+        tSubValue =
+            await translator.translate(text: cleanSubResult, to: sourceLangCode ?? 'en');
+      }
+      translatedResults.add(
+          res.copyWith(translatedTitle: tValue.translatedText, translatedDesc: tSubValue?.translatedText));
+      printYellow('Translated from EN to ${tValue.detectedSourceLanguage}');
+      print('Original: $cleanResult');
+      print('Translated: ${tValue.translatedText}\n');
+    }
+  }
+
+  if (translatedResults.isNotEmpty) results = translatedResults;
+
+  _navigateToSearchResults(context, input, results);
   return errMessage;
 }
 
 String? _checkWordsLimit(String text) {
   String? errorMessage;
   var wordsCounter = text.trim().split(' ').length;
-  if (wordsCounter <= 2) { // 3+ words
+  if (wordsCounter <= 2) {
+    // 3+ words
     errorMessage = '''For great results, we need details like:
 - iPhone 14 Pro 128GB Black
 - Men's Solid Polo blue Shirt Short with Collar Zipper
@@ -85,7 +131,12 @@ void _navigateToSearchResults(
   );
 }
 
-Future<List<ResultModel>> _getGptResult(BuildContext context, String input) async {
+Future<List<ResultModel>> _getGptResult(
+  BuildContext context,
+  String input, {
+  String? translateTo,
+}) async {
+  final translator = GoogleTranslator();
   var _inUsePrompts = context.uniProvider.inUsePromptList;
   // print('_inUsePrompts ${_inUsePrompts}');
   List<ResultModel> results = [];
@@ -94,6 +145,7 @@ Future<List<ResultModel>> _getGptResult(BuildContext context, String input) asyn
   var gPrompt = _inUsePrompts.firstWhere((p) => p.category == ResultCategory.gResults);
   var content = gPrompt.content.replaceAll('[YOUR_INPUT]', input);
   var subContent = (gPrompt.subContent ?? '').replaceAll('[YOUR_INPUT]', input);
+
   var titlePrompts = <String>[];
   var gDescPrompts = <String>[];
   for (int i = 0; i < 3; i++) {
@@ -114,6 +166,7 @@ Future<List<ResultModel>> _getGptResult(BuildContext context, String input) asyn
     // reset loader on finish
     context.uniProvider.updateTextstoreBarLoader(0.0);
   }
+
   return results;
 }
 

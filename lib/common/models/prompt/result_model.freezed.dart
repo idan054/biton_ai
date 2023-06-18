@@ -22,7 +22,9 @@ ResultModel _$ResultModelFromJson(Map<String, dynamic> json) {
 mixin _$ResultModel {
   ResultCategory? get category => throw _privateConstructorUsedError;
   String get title => throw _privateConstructorUsedError;
+  String get translatedTitle => throw _privateConstructorUsedError;
   String? get desc => throw _privateConstructorUsedError;
+  String? get translatedDesc => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -36,7 +38,12 @@ abstract class $ResultModelCopyWith<$Res> {
           ResultModel value, $Res Function(ResultModel) then) =
       _$ResultModelCopyWithImpl<$Res, ResultModel>;
   @useResult
-  $Res call({ResultCategory? category, String title, String? desc});
+  $Res call(
+      {ResultCategory? category,
+      String title,
+      String translatedTitle,
+      String? desc,
+      String? translatedDesc});
 }
 
 /// @nodoc
@@ -54,7 +61,9 @@ class _$ResultModelCopyWithImpl<$Res, $Val extends ResultModel>
   $Res call({
     Object? category = freezed,
     Object? title = null,
+    Object? translatedTitle = null,
     Object? desc = freezed,
+    Object? translatedDesc = freezed,
   }) {
     return _then(_value.copyWith(
       category: freezed == category
@@ -65,9 +74,17 @@ class _$ResultModelCopyWithImpl<$Res, $Val extends ResultModel>
           ? _value.title
           : title // ignore: cast_nullable_to_non_nullable
               as String,
+      translatedTitle: null == translatedTitle
+          ? _value.translatedTitle
+          : translatedTitle // ignore: cast_nullable_to_non_nullable
+              as String,
       desc: freezed == desc
           ? _value.desc
           : desc // ignore: cast_nullable_to_non_nullable
+              as String?,
+      translatedDesc: freezed == translatedDesc
+          ? _value.translatedDesc
+          : translatedDesc // ignore: cast_nullable_to_non_nullable
               as String?,
     ) as $Val);
   }
@@ -81,7 +98,12 @@ abstract class _$$_ResultModelCopyWith<$Res>
       __$$_ResultModelCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({ResultCategory? category, String title, String? desc});
+  $Res call(
+      {ResultCategory? category,
+      String title,
+      String translatedTitle,
+      String? desc,
+      String? translatedDesc});
 }
 
 /// @nodoc
@@ -97,7 +119,9 @@ class __$$_ResultModelCopyWithImpl<$Res>
   $Res call({
     Object? category = freezed,
     Object? title = null,
+    Object? translatedTitle = null,
     Object? desc = freezed,
+    Object? translatedDesc = freezed,
   }) {
     return _then(_$_ResultModel(
       category: freezed == category
@@ -108,9 +132,17 @@ class __$$_ResultModelCopyWithImpl<$Res>
           ? _value.title
           : title // ignore: cast_nullable_to_non_nullable
               as String,
+      translatedTitle: null == translatedTitle
+          ? _value.translatedTitle
+          : translatedTitle // ignore: cast_nullable_to_non_nullable
+              as String,
       desc: freezed == desc
           ? _value.desc
           : desc // ignore: cast_nullable_to_non_nullable
+              as String?,
+      translatedDesc: freezed == translatedDesc
+          ? _value.translatedDesc
+          : translatedDesc // ignore: cast_nullable_to_non_nullable
               as String?,
     ));
   }
@@ -122,7 +154,9 @@ class _$_ResultModel implements _ResultModel {
   const _$_ResultModel(
       {this.category = ResultCategory.gResults,
       required this.title,
-      this.desc});
+      this.translatedTitle = '',
+      this.desc,
+      this.translatedDesc});
 
   factory _$_ResultModel.fromJson(Map<String, dynamic> json) =>
       _$$_ResultModelFromJson(json);
@@ -133,11 +167,16 @@ class _$_ResultModel implements _ResultModel {
   @override
   final String title;
   @override
+  @JsonKey()
+  final String translatedTitle;
+  @override
   final String? desc;
+  @override
+  final String? translatedDesc;
 
   @override
   String toString() {
-    return 'ResultModel(category: $category, title: $title, desc: $desc)';
+    return 'ResultModel(category: $category, title: $title, translatedTitle: $translatedTitle, desc: $desc, translatedDesc: $translatedDesc)';
   }
 
   @override
@@ -148,12 +187,17 @@ class _$_ResultModel implements _ResultModel {
             (identical(other.category, category) ||
                 other.category == category) &&
             (identical(other.title, title) || other.title == title) &&
-            (identical(other.desc, desc) || other.desc == desc));
+            (identical(other.translatedTitle, translatedTitle) ||
+                other.translatedTitle == translatedTitle) &&
+            (identical(other.desc, desc) || other.desc == desc) &&
+            (identical(other.translatedDesc, translatedDesc) ||
+                other.translatedDesc == translatedDesc));
   }
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(runtimeType, category, title, desc);
+  int get hashCode => Object.hash(
+      runtimeType, category, title, translatedTitle, desc, translatedDesc);
 
   @JsonKey(ignore: true)
   @override
@@ -173,7 +217,9 @@ abstract class _ResultModel implements ResultModel {
   const factory _ResultModel(
       {final ResultCategory? category,
       required final String title,
-      final String? desc}) = _$_ResultModel;
+      final String translatedTitle,
+      final String? desc,
+      final String? translatedDesc}) = _$_ResultModel;
 
   factory _ResultModel.fromJson(Map<String, dynamic> json) =
       _$_ResultModel.fromJson;
@@ -183,7 +229,11 @@ abstract class _ResultModel implements ResultModel {
   @override
   String get title;
   @override
+  String get translatedTitle;
+  @override
   String? get desc;
+  @override
+  String? get translatedDesc;
   @override
   @JsonKey(ignore: true)
   _$$_ResultModelCopyWith<_$_ResultModel> get copyWith =>
