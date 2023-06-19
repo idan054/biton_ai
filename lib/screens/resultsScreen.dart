@@ -185,7 +185,9 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
       try {
         print('START: article = longDescResults.first.title;()');
         article = (kDebugMode && appConfig_fastHomeScreen)
-            ? googleResults.first.title
+            ? useTranslatedResult
+                ? 'T'
+                : googleResults.first.title
             : (useTranslatedResult
                 ? longDescResults.first.translatedTitle
                 : longDescResults.first.title);
@@ -203,16 +205,13 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
           ? SizedBox(
               key: UniqueKey(),
               height: 700,
-              child: HtmlEditorViewer(longDescResults.first.translatedTitle),
+              child: HtmlEditorViewer(article),
             ).pOnly(
               left: desktopMode ? 20 : 10,
               right: desktopMode ? 40 : 10,
               top: 20,
             )
-          : SizedBox(
-                  key: UniqueKey(),
-                  height: 700,
-                  child: HtmlEditorViewer(longDescResults.first.title))
+          : SizedBox(key: UniqueKey(), height: 700, child: HtmlEditorViewer(article))
               .pOnly(
               left: desktopMode ? 20 : 10,
               right: desktopMode ? 40 : 10,
@@ -254,67 +253,35 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
       drawerScrimColor: Colors.transparent,
       key: _scaffoldKey,
       backgroundColor: AppColors.lightPrimaryBg,
-      // appBar: desktopMode
-      //     ? null
-      //     : AppBar(
-      //         elevation: 0,
-      //         backgroundColor: Colors.transparent,
-      //         toolbarHeight: 70,
-      //         titleSpacing: 0,
-      //         title: buildTextStoreBar(context).pOnly(top: 10).appearAll,
-      //         leading: Builder(
-      //             builder: (context) => Icons.menu
-      //                 .icon(color: AppColors.greyText, size: 24)
-      //                 .pOnly(top: 10, left: 10)
-      //                 .onTap(() => Scaffold.of(context).openDrawer(), radius: 10)),
-      //       ),
+      appBar: desktopMode
+          ? null
+          : AppBar(
+              elevation: 0,
+              backgroundColor: Colors.transparent,
+              toolbarHeight: 90,
+              titleSpacing: 0,
+              // title: buildTextStoreBar(context).pOnly(top: 10).appearAll,
+              title: buildProductPageTitle(desktopMode, inputAsTitle, context).appearAll,
+              leading: Builder(
+                  builder: (context) => Icons.menu
+                      .icon(color: AppColors.greyText, size: 24)
+                      .pOnly(top: 10, left: 10)
+                      .onTap(() => Scaffold.of(context).openDrawer(), radius: 10)),
+            ),
       drawer: buildDrawer(),
       body: Row(
         children: [
-          // if (desktopMode) buildDrawer().appearAll,
-          buildDrawer(miniMode: true).appearAll,
-
+          if (desktopMode) buildDrawer(miniMode: true).appearAll,
           Column(
             children: [
               // buildUserInput().pOnly(top: 20),
               // Divider(color: AppColors.greyLight, thickness: 1, height: 0),
 
-              // if (!desktopMode)
-              'Product page for:'
-                  .toText(color: AppColors.greyText, fontSize: 18, medium: true)
-                  .px(10)
-                  .pOnly(
-                    top: desktopMode ? 0 : 15,
-                    bottom: 5,
-                  )
-                  .topLeft,
+              if (desktopMode) buildProductPageTitle(desktopMode, inputAsTitle, context),
 
-              if (desktopMode) ...[
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (googleResults.first.title != googleResults.first.translatedTitle)
-                      Icons.g_translate
-                          .icon(
-                              color: useTranslatedResult
-                                  ? AppColors.secondaryBlue
-                                  : AppColors.secondaryBlue.withOpacity(0.65),
-                              size: 28)
-                          .px(10)
-                          .py(5)
-                          .onTap(() {
-                        useTranslatedResult = !useTranslatedResult;
-                        setState(() {});
-                      }, radius: 10),
-                    Hero(tag: 'textStoreAi', child: inputAsTitle),
-                    const Spacer(),
-                    if (desktopMode)
-                      buildUserButton(context, isAlignLeft: false).px(5).centerRight,
-                  ],
-                ),
-              ] else ...[
-                inputAsTitle
-              ],
+              // ] else ...[
+              //   inputAsTitle
+              // ],
 
               // Todo make it works
               if (desktopMode) buildTextStoreBar(context).centerLeft.appearAll,
@@ -344,6 +311,46 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
               .expanded(),
         ],
       ),
+    );
+  }
+
+  Column buildProductPageTitle(
+      bool desktopMode, Widget inputAsTitle, BuildContext context) {
+    return Column(
+      children: [
+        'Product page for:'
+            .toText(color: AppColors.greyText, fontSize: 18, medium: true)
+            .px(10)
+            .pOnly(
+              top: desktopMode ? 0 : 15,
+              bottom: 5,
+            )
+            .topLeft,
+
+        // if (desktopMode) ...[
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (googleResults.first.title != googleResults.first.translatedTitle)
+              Icons.g_translate
+                  .icon(
+                      color: useTranslatedResult
+                          ? AppColors.secondaryBlue
+                          : AppColors.secondaryBlue.withOpacity(0.5),
+                      size: 28)
+                  .px(10)
+                  .py(5)
+                  .onTap(() {
+                useTranslatedResult = !useTranslatedResult;
+                setState(() {});
+              }, radius: 10),
+            Hero(tag: 'textStoreAi', child: inputAsTitle),
+            const Spacer(),
+            if (desktopMode)
+              buildUserButton(context, isAlignLeft: false).px(5).centerRight,
+          ],
+        ),
+      ],
     );
   }
 

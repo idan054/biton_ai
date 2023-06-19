@@ -220,13 +220,23 @@ class _HomeScreenState extends State<HomeScreen> {
             ).centerLeft,
             // const SizedBox(height: 230),
             const Spacer(),
-            Hero(tag: 'textStoreAi', child: textStoreAi.toText(fontSize: 50, bold: true)),
+            Hero(
+                tag: 'textStoreAi',
+                child:
+                    // textStoreAi.toText(fontSize: 50, bold: true),
+                    Image.asset('assets/DARK-LOGO.png', height: desktopMode ? 100 : 70)
+                        .offset(
+                  desktopMode ? -20 : 0,
+                  desktopMode ? 20 : 0,
+                )),
 
             const SizedBox(height: 10),
             // 'Sell more by Ai Text for your store'.toText(fontSize: 20).px(25),
             // 'Fast | Create product | SEO'.toText(fontSize: 20).px(25),
             // 'Ai that make sales'.toText(fontSize: 20).px(25),
-            'Sell more with Ai text for your store'
+            // 'Sell more with Ai text for your store'
+            // 'Boost sales with Ai products'
+            'Make products with Ai & Boost sales'
                 .toText(
                   fontSize: desktopMode ? 20 : 17,
                   textAlign: TextAlign.center,
@@ -537,7 +547,9 @@ Widget textStoreBar(
             child: Row(
               children: [
                 Directionality(
-                  textDirection: searchController.text.isHebrew ? TextDirection.rtl : TextDirection.ltr,
+                  textDirection: searchController.text.isHebrew
+                      ? TextDirection.rtl
+                      : TextDirection.ltr,
                   child: TextField(
                     autofocus: true,
                     controller: searchController,

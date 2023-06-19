@@ -81,8 +81,9 @@ Future<String?> createProductAction(
         tSubValue =
             await translator.translate(text: cleanSubResult, to: sourceLangCode ?? 'en');
       }
-      translatedResults.add(
-          res.copyWith(translatedTitle: tValue.translatedText, translatedDesc: tSubValue?.translatedText));
+      translatedResults.add(res.copyWith(
+          translatedTitle: tValue.translatedText,
+          translatedDesc: tSubValue?.translatedText));
       printYellow('Translated from EN to ${tValue.detectedSourceLanguage}');
       print('Original: $cleanResult');
       print('Translated: ${tValue.translatedText}\n');
@@ -122,12 +123,7 @@ void _navigateToSearchResults(
 
   Navigator.push(
     context,
-    MaterialPageRoute(
-        builder: (context) => ResultsScreen(
-              input,
-              results,
-              _inUsePrompts,
-            )),
+    MaterialPageRoute(builder: (context) => ResultsScreen(input, results, _inUsePrompts)),
   );
 }
 
