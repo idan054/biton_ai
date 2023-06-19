@@ -527,6 +527,22 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
                   if (!desktopMode && !miniMode)
                     buildUserButton(context, isAlignLeft: true).px(5).centerLeft,
                   const SizedBox(height: 20),
+                  miniMode
+                      ? Container(
+                          padding:
+                              const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                          decoration: BoxDecoration(
+                              // color: AppColors.lightBlue, borderRadius: 99.rounded),
+                              color: AppColors.transparent,
+                              borderRadius: 99.rounded),
+                          // child: Image.asset('assets/FAVICON-WHITE.png', height: 30))
+                          child: Image.asset('assets/FAVICON.png', height: 45))
+                      : Image.asset('assets/DARK-LOGO.png', height: 55).onTap(
+                          () => Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const HomeScreen())),
+                          radius: 5),
                   const SizedBox(height: 10),
                   CategoryDrawerList(
                     miniMode: miniMode,
