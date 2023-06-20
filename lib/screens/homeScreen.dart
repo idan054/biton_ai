@@ -212,25 +212,28 @@ class _HomeScreenState extends State<HomeScreen> {
         body: Column(
           // mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            buildUserButton(
-              context,
-              isAlignLeft: true,
-              onTapLogin: () async => setup(forceDialog: true),
-              // : () async => _redirectWebsite()),
-            ).centerLeft,
+            buildHomeMenu(context,
+                    isAlignLeft: true,
+                    onTapLogin: () async => setup(forceDialog: true),
+                    onTapAdvanced: (_categories.isEmpty || _promptsList.isEmpty)
+                        ? null
+                        : () => _handleOnAdvanced()
+                    // : () async => _redirectWebsite()),
+                    )
+                .centerLeft,
             // const SizedBox(height: 230),
             const Spacer(),
             Hero(
                 tag: 'textStoreAi',
                 child:
                     // textStoreAi.toText(fontSize: 50, bold: true),
-                    Image.asset('assets/DARK-LOGO.png', height: desktopMode ? 100 : 70)
+                    Image.asset('assets/DARK-LOGO.png', height: desktopMode ? 90 : 60)
                         .offset(
-                  desktopMode ? -20 : 0,
-                  desktopMode ? 20 : 0,
+                  desktopMode ? -30 : 0,
+                  desktopMode ? 30 : 0,
                 )),
 
-            const SizedBox(height: 10),
+            const SizedBox(height: 20),
             // 'Sell more by Ai Text for your store'.toText(fontSize: 20).px(25),
             // 'Fast | Create product | SEO'.toText(fontSize: 20).px(25),
             // 'Ai that make sales'.toText(fontSize: 20).px(25),
@@ -254,30 +257,19 @@ class _HomeScreenState extends State<HomeScreen> {
               onSubmitted: _inUsePrompts.isEmpty || currUser == null
                   ? null
                   : (val) async => _handleOnSubmit(),
-              prefixIcon: Icons.settings_suggest
-                  .icon(
-                      color: _categories.isEmpty || _promptsList.isEmpty
-                          ? AppColors.greyText.withOpacity(0.30)
-                          : AppColors.greyText,
-                      size: 25)
-                  .px(20)
-                  .py(12)
-                  .onTap((_categories.isEmpty || _promptsList.isEmpty)
-                      ? null
-                      : () async {
-                          await showDialog(
-                            context: context,
-                            barrierDismissible: false,
-                            builder: (BuildContext context) {
-                              return ThreeColumnDialog(
-                                promptsList: _promptsList,
-                                selectedPrompts: _inUsePrompts,
-                                categories: _categories,
-                              );
-                            },
-                          );
-                          setState(() {}); // Update uniModel values
-                        }),
+              prefixIcon: false
+                  ? Icons.settings_suggest
+                      .icon(
+                          color: _categories.isEmpty || _promptsList.isEmpty
+                              ? AppColors.greyText.withOpacity(0.30)
+                              : AppColors.greyText,
+                          size: 25)
+                      .px(20)
+                      .py(12)
+                      .onTap((_categories.isEmpty || _promptsList.isEmpty)
+                          ? null
+                          : () => _handleOnAdvanced())
+                  : null,
             ),
 
             if (errorMessage != null)
@@ -315,6 +307,21 @@ class _HomeScreenState extends State<HomeScreen> {
         )
         // .center,
         );
+  }
+
+  void _handleOnAdvanced() async {
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return ThreeColumnDialog(
+          promptsList: _promptsList,
+          selectedPrompts: _inUsePrompts,
+          categories: _categories,
+        );
+      },
+    );
+    setState(() {}); // Update uniModel values
   }
 
   void _handleOnSubmit() async {
@@ -373,8 +380,12 @@ void showUserMenu(
   ).then((value) => print('Selected: $value'));
 }
 
-Widget buildUserButton(BuildContext context,
-    {GestureTapCallback? onTapLogin, required bool isAlignLeft}) {
+Widget buildHomeMenu(
+  BuildContext context, {
+  GestureTapCallback? onTapLogin,
+  GestureTapCallback? onTapAdvanced,
+  required bool isAlignLeft,
+}) {
   late bool loginMode;
   bool? _isLoading;
   _isLoading ??= context.uniProvider.currUser.id == null;
@@ -386,75 +397,89 @@ Widget buildUserButton(BuildContext context,
     loginMode = currUser.id == null;
     final name = currUser.name?.split('-').first ?? '';
 
+    void onTapUser() {
+      showUserMenu(
+        context,
+        isHomeScreen: isAlignLeft,
+        onTapYourProfile: () async {
+          print('START: _redirectWebsite()');
+          _isLoading = true;
+          userStf(() {});
+
+          // final userWebToken = await WooApi.userWebToken();
+          // String url = 'https://textstore.ai/my-account/?mo_jwt_token=$userWebToken';
+
+          String url =
+              'https://www.textstore.ai/wp-json/simple-jwt-login/v1/autologin?JWT=$appConfig_userJwt';
+          print('url $url');
+          window.open(url, 'New Tab');
+          // window.open(url, '_blank');
+
+          await Future.delayed(450.milliseconds);
+          _isLoading = false;
+          userStf(() {});
+        },
+        onTapLogoutProfile: () async {
+          print('START: _logoutUser()');
+          // _isLoading = false;
+          // userStf(() {});
+
+          context.uniProvider.updateWooUserModel(const WooUserModel());
+          currUser = context.uniProvider.currUser;
+          appConfig_userJwt = '';
+          userStf(() {});
+          final box = await Hive.openBox('currUserBox');
+          box.clear();
+
+          // if (onTapLogin == null) {
+          Navigator.pushReplacement(
+              context, MaterialPageRoute(builder: (context) => const HomeScreen()));
+          // }
+        },
+      );
+    }
+
     return SizedBox(
-      height: 50,
-      child: Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Icons.account_circle.icon(color: color, size: 24),
-            if (_isLoading! || loginMode) ...[
-              (_isLoading! ? 'Loading...' : 'Login profile')
-                  .toText(style: style)
-                  .pOnly(right: 10, left: 10),
-            ] else ...[
-              name.toString().toText(style: style).pOnly(right: 10, left: 10),
-              ('| ').toText(style: style).pOnly(right: 10),
-              Icons.offline_bolt.icon(color: color, size: 24).pOnly(right: 10),
-              ('${currUser.points} Tokens').toText(style: style).pOnly(right: 10),
-            ],
-          ]).px(10).onTap(
-          _isLoading!
-              ? null
-              : (loginMode
-                  ? onTapLogin
-                  : () {
-                      showUserMenu(
-                        context,
-                        isHomeScreen: isAlignLeft,
-                        onTapYourProfile: () async {
-                          print('START: _redirectWebsite()');
-                          _isLoading = true;
-                          userStf(() {});
-
-                          // final userWebToken = await WooApi.userWebToken();
-                          // String url = 'https://textstore.ai/my-account/?mo_jwt_token=$userWebToken';
-
-                          String url =
-                              'https://www.textstore.ai/wp-json/simple-jwt-login/v1/autologin?JWT=$appConfig_userJwt';
-                          print('url $url');
-                          window.open(url, 'New Tab');
-                          // window.open(url, '_blank');
-
-                          await Future.delayed(450.milliseconds);
-                          _isLoading = false;
-                          userStf(() {});
-                        },
-                        onTapLogoutProfile: () async {
-                          print('START: _logoutUser()');
-                          // _isLoading = false;
-                          // userStf(() {});
-
-                          context.uniProvider.updateWooUserModel(const WooUserModel());
-                          currUser = context.uniProvider.currUser;
-                          appConfig_userJwt = '';
-                          userStf(() {});
-                          final box = await Hive.openBox('currUserBox');
-                          box.clear();
-
-                          // if (onTapLogin == null) {
-                          Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => const HomeScreen()));
-                          // }
-                        },
-                      );
-                    }),
-          radius: 5),
-    ).appearOpacity;
+            height: 50,
+            child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  if (_isLoading! || loginMode) ...[
+                    Icons.account_circle.icon(color: color, size: 24),
+                    (_isLoading! ? 'Loading...' : 'Login profile')
+                        .toText(style: style)
+                        .pOnly(right: 10, left: 10),
+                  ] else ...[
+                    Row(
+                      children: [
+                        Icons.account_circle.icon(color: color, size: 24),
+                        name.toString().toText(style: style).pOnly(left: 10),
+                      ],
+                    ).px(10).py(10).onTap(
+                        _isLoading! ? null : (loginMode ? onTapLogin : onTapUser),
+                        radius: 5),
+                    ('| ').toText(style: style),
+                    if (onTapAdvanced != null) ...[
+                      Row(
+                        children: [
+                          Icons.settings_suggest
+                              .icon(color: color, size: 24)
+                              .pOnly(right: 10, left: 10),
+                          ('Advanced').toText(style: style).pOnly(right: 10),
+                        ],
+                      ).py(10).onTap(onTapAdvanced, radius: 5),
+                      ('| ').toText(style: style).pOnly(right: 10),
+                    ],
+                    Icons.offline_bolt.icon(color: color, size: 24).pOnly(right: 10),
+                    ('${currUser.points} Tokens').toText(style: style).pOnly(right: 10),
+                  ],
+                ]).px(10))
+        .appearOpacity;
   });
 }
+
+void handleUserAction() {}
 
 Future<List<WooPostModel>> setSelectedList(
     BuildContext context, List<WooPostModel> _fullPromptList) async {
@@ -505,7 +530,7 @@ Widget textStoreBar(
   BuildContext context, {
   required bool isLoading,
   required TextEditingController searchController,
-  required Widget prefixIcon,
+  required Widget? prefixIcon,
   required ValueChanged<String>? onSubmitted,
   required GestureTapCallback? onStart,
 }) {
@@ -555,6 +580,8 @@ Widget textStoreBar(
                     controller: searchController,
                     onSubmitted: onSubmitted,
                     decoration: InputDecoration(
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: prefixIcon == null ? 20 : 0),
                       filled: true,
                       fillColor: AppColors.white,
                       hoverColor: AppColors.greyLight.withOpacity(0.1),

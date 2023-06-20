@@ -131,6 +131,7 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
   Timer? _timer; // 1 time run.
   double _longDescLoader = 0.0;
   bool useTranslatedResult = false;
+  bool showHtmlEditor = true;
 
   Widget buildCardsRow(List<ResultModel> currList) {
     double width = MediaQuery.of(context).size.width;
@@ -178,7 +179,9 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
     }
 
     // When currList.isNotEmpty
-    if (errorMessage == null && currList.first.category == ResultCategory.longDesc) {
+    if (errorMessage == null &&
+        currList.first.category == ResultCategory.longDesc &&
+        showHtmlEditor) {
       // print('currList $currList');
       // print('currList.first.category ${currList.first.category}');
       String article;
@@ -260,13 +263,19 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
               backgroundColor: Colors.transparent,
               toolbarHeight: 90,
               titleSpacing: 0,
-              // title: buildTextStoreBar(context).pOnly(top: 10).appearAll,
-              title: buildProductPageTitle(desktopMode, inputAsTitle, context).appearAll,
-              leading: Builder(
-                  builder: (context) => Icons.menu
-                      .icon(color: AppColors.greyText, size: 24)
-                      .pOnly(top: 10, left: 10)
-                      .onTap(() => Scaffold.of(context).openDrawer(), radius: 10)),
+              // Removes the back button
+              automaticallyImplyLeading: false,
+              title: buildProductPageTitle(desktopMode, inputAsTitle, context)
+                  .pOnly(left: 10)
+                  .appearAll,
+              actions: [
+                Builder(
+                    builder: (context) => Icons.menu
+                        .icon(color: AppColors.greyText, size: 24)
+                        .pOnly(left: 10, right: 10)
+                        .onTap(() => Scaffold.of(context).openDrawer(), radius: 10)
+                        .pOnly(top: 10, right: 20))
+              ],
             ),
       drawer: buildDrawer(),
       body: Row(
@@ -284,8 +293,8 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
               // ],
 
               // Todo make it works
-              if (desktopMode) buildTextStoreBar(context).centerLeft.appearAll,
-              const SizedBox(height: 10),
+              // if (desktopMode) buildTextStoreBar(context).centerLeft.appearAll,
+              // const SizedBox(height: 10),
 
               buildCardsRow(googleResults),
               if (sCategoryItems.contains(ResultCategory.gResults))
@@ -307,7 +316,7 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
               .px(desktopMode ? 30 : 5)
               .singleChildScrollView
               .top
-              .pOnly(top: desktopMode ? 30 : 10)
+              .pOnly(top: desktopMode ? 10 : 10)
               .expanded(),
         ],
       ),
@@ -318,14 +327,23 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
       bool desktopMode, Widget inputAsTitle, BuildContext context) {
     return Column(
       children: [
-        'Product page for:'
-            .toText(color: AppColors.greyText, fontSize: 18, medium: true)
-            .px(10)
-            .pOnly(
-              top: desktopMode ? 0 : 15,
-              bottom: 5,
-            )
-            .topLeft,
+        Row(
+          children: [
+            'Product page for:'
+                .toText(color: AppColors.greyText, fontSize: 18, medium: true)
+                .px(10)
+                .pOnly(top: desktopMode ? 0 : 15)
+                .topLeft,
+            const Spacer(),
+            if (desktopMode)
+              buildHomeMenu(context,
+                      isAlignLeft: false,
+                      // handleOnAdvanced is on Drawer on mobile
+                      onTapAdvanced: desktopMode ? handleOnAdvanced : null)
+                  .px(5)
+                  .centerRight,
+          ],
+        ),
 
         // if (desktopMode) ...[
         Row(
@@ -345,11 +363,8 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
                 setState(() {});
               }, radius: 10),
             Hero(tag: 'textStoreAi', child: inputAsTitle),
-            const Spacer(),
-            if (desktopMode)
-              buildUserButton(context, isAlignLeft: false).px(5).centerRight,
           ],
-        ),
+        ).offset(0, desktopMode ? -15 : 0).centerLeft,
       ],
     );
   }
@@ -525,7 +540,7 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
                 children: [
                   const SizedBox(height: 10),
                   if (!desktopMode && !miniMode)
-                    buildUserButton(context, isAlignLeft: true).px(5).centerLeft,
+                    buildHomeMenu(context, isAlignLeft: true).px(5).centerLeft,
                   const SizedBox(height: 20),
                   miniMode
                       ? Container(
@@ -572,7 +587,7 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
                     },
                   ),
                   const Spacer(),
-                  _buildAdvancedButton(miniMode),
+                  if (!desktopMode) _buildAdvancedButton(miniMode),
                   10.verticalSpace,
                   _buildAddButton(miniMode),
                   20.verticalSpace,
@@ -639,20 +654,7 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
           elevation: 0,
           shape: 10.roundedShape,
           child: ListTile(
-              onTap: () async {
-                await showDialog(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: (BuildContext context) {
-                    return ThreeColumnDialog(
-                      promptsList: context.uniProvider.fullPromptList,
-                      selectedPrompts: context.uniProvider.inUsePromptList,
-                      categories: context.uniProvider.categories,
-                    );
-                  },
-                );
-                setState(() {}); // Update uniModel values
-              },
+              onTap: handleOnAdvanced,
               horizontalTitleGap: 0,
               minLeadingWidth: miniMode ? 0 : 40,
               contentPadding:
@@ -672,6 +674,24 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
         ),
       ).px(10);
     });
+  }
+
+  void handleOnAdvanced() async {
+    showHtmlEditor = false;
+    setState(() {});
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return ThreeColumnDialog(
+          promptsList: context.uniProvider.fullPromptList,
+          selectedPrompts: context.uniProvider.inUsePromptList,
+          categories: context.uniProvider.categories,
+        );
+      },
+    );
+    showHtmlEditor = true;
+    setState(() {}); // Update uniModel values
   }
 
 // TextField _buildUserInput() {
