@@ -256,45 +256,35 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
       drawerScrimColor: Colors.transparent,
       key: _scaffoldKey,
       backgroundColor: AppColors.lightPrimaryBg,
-      appBar: desktopMode
-          ? null
-          : AppBar(
-              elevation: 0,
-              backgroundColor: Colors.transparent,
-              toolbarHeight: 90,
-              titleSpacing: 0,
-              // Removes the back button
-              automaticallyImplyLeading: false,
-              title: buildProductPageTitle(desktopMode, inputAsTitle, context)
-                  .pOnly(left: 10)
-                  .appearAll,
-              actions: [
-                Builder(
-                    builder: (context) => Icons.menu
-                        .icon(color: AppColors.greyText, size: 24)
-                        .pOnly(left: 10, right: 10)
-                        .onTap(() => Scaffold.of(context).openDrawer(), radius: 10)
-                        .pOnly(top: 10, right: 20))
-              ],
-            ),
+      appBar:
+          // desktopMode ? null :
+          AppBar(
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        toolbarHeight: 90,
+        titleSpacing: 0,
+        // Removes the back button
+        automaticallyImplyLeading: false,
+        title: buildProductPageTitle(desktopMode, inputAsTitle, context)
+            // .pOnly(left: 10)
+            .appearAll,
+        actions: [
+          if (!desktopMode)
+            Builder(
+                builder: (context) => Icons.menu
+                    .icon(color: AppColors.greyText, size: 24)
+                    .pOnly(left: 10, right: 10)
+                    .onTap(() => Scaffold.of(context).openDrawer(), radius: 10)
+                    .pOnly(top: 10, right: 20))
+        ],
+      ),
       drawer: buildDrawer(),
       body: Row(
         children: [
           if (desktopMode) buildDrawer(miniMode: true).appearAll,
           Column(
             children: [
-              // buildUserInput().pOnly(top: 20),
-              // Divider(color: AppColors.greyLight, thickness: 1, height: 0),
-
-              if (desktopMode) buildProductPageTitle(desktopMode, inputAsTitle, context),
-
-              // ] else ...[
-              //   inputAsTitle
-              // ],
-
-              // Todo make it works
-              // if (desktopMode) buildTextStoreBar(context).centerLeft.appearAll,
-              // const SizedBox(height: 10),
+              // if (desktopMode) buildProductPageTitle(desktopMode, inputAsTitle, context),
 
               buildCardsRow(googleResults),
               if (sCategoryItems.contains(ResultCategory.gResults))
@@ -323,48 +313,55 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
     );
   }
 
-  Column buildProductPageTitle(
+  Widget buildProductPageTitle(
       bool desktopMode, Widget inputAsTitle, BuildContext context) {
-    return Column(
+    double width = MediaQuery.of(context).size.width;
+    double height = MediaQuery.of(context).size.height;
+    return Row(
+      // mainAxisSize: MainAxisSize.min,
       children: [
-        Row(
+        if (desktopMode)
+          Container(
+              height: 90,
+              width: 90,
+              color: Colors.white,
+              child:
+                  Image.asset('assets/FAVICON.png', height: 40).pad(15).pOnly(top: 15)),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             'Product page for:'
                 .toText(color: AppColors.greyText, fontSize: 18, medium: true)
-                .px(10)
-                .pOnly(top: desktopMode ? 0 : 15)
-                .topLeft,
-            const Spacer(),
-            if (desktopMode)
-              buildHomeMenu(context,
-                      isAlignLeft: false,
-                      // handleOnAdvanced is on Drawer on mobile
-                      onTapAdvanced: desktopMode ? handleOnAdvanced : null)
-                  .px(5)
-                  .centerRight,
+                .pOnly(top: desktopMode ? 0 : 15, left: 10),
+            Row(
+              children: [
+                Hero(tag: 'textStoreAi', child: inputAsTitle),
+                if (googleResults.first.title != googleResults.first.translatedTitle)
+                  Icons.g_translate
+                      .icon(
+                          color: useTranslatedResult
+                              ? AppColors.secondaryBlue
+                              : AppColors.secondaryBlue.withOpacity(0.5),
+                          size: 28)
+                      .px(10)
+                      .pOnly(top: 10)
+                      .onTap(() {
+                    useTranslatedResult = !useTranslatedResult;
+                    setState(() {});
+                  }, radius: 10, tapColor: Colors.transparent),
+              ],
+            )
+            // .offset(0, desktopMode ? -15 : 0)
           ],
-        ),
-
-        // if (desktopMode) ...[
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (googleResults.first.title != googleResults.first.translatedTitle)
-              Icons.g_translate
-                  .icon(
-                      color: useTranslatedResult
-                          ? AppColors.secondaryBlue
-                          : AppColors.secondaryBlue.withOpacity(0.5),
-                      size: 28)
-                  .px(10)
-                  .py(5)
-                  .onTap(() {
-                useTranslatedResult = !useTranslatedResult;
-                setState(() {});
-              }, radius: 10),
-            Hero(tag: 'textStoreAi', child: inputAsTitle),
-          ],
-        ).offset(0, desktopMode ? -15 : 0).centerLeft,
+        ).px(30),
+        const Spacer(),
+        if (desktopMode)
+          buildHomeMenu(context,
+                  isAlignLeft: false,
+                  // handleOnAdvanced is on Drawer on mobile
+                  onTapAdvanced: desktopMode ? handleOnAdvanced : null)
+              .px(5)
+              .topRight,
       ],
     );
   }
@@ -542,23 +539,13 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
                   if (!desktopMode && !miniMode)
                     buildHomeMenu(context, isAlignLeft: true).px(5).centerLeft,
                   const SizedBox(height: 20),
-                  miniMode
-                      ? Container(
-                          padding:
-                              const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                          decoration: BoxDecoration(
-                              // color: AppColors.lightBlue, borderRadius: 99.rounded),
-                              color: AppColors.transparent,
-                              borderRadius: 99.rounded),
-                          // child: Image.asset('assets/FAVICON-WHITE.png', height: 30))
-                          child: Image.asset('assets/FAVICON.png', height: 45))
-                      : Image.asset('assets/DARK-LOGO.png', height: 55).onTap(
-                          () => Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => const HomeScreen())),
-                          radius: 5),
-                  const SizedBox(height: 10),
+                  if (!miniMode) ...[
+                    Image.asset('assets/DARK-LOGO.png', height: 55).onTap(
+                        () => Navigator.pushReplacement(context,
+                            MaterialPageRoute(builder: (context) => const HomeScreen())),
+                        radius: 5),
+                    const SizedBox(height: 25),
+                  ],
                   CategoryDrawerList(
                     miniMode: miniMode,
                     categories: const [
