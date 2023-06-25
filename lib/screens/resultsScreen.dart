@@ -20,6 +20,7 @@ import 'package:html_editor_enhanced/html_editor.dart';
 
 import '../common/constants.dart';
 import '../common/models/prompt/result_model.dart';
+import '../common/models/uniModel.dart';
 import '../common/services/color_printer.dart';
 import '../common/services/createProduct_service.dart';
 import '../common/services/gpt_service.dart';
@@ -77,10 +78,19 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
   AnimationController? _animationController;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
+  void updateUserPoints({bool errMode = false}) async {
+    final UniProvider uni = context.uniProvider;
+    uni.updateWooUserModel(uni.currUser
+        .copyWith(points: errMode ? uni.currUser.points + 1 : uni.currUser.points - 1));
+    await WooApi.setUserPoints(uid: uni.currUser.id, points: uni.currUser.points)
+        .catchSentryError();
+  }
+
   @override
   void initState() {
     googleResults = [...widget.googleResults];
-    setState(() {}); // Might be unnecessary
+    updateUserPoints();
+    setState(() {});
 
     // currentResults = googleResults;
     // autoFetchResults(ResultCategory.gResults);
@@ -114,6 +124,7 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
     ).catchError((err) {
       printRed('My ERROR getResults: $err');
       errorMessage = err.toString().replaceAll('Exception: ', '');
+      updateUserPoints(errMode: true);
       setState(() {});
       return <ResultModel>[];
     });
@@ -366,49 +377,49 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
     );
   }
 
-  Widget buildTextStoreBar(BuildContext context) {
-    var uniModel = context.listenUniProvider;
-    return Offstage(
-      offstage: true,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          textStoreBar(
-            context,
-            isLoading: _isLoading,
-            searchController: inputController,
-            onStart: () async => _handleOnSubmit(),
-            onSubmitted: (val) async => _handleOnSubmit(),
-            prefixIcon: Icons.tune
-                .icon(color: AppColors.greyText, size: 25)
-                .px(20)
-                .py(12)
-                .onTap(() async {
-              await showDialog(
-                context: context,
-                barrierDismissible: false,
-                builder: (BuildContext context) {
-                  return ThreeColumnDialog(
-                    promptsList: uniModel.fullPromptList,
-                    selectedPrompts: uniModel.inUsePromptList,
-                    categories: uniModel.categories,
-                  );
-                },
-              );
-              setState(() {}); // Update uniModel values
-            }),
-          ),
-          if (errorMessage != null)
-            errorMessage
-                .toString()
-                .toText(color: AppColors.errRed, fontSize: 16, maxLines: 5)
-                .py(5)
-                .px(20)
-        ],
-      ),
-    );
-  }
+  // Widget _buildTextStoreBar(BuildContext context) {
+  //   var uniModel = context.listenUniProvider;
+  //   return Offstage(
+  //     offstage: true,
+  //     child: Column(
+  //       mainAxisSize: MainAxisSize.min,
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         textStoreBar(
+  //           context,
+  //           isLoading: _isLoading,
+  //           searchController: inputController,
+  //           onStart: () async => _handleOnSubmit(),
+  //           onSubmitted: (val) async => _handleOnSubmit(),
+  //           prefixIcon: Icons.tune
+  //               .icon(color: AppColors.greyText, size: 25)
+  //               .px(20)
+  //               .py(12)
+  //               .onTap(() async {
+  //             await showDialog(
+  //               context: context,
+  //               barrierDismissible: false,
+  //               builder: (BuildContext context) {
+  //                 return ThreeColumnDialog(
+  //                   promptsList: uniModel.fullPromptList,
+  //                   selectedPrompts: uniModel.inUsePromptList,
+  //                   categories: uniModel.categories,
+  //                 );
+  //               },
+  //             );
+  //             setState(() {}); // Update uniModel values
+  //           }),
+  //         ),
+  //         if (errorMessage != null)
+  //           errorMessage
+  //               .toString()
+  //               .toText(color: AppColors.errRed, fontSize: 16, maxLines: 5)
+  //               .py(5)
+  //               .px(20)
+  //       ],
+  //     ),
+  //   );
+  // }
 
   void _handleOnSubmit() async {
     errorMessage = null;
@@ -418,6 +429,7 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
     await createProductAction(context, inputController).catchError((err) {
       printRed('My ERROR createProductAction 2: $err');
       errorMessage = err.toString().replaceAll('Exception: ', '');
+      updateUserPoints(errMode: true);
     });
     _isLoading = false;
     setState(() {});

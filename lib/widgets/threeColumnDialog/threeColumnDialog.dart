@@ -174,7 +174,7 @@ class _ThreeColumnDialogState extends State<ThreeColumnDialog> {
         onTap: (category) => _onCategoryChanged(category),
       ),
       buildEditPromptsList(promptListSize),
-      if (desktopMode) verticalDivider,
+      if (desktopMode) verticalDivider(height: 1000),
       desktopMode ? buildPromptForm().expanded() : buildPromptForm(),
     ];
 

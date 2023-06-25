@@ -343,6 +343,7 @@ class _RegisterDialogState extends State<RegisterDialog> {
                           email: _emailController.text,
                           password: _passController.text,
                         );
+
                       }
                     } on Exception catch (err, s) {
                       isLoading = false;

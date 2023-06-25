@@ -216,7 +216,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     isAlignLeft: true,
                     onTapLogin: () async => setup(forceDialog: true),
                     onTapAdvanced: (_categories.isEmpty || _promptsList.isEmpty)
-                        ? null
+                        ? () {}
                         : () => _handleOnAdvanced()
                     // : () async => _redirectWebsite()),
                     )
@@ -227,13 +227,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 tag: 'textStoreAi',
                 child:
                     // textStoreAi.toText(fontSize: 50, bold: true),
-                    Image.asset('assets/DARK-LOGO.png', height: desktopMode ? 90 : 60)
-                        .offset(
-                  desktopMode ? -30 : 0,
-                  desktopMode ? 30 : 0,
-                )),
+                    Image.asset('assets/DARK-LOGO.png', height: desktopMode ? 82 : 40)
+                        .offset(-37, 10)),
 
-            const SizedBox(height: 20),
+            // const SizedBox(height: 10),
             // 'Sell more by Ai Text for your store'.toText(fontSize: 20).px(25),
             // 'Fast | Create product | SEO'.toText(fontSize: 20).px(25),
             // 'Ai that make sales'.toText(fontSize: 20).px(25),
@@ -241,11 +238,11 @@ class _HomeScreenState extends State<HomeScreen> {
             // 'Boost sales with Ai products'
             'Make products with Ai & Boost sales'
                 .toText(
-                  fontSize: desktopMode ? 20 : 17,
+                  fontSize: desktopMode ? 16 : 14,
                   textAlign: TextAlign.center,
                 )
                 .px(25),
-            const SizedBox(height: 20),
+            const SizedBox(height: 35),
             // region Search TextField
             textStoreBar(
               context,
@@ -257,19 +254,33 @@ class _HomeScreenState extends State<HomeScreen> {
               onSubmitted: _inUsePrompts.isEmpty || currUser == null
                   ? null
                   : (val) async => _handleOnSubmit(),
-              prefixIcon: false
-                  ? Icons.settings_suggest
-                      .icon(
-                          color: _categories.isEmpty || _promptsList.isEmpty
-                              ? AppColors.greyText.withOpacity(0.30)
-                              : AppColors.greyText,
-                          size: 25)
-                      .px(20)
-                      .py(12)
-                      .onTap((_categories.isEmpty || _promptsList.isEmpty)
-                          ? null
-                          : () => _handleOnAdvanced())
-                  : null,
+              // prefixIcon: false
+              //     ? Icons.settings_suggest
+              //         .icon(
+              //             color: _categories.isEmpty || _promptsList.isEmpty
+              //                 ? AppColors.greyText.withOpacity(0.30)
+              //                 : AppColors.greyText,
+              //             size: 25)
+              //         .px(20)
+              //         .py(12)
+              //         .onTap((_categories.isEmpty || _promptsList.isEmpty)
+              //             ? null
+              //             : () => _handleOnAdvanced())
+              //     : null,
+
+              //   prefixIcon: Builder(builder: (context) {
+              //     var currUser = context.uniProvider.currUser;
+              //     var color = AppColors.greyText.withOpacity(_isLoading ? 0.3 : 0.5);
+              //     var style = ''.toText(fontSize: 15, medium: true, color: color).style;
+              //     return Row(
+              //       mainAxisSize: MainAxisSize.min,
+              //       children: [
+              //         Icons.offline_bolt.icon(color: color, size: 24).pOnly(left: 15),
+              //         ('${currUser.points}').toText(style: style).px(7),
+              //         // verticalDivider(height: 20, color: color).pOnly(right: 7),
+              //       ],
+              //     );
+              //   }),
             ),
 
             if (errorMessage != null)
@@ -332,6 +343,13 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {});
     startLoader(searchController.text);
 
+    if (context.uniProvider.currUser.points == 0) {
+      errorMessage = 'You have no Token. please pay as money';
+      _isLoading = false;
+      setState(() {});
+      return;
+    }
+
     await createProductAction(context, searchController).catchError((err, s) {
       printRed('My ERROR createProductAction: $err S: $s');
       errorMessage = err.toString().replaceAll('Exception: ', '');
@@ -344,15 +362,18 @@ class _HomeScreenState extends State<HomeScreen> {
 void showUserMenu(
   BuildContext context, {
   required bool isHomeScreen,
-  required void Function() onTapYourProfile,
-  required void Function() onTapLogoutProfile,
+  List<PopupMenuItem>? items,
+  double alignOffset = 0,
+  void Function()? onTapYourProfile,
+  void Function()? onTapContactUs,
+  void Function()? onTapLogoutProfile,
 }) {
   final RenderBox button = context.findRenderObject() as RenderBox;
   final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
   final positionData = button.localToGlobal(
       isHomeScreen
-          ? button.size.topLeft(const Offset(-10, 40))
-          : button.size.topRight(const Offset(-10, 40)),
+          ? button.size.topLeft(Offset(-10 + alignOffset, 40))
+          : button.size.topRight(Offset(-10 + alignOffset, 40)),
       ancestor: overlay);
 
   final RelativeRect position = RelativeRect.fromRect(
@@ -366,16 +387,21 @@ void showUserMenu(
   showMenu(
     context: context,
     position: position,
-    items: [
-      PopupMenuItem(
-        onTap: onTapYourProfile,
-        child: 'Your profile'.toText(medium: true),
-      ),
-      PopupMenuItem(
-        onTap: onTapLogoutProfile,
-        child: 'Logout profile'.toText(medium: true, color: AppColors.errRed),
-      ),
-    ],
+    items: items ??
+        [
+          PopupMenuItem(
+            onTap: onTapContactUs,
+            child: 'Contact us'.toTextButton(icon: Icons.email),
+          ),
+          PopupMenuItem(
+            onTap: onTapYourProfile,
+            child: 'Your profile'.toTextButton(icon: Icons.person),
+          ),
+          PopupMenuItem(
+            onTap: onTapLogoutProfile,
+            child: 'Logout'.toTextButton(color: AppColors.errRed, icon: Icons.logout),
+          ),
+        ],
     elevation: 8,
   ).then((value) => print('Selected: $value'));
 }
@@ -384,6 +410,7 @@ Widget buildHomeMenu(
   BuildContext context, {
   GestureTapCallback? onTapLogin,
   GestureTapCallback? onTapAdvanced,
+  List<PopupMenuItem>? items,
   required bool isAlignLeft,
 }) {
   late bool loginMode;
@@ -401,6 +428,13 @@ Widget buildHomeMenu(
       showUserMenu(
         context,
         isHomeScreen: isAlignLeft,
+        alignOffset: -230,
+        items: items,
+        onTapContactUs: () {
+          print('START: onTapContactUs()');
+          String url = 'https://www.textstore.ai/contact-us/';
+          window.open(url, 'New Tab');
+        },
         onTapYourProfile: () async {
           print('START: _redirectWebsite()');
           _isLoading = true;
@@ -469,10 +503,38 @@ Widget buildHomeMenu(
                           ('Advanced').toText(style: style).pOnly(right: 10),
                         ],
                       ).py(10).onTap(onTapAdvanced, radius: 5),
-                      ('| ').toText(style: style).pOnly(right: 10),
+                      ('| ').toText(style: style),
                     ],
-                    Icons.offline_bolt.icon(color: color, size: 24).pOnly(right: 10),
-                    ('${currUser.points} Tokens').toText(style: style).pOnly(right: 10),
+                    // Icons.offline_bolt.icon(color: color, size: 24).pOnly(right: 10),
+                    ('${currUser.points} Tokens')
+                        .toTextButton(
+                            style: style,
+                            icon: Icons.offline_bolt,
+                            px: 10,
+                            py: 10,
+                            onTap: () {
+                              showUserMenu(
+                                context,
+                                isHomeScreen: isAlignLeft,
+                                alignOffset: 290,
+                                items: [
+                                  PopupMenuItem(
+                                    child: 'Buy subscription'
+                                        .toTextButton(icon: Icons.shopping_bag),
+                                    onTap: () {
+                                      print('START: Buy subscription');
+                                      String url =
+                                          'https://www.textstore.ai/priceing-plan/';
+                                      window.open(url, 'New Tab');
+                                    },
+                                  )
+                                ],
+                                onTapContactUs: null,
+                                onTapYourProfile: null,
+                                onTapLogoutProfile: null,
+                              );
+                            })
+                        .pOnly(right: 10),
                   ],
                 ]).px(10))
         .appearOpacity;
@@ -530,7 +592,8 @@ Widget textStoreBar(
   BuildContext context, {
   required bool isLoading,
   required TextEditingController searchController,
-  required Widget? prefixIcon,
+  Widget? prefixIcon,
+  Widget? suffixIcon,
   required ValueChanged<String>? onSubmitted,
   required GestureTapCallback? onStart,
 }) {
@@ -593,7 +656,7 @@ Widget textStoreBar(
                           borderRadius: radius),
                       hintText: 'Full product name',
                       hintStyle: const TextStyle(color: Colors.grey),
-                      // suffixIcon: suffixIcon,
+                      suffixIcon: suffixIcon,
                       prefixIcon: prefixIcon,
                       // suffixIcon: _buildCreateButton(isLoading, _inUsePrompts, token, context, onStart),
                     ),

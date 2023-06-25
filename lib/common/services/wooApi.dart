@@ -284,6 +284,33 @@ class WooApi {
     }
   }
 
+  static Future setUserPoints({
+    required int? uid,
+    required int points,
+  }) async {
+    print("START: WooApi.setUserPoints()");
+    var url = "$baseUrl/wp/v2/users/$uid";
+
+    var headers = {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $userMakerJwt",
+    };
+    var body = jsonEncode({"description": '$points'});
+
+    final response = await http.post(Uri.parse(url), headers: headers, body: body);
+
+    if (response.statusCode == 200) {
+      print("[SET TO $points] WooApi.setUserPoints() "
+          "response.statusCode ${response.statusCode}");
+
+    } else {
+      printRed("request body $body\n");
+      printRed("response.body ${response.body}");
+      var exception = handleExceptions(response);
+      throw Exception(exception ?? "Something went wrong, Can't sign up");
+    }
+  }
+
   static Future<WooUserModel> getUserByToken(String jwtToken) async {
     print("START: WooApi.getUserByToken()");
 

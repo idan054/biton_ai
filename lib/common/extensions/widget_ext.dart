@@ -242,18 +242,18 @@ extension WidgetX on Widget {
 
   SingleChildScrollView get singleChildScrollView => SingleChildScrollView(child: this);
 
-  // TweenAnimationBuilder<double> speed({required int seconds}) {
-  //   return TweenAnimationBuilder(
-  //       duration: Duration(seconds: seconds),
-  //       tween: Tween<double>(begin: 0, end: 1),
-  //       builder: (BuildContext context, double value, Widget? child) {
-  //         return this(value);
-  //       });
-  // }
+// TweenAnimationBuilder<double> speed({required int seconds}) {
+//   return TweenAnimationBuilder(
+//       duration: Duration(seconds: seconds),
+//       tween: Tween<double>(begin: 0, end: 1),
+//       builder: (BuildContext context, double value, Widget? child) {
+//         return this(value);
+//       });
+// }
 }
 
-Widget get verticalDivider => Container(
+Widget verticalDivider({double? height, Color? color}) => Container(
       width: 1.5,
-      height: 1000,
-      color: AppColors.greyLight,
+      height: height ?? 1000,
+      color: color ?? AppColors.greyLight,
     );

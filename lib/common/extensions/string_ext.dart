@@ -1,5 +1,6 @@
 // ignore_for_file: curly_braces_in_flow_control_structures
 
+import 'package:biton_ai/common/extensions/widget_ext.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -47,7 +48,7 @@ extension StringX on String {
   DateTime get toDate => DateTime.parse(this).toLocal();
 
   // My:
-  Text toText(
+  Widget toTextButton(
       {Color color = Colors.black,
       double? fontSize,
       TextAlign? textAlign,
@@ -57,7 +58,46 @@ extension StringX on String {
       bool bold = false,
       bool autoRemove = true,
       bool underline = false,
-      bool softWrap = false}) {
+      bool softWrap = false,
+      // Bottom params
+      IconData? icon,
+      GestureTapCallback? onTap,
+      double? px,
+      double? py}) {
+    var txt = this;
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (icon != null) icon.icon(color: color).pOnly(right: 7),
+        txt.toText(
+          color: color,
+          textAlign: textAlign,
+          maxLines: maxLines,
+          medium: medium,
+          fontSize: fontSize,
+          bold: bold,
+          underline: underline,
+          style: style,
+          softWrap: softWrap,
+          autoRemove: autoRemove,
+        )
+      ],
+    ).px(px ?? 0).py(py ?? 0).onTap(onTap, radius: 5); // line spacing}
+  }
+
+  Text toText({
+    Color color = Colors.black,
+    double? fontSize,
+    TextAlign? textAlign,
+    TextStyle? style,
+    bool medium = false,
+    int? maxLines = 2,
+    bool bold = false,
+    bool autoRemove = true,
+    bool underline = false,
+    bool softWrap = false,
+  }) {
     var txt = this;
     if (autoRemove) txt = replaceAll(', ישראל', '');
 
@@ -108,7 +148,6 @@ extension StringX on String {
   //   this,
   //   style: AppStyles.text18PxSemiBold.white,
   // );
-
 
   bool get isEnglish {
     // 'Hello' // true
