@@ -82,8 +82,7 @@ class _RegisterDialogState extends State<RegisterDialog> {
   final GoogleSignIn googleSignIn = GoogleSignIn(scopes: ['email']);
   GoogleSignInAccount? account;
 
-  Future _handleGoogleSignIn() async {
-    print('A account ${account?.email}');
+  Future<List> _handleGoogleSignIn() async {
     try {
       account = null;
       await googleSignIn.signOut();
@@ -93,7 +92,6 @@ class _RegisterDialogState extends State<RegisterDialog> {
     }
 
     // isMobileDevice
-    print('B account ${account?.email}');
     print('START: .signInSilently()');
     if (!kDebugMode) account = await googleSignIn.signInSilently(); // Make bugs & issues
     clearAuthCacheIfPossible(account);
@@ -119,10 +117,10 @@ class _RegisterDialogState extends State<RegisterDialog> {
           .substring(1, 10);
       print('User pass $pass');
 
-      _emailController.text = account!.email;
-      _passController.text = pass;
+      // _emailController.text = account!.email;
+      // _passController.text = pass;
 
-      // return [account!.email, pass];
+      return [account!.email, pass];
     } else {
       throw 'Something went wrong. please try again';
     }
@@ -343,7 +341,6 @@ class _RegisterDialogState extends State<RegisterDialog> {
                           email: _emailController.text,
                           password: _passController.text,
                         );
-
                       }
                     } on Exception catch (err, s) {
                       isLoading = false;
@@ -377,7 +374,8 @@ class _RegisterDialogState extends State<RegisterDialog> {
         children: [
           const SizedBox(height: 20.0),
           // Image.network('https://www.textstore.ai/wp-content/uploads/2023/06/AI-Product-Description-Generator.png').center,
-          'TextStore'
+          // 'TextStore'
+          (loginMode ? 'Login TextStore' : 'SignUp TextStore')
               .toText(color: Colors.black, fontSize: desktopMode ? 44 : 35, bold: true)
               .center,
           const SizedBox(height: 20.0),
@@ -398,7 +396,7 @@ class _RegisterDialogState extends State<RegisterDialog> {
                   printRed('My ERROR GoogleSignIn: $err');
                   errMessage = '$err'.replaceAll('Exception: ', '').replaceAll('_', ' ');
                   if ((errMessage ?? '').contains('Login with Email & Password')) {
-                    _passController.text = '';
+                    // _passController.text = '';
                     // _emailController.text = FirebaseAuth.instance.currentUser?.email ?? '';
                   }
                   setState(() {});
@@ -411,8 +409,9 @@ class _RegisterDialogState extends State<RegisterDialog> {
                   setState(() {});
 
                   print('START: _handleGoogleSignIn();()');
-                  await _handleGoogleSignIn();
-                  final userData = await WooApi.userByEmail(_emailController.text);
+                  final data = await _handleGoogleSignIn();
+                  // final userData = await WooApi.userByEmail(_emailController.text);
+                  final userData = await WooApi.userByEmail(data[0]);
 
                   //~ When user exist & signed with email: Err
                   if (userData != null && userData.isGoogleAuth == false) {
@@ -423,9 +422,12 @@ class _RegisterDialogState extends State<RegisterDialog> {
                   //~ When user exist & signed with google:
                   if (userData != null && userData.isGoogleAuth) {
                     print('START:  _handleLogin(()');
+                    // print(' data[0] ${data[0]}');
+                    // print('data[1] ${data[1]}');
                     await _handleLogin(
-                            email: _emailController.text, password: _passController.text)
-                        .catchSentryError(onError: _handleError);
+                      email: data[0],
+                      password: data[1],
+                    ).catchSentryError(onError: _handleError);
 
                     //~ When user not exist:
                   } else {

@@ -43,13 +43,16 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  var searchController =
-      TextEditingController(text: kDebugMode ? 'Nike Air Max 90' : null);
+  var searchController = TextEditingController();
+
+  // TextEditingController(text: kDebugMode ? 'Nike Air Max 90' : null);
+  //
   List<WooCategoryModel> _categories = [];
   List<WooPostModel> _promptsList = [];
   List<WooPostModel> _inUsePrompts = [];
   WooUserModel? currUser;
   String? errorMessage;
+  bool buyTokensMessage = false;
 
   @override
   void initState() {
@@ -227,8 +230,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 tag: 'textStoreAi',
                 child:
                     // textStoreAi.toText(fontSize: 50, bold: true),
-                    Image.asset('assets/DARK-LOGO.png', height: desktopMode ? 82 : 40)
-                        .offset(-37, 10)),
+                    Image.asset('assets/DARK-LOGO.png', height: desktopMode ? 82 : 68)
+                        .offset(desktopMode ? -35 : -25, desktopMode ? 10 : 5)),
 
             // const SizedBox(height: 10),
             // 'Sell more by Ai Text for your store'.toText(fontSize: 20).px(25),
@@ -248,25 +251,35 @@ class _HomeScreenState extends State<HomeScreen> {
               context,
               isLoading: _isLoading,
               searchController: searchController,
+              onChanged: (val) => setState(() {}),
               onStart: _inUsePrompts.isEmpty || currUser == null
                   ? null
                   : () async => _handleOnSubmit(),
               onSubmitted: _inUsePrompts.isEmpty || currUser == null
                   ? null
                   : (val) async => _handleOnSubmit(),
-              // prefixIcon: false
-              //     ? Icons.settings_suggest
-              //         .icon(
-              //             color: _categories.isEmpty || _promptsList.isEmpty
-              //                 ? AppColors.greyText.withOpacity(0.30)
-              //                 : AppColors.greyText,
-              //             size: 25)
-              //         .px(20)
-              //         .py(12)
-              //         .onTap((_categories.isEmpty || _promptsList.isEmpty)
-              //             ? null
-              //             : () => _handleOnAdvanced())
-              //     : null,
+              suffixIcon: searchController.text.isEmpty
+                  ? null
+                  : Icons.close
+                      .icon(color: AppColors.greyText.withOpacity(0.30), size: 25)
+                      .px(10)
+                      .py(12)
+                      .onTap(() {
+                      searchController.clear();
+                      setState(() {});
+                    }, radius: 5),
+
+              // Icons.settings_suggest
+              //     .icon(
+              //         color: _categories.isEmpty || _promptsList.isEmpty
+              //             ? AppColors.greyText.withOpacity(0.30)
+              //             : AppColors.greyText,
+              //         size: 25)
+              //     .px(20)
+              //     .py(12)
+              //     .onTap((_categories.isEmpty || _promptsList.isEmpty)
+              //         ? null
+              //         : () => _handleOnAdvanced()),
 
               //   prefixIcon: Builder(builder: (context) {
               //     var currUser = context.uniProvider.currUser;
@@ -282,6 +295,23 @@ class _HomeScreenState extends State<HomeScreen> {
               //     );
               //   }),
             ),
+
+            if (buyTokensMessage)
+              SizedBox(
+                  width: 750,
+                  child: 'Buy Tokens & keep save time for only 1\$ per product >>> '
+                      // child: 'Buy Tokens & keep boost sales for only 1\$ per product >>> '
+                      .toTextButton(
+                    color: AppColors.secondaryBlue,
+                    underline: true,
+                    fontSize: 16,
+                    tapColor: Colors.transparent,
+                    onTap: () {
+                      print('START: Buy Tokens');
+                      String url = 'https://www.textstore.ai/priceing-plan/';
+                      window.open(url, 'New Tab');
+                    },
+                  )).py(10),
 
             if (errorMessage != null)
               // 'This can take up to 15 seconds...'
@@ -344,7 +374,8 @@ class _HomeScreenState extends State<HomeScreen> {
     startLoader(searchController.text);
 
     if (context.uniProvider.currUser.points == 0) {
-      errorMessage = 'You have no Token. please pay as money';
+      buyTokensMessage = true;
+      errorMessage = null;
       _isLoading = false;
       setState(() {});
       return;
@@ -596,6 +627,7 @@ Widget textStoreBar(
   Widget? suffixIcon,
   required ValueChanged<String>? onSubmitted,
   required GestureTapCallback? onStart,
+  ValueChanged<String>? onChanged,
 }) {
   String? token = context.uniProvider.currUser.token;
   var _inUsePrompts = context.uniProvider.inUsePromptList;
@@ -639,6 +671,7 @@ Widget textStoreBar(
                       ? TextDirection.rtl
                       : TextDirection.ltr,
                   child: TextField(
+                    onChanged: onChanged,
                     autofocus: true,
                     controller: searchController,
                     onSubmitted: onSubmitted,

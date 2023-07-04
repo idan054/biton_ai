@@ -62,6 +62,7 @@ extension StringX on String {
       // Bottom params
       IconData? icon,
       GestureTapCallback? onTap,
+      Color? tapColor,
       double? px,
       double? py}) {
     var txt = this;
@@ -83,7 +84,10 @@ extension StringX on String {
           autoRemove: autoRemove,
         )
       ],
-    ).px(px ?? 0).py(py ?? 0).onTap(onTap, radius: 5); // line spacing}
+    )
+        .px(px ?? 0)
+        .py(py ?? 0)
+        .onTap(onTap, radius: 5, tapColor: tapColor); // line spacing}
   }
 
   Text toText({

@@ -346,7 +346,7 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
                 .pOnly(top: desktopMode ? 0 : 15, left: 10),
             Row(
               children: [
-                Hero(tag: 'textStoreAi', child: inputAsTitle),
+                if (desktopMode) Hero(tag: 'textStoreAi', child: inputAsTitle),
                 if (googleResults.first.title != googleResults.first.translatedTitle)
                   Icons.g_translate
                       .icon(
@@ -360,6 +360,7 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
                     useTranslatedResult = !useTranslatedResult;
                     setState(() {});
                   }, radius: 10, tapColor: Colors.transparent),
+                if (!desktopMode) Hero(tag: 'textStoreAi', child: inputAsTitle),
               ],
             )
             // .offset(0, desktopMode ? -15 : 0)
