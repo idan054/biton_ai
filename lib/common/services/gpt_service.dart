@@ -41,20 +41,24 @@ class Gpt {
     List<ResultModel> results = [];
     ChatGptModel? titles;
     ChatGptModel? descriptions;
-    const ver = 3;
+    const model = 4; // 3 or 4
     titles = isSamePrompts
         ? await _singleCallChatGPT(context,
-            reqType: type, n: 3, prompt: prompts.first, model: ver)
+            reqType: type, n: 3, prompt: prompts.first, model: model)
         //
-        : await _multiCallChatGPT(context, reqType: type, prompts: prompts, model: ver);
+        : await _multiCallChatGPT(context, reqType: type, prompts: prompts, model: model);
 
     if (type == ResultCategory.gResults) {
       descriptions = isSamePrompts
           ? await _singleCallChatGPT(context,
-              model: ver, reqType: type, gDescription: true, n: 3, prompt: prompts.first)
+              model: model,
+              reqType: type,
+              gDescription: true,
+              n: 3,
+              prompt: prompts.first)
           //
           : await _multiCallChatGPT(context,
-              model: ver, reqType: type, gDescription: true, prompts: gDescPrompts!);
+              model: model, reqType: type, gDescription: true, prompts: gDescPrompts!);
     }
 
     var i = 0;
