@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:biton_ai/common/extensions/context_ext.dart';
+import 'package:biton_ai/common/extensions/num_ext.dart';
 import 'package:biton_ai/common/models/post/woo_post_model.dart';
 import 'package:biton_ai/common/models/prompt/result_model.dart';
 import 'package:flutter/material.dart';
@@ -14,7 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
 import 'dart:convert';
-import 'package:google_cloud_translation/google_cloud_translation.dart' as cloud;
+// import 'package:google_cloud_translation/google_cloud_translation.dart' as cloud;
 
 class Gpt {
   static Future<List<ResultModel>> getResults(
@@ -29,7 +30,7 @@ class Gpt {
         'gDescPrompts is required when type is ResultCategory.gResults');
 
     printWhite('START: getResults(): ${type.name}');
-    print('${prompts.length} prompts: $prompts');
+    // print('${prompts.length} prompts: $prompts');
 
     // .toSet() retrieve only unique items
     prompts = prompts.toSet().toList();
@@ -63,10 +64,9 @@ class Gpt {
 
     var i = 0;
 
-    cloud.Translation translator =
-        cloud.Translation(apiKey: 'AIzaSyDr_BqVcBI36gQDaQZMQQbUrpk_DGWN0xE');
-    final tValue = await translator.translate(text: input, to: 'en');
-    final sourceLangCode = tValue.detectedSourceLanguage;
+    // cloud.Translation translator = cloud.Translation(apiKey: 'AIzaSyDr_BqVcBI36gQDaQZMQQbUrpk_DGWN0xE');
+    // final tValue = await translator.translate(text: input, to: 'en');
+    // final sourceLangCode = tValue.detectedSourceLanguage;
 
     for (var _ in titles.choices) {
       var result = ResultModel(
@@ -74,14 +74,14 @@ class Gpt {
         title: titles.choices[i].toString().trim(),
         desc: descriptions?.choices[i].toString().trim(),
       );
-      final tTitle = await translator.translate(
-          text: titles.choices[i].toString().trim(), to: sourceLangCode);
-      result = result.copyWith(translatedTitle: tTitle.translatedText);
-      if (descriptions != null) {
-        final tDesc = await translator.translate(
-            text: descriptions.choices[i].toString().trim(), to: sourceLangCode);
-        result = result.copyWith(translatedDesc: tDesc.translatedText);
-      }
+      // final tTitle = await translator.translate(
+      //     text: titles.choices[i].toString().trim(), to: sourceLangCode);
+      // result = result.copyWith(translatedTitle: tTitle.translatedText);
+      // if (descriptions != null) {
+      //   final tDesc = await translator.translate(
+      //       text: descriptions.choices[i].toString().trim(), to: sourceLangCode);
+      //   result = result.copyWith(translatedDesc: tDesc.translatedText);
+      // }
       results.add(result);
       i++;
     }
@@ -166,7 +166,7 @@ class Gpt {
     bool gDescription = false,
   }) async {
     // print('\nSTART: callChatGPT()');
-    printYellow('prompt: $prompt');
+    printYellow('$reqType - prompt: $prompt');
     var type = '${reqType?.name.toUpperCase()}';
     if (gDescription) type += ' - Descriptions';
 
@@ -181,14 +181,23 @@ class Gpt {
 
       final jsonResponse = json.decode(response.body);
       // print('jsonResponse ${jsonResponse}');
-      var gptModel = ChatGptModel.fromJson(jsonResponse);
-      print('gptModel.tokenUsage ${gptModel.tokenUsage}');
-      return gptModel;
+      try {
+        var gptModel = ChatGptModel.fromJson(jsonResponse);
+        print('gptModel.tokenUsage ${gptModel.tokenUsage}');
+        return gptModel;
+      } catch (e) {
+        print('Err (Probably rate_limit_exceeded) try again in 3 sec... ${e}');
+        await Future.delayed(3.seconds);
+        return _singleCallChatGPT(context,
+            reqType: reqType, prompt: prompt, n: n, model: model);
+      }
     } else {
       // throw Exception('Failed to call API');
 
       //! This will also expose default PROMPTS!
-      throw Exception('Failed to call $reqType prompt\n$prompt');
+      // throw Exception('Failed to call $reqType prompt\n$prompt');
+      throw Exception(
+          'Failed to call $reqType Resp: ${response.statusCode} | ${response.body}');
     }
   }
 

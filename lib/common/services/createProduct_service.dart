@@ -16,47 +16,60 @@ import 'package:curved_progress_bar/curved_progress_bar.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:translator/translator.dart';
 import 'dart:convert';
-
 import '../../screens/homeScreen.dart';
 import '../constants.dart';
 import '../models/post/woo_post_model.dart';
 import '../models/prompt/result_model.dart';
 import 'package:flutter/material.dart';
-import 'package:google_cloud_translation/google_cloud_translation.dart' as cloud;
 import 'gpt_service.dart';
+
+// import 'package:google_cloud_translation/google_cloud_translation.dart' as cloud;
+import 'package:translator/translator.dart';
 
 Future<String?> createProductAction(
   BuildContext context,
   TextEditingController searchController,
 ) async {
   // final translator = GoogleTranslator(); // Free, but lower quality
-  cloud.Translation translator =
-      cloud.Translation(apiKey: 'AIzaSyDr_BqVcBI36gQDaQZMQQbUrpk_DGWN0xE');
+  // cloud.Translation translator = cloud.Translation(apiKey: 'AIzaSyDr_BqVcBI36gQDaQZMQQbUrpk_DGWN0xE');
   var _inUsePrompts = context.uniProvider.inUsePromptList;
   String input = searchController.text;
-  String englishInput = input;
+  // String englishInput = input;
   String? sourceLangCode;
   String? errMessage = _checkWordsLimit(input);
   if (errMessage != null) throw Exception(errMessage);
 
-  print('input.isEnglish ${input.isEnglish}');
-  if (input.isEnglish) {
-    printLightBlue('[PASS] Original input: $input');
-  } else {
-    // Prompt will be English
-    final tValue = await translator.translate(text: input, to: 'en');
-    englishInput = tValue.translatedText;
-    sourceLangCode = tValue.detectedSourceLanguage;
-    printYellow('Translated from $sourceLangCode to EN');
-    print('Original: $input');
-    print('Translated: $englishInput');
+  if (!kDebugMode) {
+    final createdAt = DateTime.now();
+    final jsonPrompts = _inUsePrompts.map((p) => p.toJson()).toList(growable: true);
+    var analyticsItem = {
+      'input': input,
+      'prompts': jsonPrompts,
+      'userData': context.uniProvider.currUser.toJson(),
+      'createdAt': createdAt.toIso8601String(),
+      'createdAtMicroSeconds': '${createdAt.microsecondsSinceEpoch}'
+    };
+    printTrackEvent(input, properties: analyticsItem);
   }
+
+  // print('input.isEnglish ${input.isEnglish}');
+  // if (input.isEnglish) {
+  //   printLightBlue('[PASS] Original input: $input');
+  // } else {
+  // Prompt will be English
+  // final tValue = await translator.translate(text: input, to: 'en');
+  // englishInput = tValue.translatedText;
+  // sourceLangCode = tValue.detectedSourceLanguage;
+  // printYellow('Translated from $sourceLangCode to EN');
+  // print('Original: $input');
+  // print('Translated: $englishInput');
+  // }
 
   var results = await _getGptResult(
     context,
-    englishInput,
+    // englishInput,
+    input,
     translateTo: sourceLangCode,
   ).catchSentryError(
     onError: (err, trace) {
@@ -66,31 +79,30 @@ Future<String?> createProductAction(
     },
   );
 
-  List<ResultModel> translatedResults = [];
-  for (var res in results) {
-    final cleanResult = res.title.replaceAll('"', '').replaceAll("'", "");
-    final cleanSubResult = (res.desc ?? '').replaceAll('"', '').replaceAll("'", "");
-    if (input.isEnglish) {
-      printLightBlue('[PASS] Original result:\n$cleanResult\n');
-    } else {
-      final tValue =
-          await translator.translate(text: cleanResult, to: sourceLangCode ?? 'en');
-      cloud.TranslationModel? tSubValue;
-      // Translation? tSubValue;
-      if (res.desc != null) {
-        tSubValue =
-            await translator.translate(text: cleanSubResult, to: sourceLangCode ?? 'en');
-      }
-      translatedResults.add(res.copyWith(
-          translatedTitle: tValue.translatedText,
-          translatedDesc: tSubValue?.translatedText));
-      printYellow('Translated from EN to ${tValue.detectedSourceLanguage}');
-      print('Original: $cleanResult');
-      print('Translated: ${tValue.translatedText}\n');
-    }
-  }
+  // List<ResultModel> translatedResults = [];
+  // for (var res in results) {
+  //   final cleanResult = res.title.replaceAll('"', '').replaceAll("'", "");
+  //   final cleanSubResult = (res.desc ?? '').replaceAll('"', '').replaceAll("'", "");
+  //   if (input.isEnglish) {
+  //     printLightBlue('[PASS] Original result:\n$cleanResult\n');
+  //   } else {
+  //     final tValue = await translator.translate(text: cleanResult, to: sourceLangCode ?? 'en');
+  //     cloud.TranslationModel? tSubValue;
+  //     Translation? tSubValue;
+  //     if (res.desc != null) {
+  //       tSubValue =
+  //           await translator.translate(text: cleanSubResult, to: sourceLangCode ?? 'en');
+  //     }
+  //     translatedResults.add(res.copyWith(
+  //         translatedTitle: tValue.translatedText,
+  //         translatedDesc: tSubValue?.translatedText));
+  //     printYellow('Translated from EN to ${tValue.detectedSourceLanguage}');
+  //     print('Original: $cleanResult');
+  //     print('Translated: ${tValue.translatedText}\n');
+  //   }
+  // }
 
-  if (translatedResults.isNotEmpty) results = translatedResults;
+  // if (translatedResults.isNotEmpty) results = translatedResults;
 
   _navigateToSearchResults(context, input, results);
   return errMessage;
@@ -132,7 +144,6 @@ Future<List<ResultModel>> _getGptResult(
   String input, {
   String? translateTo,
 }) async {
-  final translator = GoogleTranslator();
   var _inUsePrompts = context.uniProvider.inUsePromptList;
   // print('_inUsePrompts ${_inUsePrompts}');
   List<ResultModel> results = [];

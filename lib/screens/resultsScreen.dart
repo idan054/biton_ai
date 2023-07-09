@@ -80,8 +80,9 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
 
   void updateUserPoints({bool errMode = false}) async {
     final UniProvider uni = context.uniProvider;
-    uni.updateWooUserModel(uni.currUser
-        .copyWith(points: errMode ? uni.currUser.points + 1 : uni.currUser.points - 1));
+    uni.updateWooUserModel(uni.currUser.copyWith(
+      points: errMode ? uni.currUser.points + 1 : uni.currUser.points - 1,
+    ));
     await WooApi.setUserPoints(uid: uni.currUser.id, points: uni.currUser.points)
         .catchSentryError();
   }
@@ -89,11 +90,12 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
   @override
   void initState() {
     googleResults = [...widget.googleResults];
-    updateUserPoints();
+    // updateUserPoints();
     setState(() {});
 
     // currentResults = googleResults;
     // autoFetchResults(ResultCategory.gResults);
+
     autoFetchResults(ResultCategory.longDesc);
     autoFetchResults(ResultCategory.titles);
     autoFetchResults(ResultCategory.shortDesc);
@@ -258,6 +260,7 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
     bool desktopMode = width > 850;
 
     Widget inputAsTitle = SelectableText(widget.input,
+            textDirection: widget.input.toText().textDirection,
             style: ''.toText(fontSize: 35, bold: true).style)
         // .onTap(() => Navigator.push( context, MaterialPageRoute(builder: (context) => const HomeScreen())), radius: 5)
         .px(10)
@@ -347,19 +350,19 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
             Row(
               children: [
                 if (desktopMode) Hero(tag: 'textStoreAi', child: inputAsTitle),
-                if (googleResults.first.title != googleResults.first.translatedTitle)
-                  Icons.g_translate
-                      .icon(
-                          color: useTranslatedResult
-                              ? AppColors.secondaryBlue
-                              : AppColors.secondaryBlue.withOpacity(0.5),
-                          size: 28)
-                      .px(10)
-                      .pOnly(top: 10)
-                      .onTap(() {
-                    useTranslatedResult = !useTranslatedResult;
-                    setState(() {});
-                  }, radius: 10, tapColor: Colors.transparent),
+                // if (googleResults.first.title != googleResults.first.translatedTitle)
+                //   Icons.g_translate
+                //       .icon(
+                //           color: useTranslatedResult
+                //               ? AppColors.secondaryBlue
+                //               : AppColors.secondaryBlue.withOpacity(0.5),
+                //           size: 28)
+                //       .px(10)
+                //       .pOnly(top: 10)
+                //       .onTap(() {
+                //     useTranslatedResult = !useTranslatedResult;
+                //     setState(() {});
+                //   }, radius: 10, tapColor: Colors.transparent),
                 if (!desktopMode) Hero(tag: 'textStoreAi', child: inputAsTitle),
               ],
             )

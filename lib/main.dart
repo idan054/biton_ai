@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hive_flutter/adapters.dart';
+import 'package:mixpanel_flutter/mixpanel_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -26,6 +27,7 @@ import 'firebase_options.dart';
 import 'screens/homeScreen.dart';
 import 'package:firebase_core/firebase_core.dart';
 
+
 Future<void> main() async {
   runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
@@ -34,6 +36,8 @@ Future<void> main() async {
     await dotenv.load();
     await Hive.initFlutter();
     final token = await setUserToken();
+    mixpanel = await Mixpanel.init('d4a54319e5c410306cf1be4b92f339e3',
+        trackAutomaticEvents: true);
 
     const sentryUrl =
         'https://58ec3c5acddb489c8bcbc70d51dbb1c4@o1148186.ingest.sentry.io/4505254606864384';
@@ -47,8 +51,8 @@ Future<void> main() async {
     ], child: MyApp(token)));
     // --
   },
-          (exception, stackTrace) async =>
-      await Sentry.captureException(exception, stackTrace: stackTrace));
+      (exception, stackTrace) async =>
+          await Sentry.captureException(exception, stackTrace: stackTrace));
 }
 
 class MyApp extends StatelessWidget {
@@ -68,8 +72,8 @@ class MyApp extends StatelessWidget {
           title: 'TextStore.AI',
           theme: ThemeData(primarySwatch: Colors.blue),
           home: const HomeScreen()
-        // home: ResultsScreen()
-      ),
+          // home: ResultsScreen()
+          ),
     );
   }
 }

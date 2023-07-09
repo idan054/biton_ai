@@ -6,6 +6,7 @@ import "package:biton_ai/common/services/color_printer.dart";
 import "package:biton_ai/common/services/handle_exceptions.dart";
 import "package:flutter_dotenv/flutter_dotenv.dart";
 import "package:hive/hive.dart";
+import "package:mixpanel_flutter/mixpanel_flutter.dart";
 import "../../screens/wordpress/auth_screen.dart" as click;
 import "package:biton_ai/common/models/post/woo_post_model.dart";
 import "package:flutter/material.dart";
@@ -13,6 +14,13 @@ import "package:http/http.dart" as http;
 import "../../screens/wordpress/woo_posts_screen.dart";
 import "../models/category/woo_category_model.dart";
 import "../models/user/woo_user_model.dart";
+
+Mixpanel mixpanel = Mixpanel('PlaceHolder'); // instead nullable
+void printTrackEvent(String val, {Map<String, dynamic>? properties}) {
+  printPurple('Mixpanel PRINT: $val');
+  if (properties != null) printWhite('Mixpanel JSON: $properties');
+  mixpanel.track(val, properties: properties);
+}
 
 //~ For security reasons, use --web-port=2123 to use Wordpress API
 class WooApi {

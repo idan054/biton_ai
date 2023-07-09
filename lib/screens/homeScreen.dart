@@ -43,9 +43,10 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  var searchController = TextEditingController();
-
+  var searchController =
+  // TextEditingController();
   // TextEditingController(text: kDebugMode ? 'Nike Air Max 90' : null);
+  TextEditingController(text: kDebugMode ? 'מדפסת 3D Ender3' : null);
   //
   List<WooCategoryModel> _categories = [];
   List<WooPostModel> _promptsList = [];
@@ -258,16 +259,15 @@ class _HomeScreenState extends State<HomeScreen> {
               onSubmitted: _inUsePrompts.isEmpty || currUser == null
                   ? null
                   : (val) async => _handleOnSubmit(),
-              suffixIcon: searchController.text.isEmpty
-                  ? null
-                  : Icons.close
+              suffixIcon: searchController.text.isNotEmpty && !_isLoading
+                  ? Icons.close
                       .icon(color: AppColors.greyText.withOpacity(0.30), size: 25)
                       .px(10)
                       .py(12)
                       .onTap(() {
                       searchController.clear();
                       setState(() {});
-                    }, radius: 5),
+                    }, radius: 5) : null,
 
               // Icons.settings_suggest
               //     .icon(
