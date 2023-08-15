@@ -44,9 +44,10 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   var searchController =
-  // TextEditingController();
-  // TextEditingController(text: kDebugMode ? 'Nike Air Max 90' : null);
-  TextEditingController(text: kDebugMode ? 'מדפסת 3D Ender3' : null);
+      // TextEditingController();
+      // TextEditingController(text: kDebugMode ? 'Nike Air Max 90' : null);
+      TextEditingController(text: kDebugMode ? 'מדפסת 3D Ender3' : null);
+
   //
   List<WooCategoryModel> _categories = [];
   List<WooPostModel> _promptsList = [];
@@ -267,7 +268,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       .onTap(() {
                       searchController.clear();
                       setState(() {});
-                    }, radius: 5) : null,
+                    }, radius: 5)
+                  : null,
 
               // Icons.settings_suggest
               //     .icon(
@@ -439,6 +441,7 @@ void showUserMenu(
 
 Widget buildHomeMenu(
   BuildContext context, {
+  GestureTapCallback? onCloseIcon,
   GestureTapCallback? onTapLogin,
   GestureTapCallback? onTapAdvanced,
   List<PopupMenuItem>? items,
@@ -567,6 +570,15 @@ Widget buildHomeMenu(
                             })
                         .pOnly(right: 10),
                   ],
+                  if (onCloseIcon != null) ...[
+                    const Spacer(),
+                    Icons.close
+                        .icon(color: AppColors.greyText, size: 30)
+                        .pad(10)
+                        .onTap(onCloseIcon)
+                        .pOnly(right: 15)
+                        .centerRight,
+                  ]
                 ]).px(10))
         .appearOpacity;
   });

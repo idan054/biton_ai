@@ -155,7 +155,7 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
         return Column(
           children: [
             if (drawerCategory == ResultCategory.longDesc) ...[
-              r'Finish writing sales article will take 1-2 minutes..'
+              r'Finish writing sales article will take up to 2-3 minutes..'
                   .toText(
                       color: AppColors.greyText, fontSize: 18, medium: true, maxLines: 4)
                   .py(10)
@@ -165,7 +165,7 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
                   .appearAll,
               //
               TweenAnimationBuilder(
-                  duration: 120.seconds,
+                  duration: (60 * 3).seconds,
                   tween: Tween<double>(begin: 0, end: 1),
                   builder: (BuildContext context, double value, Widget? child) {
                     return CurvedLinearProgressIndicator(
@@ -286,10 +286,13 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
           if (!desktopMode)
             Builder(
                 builder: (context) => Icons.menu
-                    .icon(color: AppColors.greyText, size: 24)
-                    .pOnly(left: 10, right: 10)
-                    .onTap(() => Scaffold.of(context).openDrawer(), radius: 10)
-                    .pOnly(top: 10, right: 20))
+                        .icon(color: AppColors.greyText, size: 24)
+                        .pOnly(left: 10, right: 10)
+                        .onTap(() {
+                      showHtmlEditor = false;
+                      setState(() {});
+                      Scaffold.of(context).openDrawer();
+                    }, radius: 10).pOnly(top: 10, right: 20))
         ],
       ),
       drawer: buildDrawer(),
@@ -534,10 +537,27 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
     bool desktopMode = width > 850;
 
     return MouseRegion(
-      onEnter: (_) => miniMode ? _scaffoldKey.currentState?.openDrawer() : null,
-      onExit: (_) => miniMode ? null : _scaffoldKey.currentState?.closeDrawer(),
+      onEnter: (_) {
+        if (miniMode) {
+          showHtmlEditor = false;
+          setState(() {});
+          _scaffoldKey.currentState?.openDrawer();
+        }
+      },
+      onExit: (_) {
+        if (miniMode) {
+        } else {
+          showHtmlEditor = true;
+          setState(() {});
+          _scaffoldKey.currentState?.closeDrawer();
+        }
+      },
       child: SizedBox(
-        width: miniMode ? 90 : null,
+        width: miniMode
+            ? 90
+            : desktopMode
+                ? null
+                : context.width,
         child: GestureDetector(
           onTap: () {
             // if (miniMode) {
@@ -549,52 +569,66 @@ class _ResultsScreenState extends State<ResultsScreen> with TickerProviderStateM
           child: Drawer(
               backgroundColor: AppColors.white,
               elevation: miniMode ? 0 : 5,
-              child: Column(
-                children: [
-                  const SizedBox(height: 10),
-                  if (!desktopMode && !miniMode)
-                    buildHomeMenu(context, isAlignLeft: true).px(5).centerLeft,
-                  const SizedBox(height: 20),
-                  if (!miniMode) ...[
-                    Image.asset('assets/DARK-LOGO.png', height: 55).onTap(
-                        () => Navigator.pushReplacement(context,
-                            MaterialPageRoute(builder: (context) => const HomeScreen())),
-                        radius: 5),
-                    const SizedBox(height: 25),
+              child: Padding(
+                // padding: EdgeInsets.only(right: desktopMode ? 0 : 150),
+                padding: EdgeInsets.only(right: desktopMode ? 0 : 0),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 10),
+                    if (!desktopMode && !miniMode)
+                      buildHomeMenu(
+                        context,
+                        isAlignLeft: true,
+                        onCloseIcon: () {
+                          showHtmlEditor = true;
+                          setState(() {});
+                          _scaffoldKey.currentState?.closeDrawer();
+                        },
+                      ).px(5).centerLeft,
+                    const SizedBox(height: 20),
+                    if (!miniMode) ...[
+                      Image.asset('assets/DARK-LOGO.png', height: 55).onTap(
+                          () => Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const HomeScreen())),
+                          radius: 5),
+                      const SizedBox(height: 25),
+                    ],
+                    CategoryDrawerList(
+                      miniMode: miniMode,
+                      categories: const [
+                        ResultCategory.gResults,
+                        ResultCategory.titles,
+                        ResultCategory.shortDesc,
+                        ResultCategory.longDesc,
+                      ],
+                      categoriesNames: const [
+                        'Google result',
+                        'Product name',
+                        'Short Description',
+                        'Long Description',
+                      ],
+                      selectedCategory: drawerCategory,
+                      icons: const [
+                        // Icons.search_rounded,
+                        Icons.travel_explore,
+                        Icons.title,
+                        Icons.notes_rounded,
+                        Icons.description_rounded, // subject_rounded
+                      ],
+                      onSelect: (category) {
+                        // Clickable category:
+                        // _changeListByCategory(category);
+                      },
+                    ),
+                    const Spacer(),
+                    if (!desktopMode) _buildAdvancedButton(miniMode),
+                    10.verticalSpace,
+                    _buildAddButton(miniMode),
+                    20.verticalSpace,
                   ],
-                  CategoryDrawerList(
-                    miniMode: miniMode,
-                    categories: const [
-                      ResultCategory.gResults,
-                      ResultCategory.titles,
-                      ResultCategory.shortDesc,
-                      ResultCategory.longDesc,
-                    ],
-                    categoriesNames: const [
-                      'Google result',
-                      'Product name',
-                      'Short Description',
-                      'Long Description',
-                    ],
-                    selectedCategory: drawerCategory,
-                    icons: const [
-                      // Icons.search_rounded,
-                      Icons.travel_explore,
-                      Icons.title,
-                      Icons.notes_rounded,
-                      Icons.description_rounded, // subject_rounded
-                    ],
-                    onSelect: (category) {
-                      // Clickable category:
-                      // _changeListByCategory(category);
-                    },
-                  ),
-                  const Spacer(),
-                  if (!desktopMode) _buildAdvancedButton(miniMode),
-                  10.verticalSpace,
-                  _buildAddButton(miniMode),
-                  20.verticalSpace,
-                ],
+                ),
               )),
         ),
       ),
